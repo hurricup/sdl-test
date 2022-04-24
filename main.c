@@ -2,11 +2,8 @@
 #include <stdbool.h>
 #include <time.h>
 
-#define DEFAULT_WIDTH 640
-#define DEFAULT_HEIGHT 640
-
-static const int WIDTH = DEFAULT_WIDTH;
-static const int HEIGHT = DEFAULT_HEIGHT;
+static const int WIDTH = 640;
+static const int HEIGHT = 640;
 
 static const Uint32 FPS = 30;
 static const Uint32 FPS_SIZE_MS = 1000 / FPS;
@@ -14,9 +11,9 @@ static const Uint32 FPS_SIZE_MS = 1000 / FPS;
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
 
-static Uint8 buffer_red[DEFAULT_WIDTH][DEFAULT_HEIGHT];
-static Uint8 buffer_green[DEFAULT_WIDTH][DEFAULT_HEIGHT];
-static Uint8 buffer_blue[DEFAULT_WIDTH][DEFAULT_HEIGHT];
+static Uint8 *buffer_red = NULL;
+static Uint8 *buffer_green = NULL;
+static Uint8 *buffer_blue = NULL;
 
 static bool initialize_app();
 
@@ -57,7 +54,8 @@ static void
 update_screen() {
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH; x++) {
-            SDL_SetRenderDrawColor(renderer, buffer_red[x][y], buffer_green[x][y], buffer_blue[x][y], 255);
+            SDL_SetRenderDrawColor(renderer, buffer_red[x * HEIGHT + y], buffer_green[x * HEIGHT + y],
+                                   buffer_blue[x * HEIGHT + y], 255);
             SDL_RenderDrawPoint(renderer, x, y);
         }
     }
@@ -88,11 +86,14 @@ initialize_app() {
 static void
 initialize_buffers() {
     srand(SDL_GetTicks());
+    buffer_red = calloc(WIDTH * HEIGHT, sizeof(Uint8));
+    buffer_green = calloc(WIDTH * HEIGHT, sizeof(Uint8));
+    buffer_blue = calloc(WIDTH * HEIGHT, sizeof(Uint8));
     for (int x = 0; x < WIDTH; x++) {
         for (int y = 0; y < HEIGHT; y++) {
-            buffer_red[x][y] = rand() % 255;
-            buffer_green[x][y] = rand() % 255;
-            buffer_blue[x][y] = rand() % 255;
+            buffer_red[x * HEIGHT + y] = rand() % 255;
+            buffer_green[x * HEIGHT + y] = rand() % 255;
+            buffer_blue[x * HEIGHT + y] = rand() % 255;
         }
     }
 }
@@ -107,5 +108,18 @@ shutdown_app() {
         SDL_DestroyWindow(window);
         window = NULL;
     }
+    if (buffer_red) {
+        free(buffer_red);
+        buffer_red = NULL;
+    }
+    if (buffer_green) {
+        free(buffer_green);
+        buffer_green = NULL;
+    }
+    if (buffer_blue) {
+        free(buffer_blue);
+        buffer_blue = NULL;
+    }
+
     SDL_Quit();
 }
