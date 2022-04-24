@@ -2,6 +2,9 @@
 #include <stdbool.h>
 #include <time.h>
 
+#define ALLOC_BUFFER calloc(WIDTH * HEIGHT, sizeof(Uint8))
+#define OFFSET(x, y) y * WIDTH + x
+
 static const int WIDTH = 640;
 static const int HEIGHT = 640;
 
@@ -15,11 +18,15 @@ static Uint8 *buffer_red = NULL;
 static Uint8 *buffer_green = NULL;
 static Uint8 *buffer_blue = NULL;
 
+static void recalc_buffer(Uint8 **old_buffer);
+
 static bool initialize_app();
 
 static void initialize_buffers();
 
 static void update_screen();
+
+static void recalc_buffers();
 
 static void event_loop();
 
@@ -52,6 +59,7 @@ event_loop() {
 
 static void
 update_screen() {
+    recalc_buffers();
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH; x++) {
             SDL_SetRenderDrawColor(renderer, buffer_red[x * HEIGHT + y], buffer_green[x * HEIGHT + y],
@@ -61,6 +69,77 @@ update_screen() {
     }
 
     SDL_RenderPresent(renderer);
+}
+
+static void
+recalc_buffers() {
+    int dist_x = rand() % WIDTH;
+    int dist_y = rand() % HEIGHT;
+    int offset = OFFSET(dist_x, dist_y);
+
+    buffer_red[offset] = rand() % 256;
+    buffer_green[offset] = rand() % 256;
+    buffer_blue[offset] = rand() % 256;
+
+    recalc_buffer(&buffer_red);
+    recalc_buffer(&buffer_green);
+    recalc_buffer(&buffer_blue);
+}
+
+static void
+recalc_buffer(Uint8 **old_buffer_ptr) {
+    Uint8 *new_buffer = ALLOC_BUFFER;
+    Uint8 *old_buffer = *old_buffer_ptr;
+
+    for (int x = 0; x < WIDTH; x++) {
+        for (int y = 0; y < HEIGHT; y++) {
+            int offset = OFFSET(x, y);
+
+            Uint16 new_value = old_buffer[offset];
+            Uint16 count = 1;
+            if (x > 0) {
+                new_value += old_buffer[offset - 1];
+                count++;
+                if (y > 0) {
+                    new_value += old_buffer[offset - WIDTH - 1];
+                    count++;
+                }
+                if (y < HEIGHT) {
+                    new_value += old_buffer[offset + WIDTH - 1];
+                    count++;
+                }
+            }
+            if (x < WIDTH) {
+                new_value += old_buffer[offset + 1];
+                count++;
+                if (y > 0) {
+                    new_value += old_buffer[offset - WIDTH + 1];
+                    count++;
+                }
+                if (y < HEIGHT) {
+                    new_value += old_buffer[offset + WIDTH + 1];
+                    count++;
+                }
+            }
+            if (y > 0) {
+                new_value += old_buffer[offset - WIDTH];
+                count++;
+            }
+            if (y < HEIGHT) {
+                new_value += old_buffer[offset + WIDTH];
+                count++;
+            }
+//            while(count < 9){
+//                new_value += rand() % 256;
+//                count++;
+//            }
+
+            new_buffer[offset] = new_value / count;
+        }
+    }
+
+    free(*old_buffer_ptr);
+    *old_buffer_ptr = new_buffer;
 }
 
 static bool
@@ -86,14 +165,15 @@ initialize_app() {
 static void
 initialize_buffers() {
     srand(SDL_GetTicks());
-    buffer_red = calloc(WIDTH * HEIGHT, sizeof(Uint8));
-    buffer_green = calloc(WIDTH * HEIGHT, sizeof(Uint8));
-    buffer_blue = calloc(WIDTH * HEIGHT, sizeof(Uint8));
+    buffer_red = ALLOC_BUFFER;
+    buffer_green = ALLOC_BUFFER;
+    buffer_blue = ALLOC_BUFFER;
     for (int x = 0; x < WIDTH; x++) {
         for (int y = 0; y < HEIGHT; y++) {
-            buffer_red[x * HEIGHT + y] = rand() % 255;
-            buffer_green[x * HEIGHT + y] = rand() % 255;
-            buffer_blue[x * HEIGHT + y] = rand() % 255;
+            int offset = OFFSET(x, y);
+            buffer_red[offset] = rand() % 256;
+            buffer_green[offset] = rand() % 256;
+            buffer_blue[offset] = rand() % 256;
         }
     }
 }
