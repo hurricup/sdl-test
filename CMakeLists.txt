@@ -8,7 +8,7 @@ include_directories(${OPENGL_INCLUDE_DIRS})
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(sdl_test main.c)
+add_executable(sdl_test sdl_test.c)
 add_executable(opengl_test opengl_test.c)
 target_link_libraries(sdl_test ${SDL2_LIBRARIES})
 target_link_libraries(opengl_test ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES})
