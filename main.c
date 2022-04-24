@@ -1,16 +1,26 @@
 #include <SDL2/SDL.h>
 #include <stdbool.h>
+#include <time.h>
 
-static const int WIDTH = 640;
-static const int HEIGHT = 640;
-static const int BALL_SIZE = 10;
+#define DEFAULT_WIDTH 640
+#define DEFAULT_HEIGHT 640
+
+static const int WIDTH = DEFAULT_WIDTH;
+static const int HEIGHT = DEFAULT_HEIGHT;
+
 static const Uint32 FPS = 30;
 static const Uint32 FPS_SIZE_MS = 1000 / FPS;
 
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
 
+static Uint8 buffer_red[DEFAULT_WIDTH][DEFAULT_HEIGHT];
+static Uint8 buffer_green[DEFAULT_WIDTH][DEFAULT_HEIGHT];
+static Uint8 buffer_blue[DEFAULT_WIDTH][DEFAULT_HEIGHT];
+
 static bool initialize_app();
+
+static void initialize_buffers();
 
 static void update_screen();
 
@@ -45,17 +55,12 @@ event_loop() {
 
 static void
 update_screen() {
-    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 0);
-    SDL_RenderClear(renderer);
-
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_Rect ballRect = {
-            .x = WIDTH / 2 - BALL_SIZE / 2,
-            .y = HEIGHT / 2 - BALL_SIZE / 2,
-            .w = BALL_SIZE,
-            .h = BALL_SIZE
-    };
-    SDL_RenderFillRect(renderer, &ballRect);
+    for (int y = 0; y < HEIGHT; y++) {
+        for (int x = 0; x < WIDTH; x++) {
+            SDL_SetRenderDrawColor(renderer, buffer_red[x][y], buffer_green[x][y], buffer_blue[x][y], 255);
+            SDL_RenderDrawPoint(renderer, x, y);
+        }
+    }
 
     SDL_RenderPresent(renderer);
 }
@@ -73,7 +78,23 @@ initialize_app() {
     }
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    return renderer != NULL;
+    if (!renderer) {
+        return false;
+    }
+    initialize_buffers();
+    return true;
+}
+
+static void
+initialize_buffers() {
+    srand(SDL_GetTicks());
+    for (int x = 0; x < WIDTH; x++) {
+        for (int y = 0; y < HEIGHT; y++) {
+            buffer_red[x][y] = rand() % 255;
+            buffer_green[x][y] = rand() % 255;
+            buffer_blue[x][y] = rand() % 255;
+        }
+    }
 }
 
 static void
