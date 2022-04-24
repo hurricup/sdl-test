@@ -104,19 +104,19 @@ recalc_buffer(Uint8 **old_buffer_ptr) {
                     new_value += old_buffer[offset - WIDTH - 1];
                     count++;
                 }
-                if (y < HEIGHT) {
+                if (y < HEIGHT - 1) {
                     new_value += old_buffer[offset + WIDTH - 1];
                     count++;
                 }
             }
-            if (x < WIDTH) {
+            if (x < WIDTH - 1) {
                 new_value += old_buffer[offset + 1];
                 count++;
                 if (y > 0) {
                     new_value += old_buffer[offset - WIDTH + 1];
                     count++;
                 }
-                if (y < HEIGHT) {
+                if (y < HEIGHT - 1) {
                     new_value += old_buffer[offset + WIDTH + 1];
                     count++;
                 }
@@ -125,14 +125,14 @@ recalc_buffer(Uint8 **old_buffer_ptr) {
                 new_value += old_buffer[offset - WIDTH];
                 count++;
             }
-            if (y < HEIGHT) {
+            if (y < HEIGHT - 1) {
                 new_value += old_buffer[offset + WIDTH];
                 count++;
             }
-//            while(count < 9){
-//                new_value += rand() % 256;
-//                count++;
-//            }
+            while (count < 9) {
+                new_value += rand() % 256;
+                count++;
+            }
 
             new_buffer[offset] = new_value / count;
         }
