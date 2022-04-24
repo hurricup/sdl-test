@@ -137,7 +137,7 @@ recalc_buffer(Uint8 **old_buffer_ptr) {
                 new_value += old_buffer[offset + WIDTH];
                 count++;
             }
-            new_buffer[offset] = new_value / count;
+            new_buffer[offset] = new_value / 8;
         }
     }
 
