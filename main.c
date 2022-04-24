@@ -22,6 +22,8 @@ static void recalc_buffer(Uint8 **old_buffer);
 
 static bool initialize_app();
 
+static void add_disturbance();
+
 static void initialize_buffers();
 
 static void update_screen();
@@ -63,7 +65,7 @@ update_screen() {
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH; x++) {
             SDL_SetRenderDrawColor(renderer, buffer_red[x * HEIGHT + y], buffer_green[x * HEIGHT + y],
-                                   buffer_blue[x * HEIGHT + y], 255);
+                                   buffer_blue[x * HEIGHT + y], SDL_ALPHA_OPAQUE);
             SDL_RenderDrawPoint(renderer, x, y);
         }
     }
@@ -73,17 +75,23 @@ update_screen() {
 
 static void
 recalc_buffers() {
-    int dist_x = rand() % WIDTH;
-    int dist_y = rand() % HEIGHT;
-    int offset = OFFSET(dist_x, dist_y);
-
-    buffer_red[offset] = rand() % 256;
-    buffer_green[offset] = rand() % 256;
-    buffer_blue[offset] = rand() % 256;
-
+    add_disturbance();
     recalc_buffer(&buffer_red);
     recalc_buffer(&buffer_green);
     recalc_buffer(&buffer_blue);
+}
+
+static void
+add_disturbance() {
+    for (int i = 0; i < 10; i++) {
+        int dist_x = rand() % WIDTH;
+        int dist_y = rand() % HEIGHT;
+        int offset = OFFSET(dist_x, dist_y);
+
+        buffer_red[offset] = rand() % 256;
+        buffer_green[offset] = rand() % 256;
+        buffer_blue[offset] = rand() % 256;
+    }
 }
 
 static void
@@ -129,11 +137,6 @@ recalc_buffer(Uint8 **old_buffer_ptr) {
                 new_value += old_buffer[offset + WIDTH];
                 count++;
             }
-            while (count < 9) {
-                new_value += rand() % 256;
-                count++;
-            }
-
             new_buffer[offset] = new_value / count;
         }
     }
