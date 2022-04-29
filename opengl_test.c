@@ -3,6 +3,7 @@
 #include <time.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include <GLES/gl.h>
 
 static const int WIDTH = 640;
 static const int HEIGHT = 640;
@@ -10,7 +11,51 @@ static const int HEIGHT = 640;
 static const Uint32 FPS = 30;
 static const Uint32 FPS_SIZE_MS = 1000 / FPS;
 
-static float xrf = 0, yrf = 0, zrf = 0;
+static unsigned int cube_buffer;
+static float cube_data[] = {
+        0.0f, 0.0f, 0.0f,     // xrf, yrf, zrf
+        0.0f, 0.0f, -7.0f,    // depth
+
+        1.0f, 0.0f, 0.0f,    // xrf axis
+        0.0f, 1.0f, 0.0f,    // yrf axis
+        0.0f, 0.0f, 1.0f,    // zrf axis
+
+        0.0f, 1.0f, 0.0f,         // blue color
+        1.0f, 1.0f, -1.0f,        // top-right
+        -1.0f, 1.0f, -1.0f,        // top-left
+        -1.0f, 1.0f, 1.0f,         // low-left
+        1.0f, 1.0f, 1.0f,         // low-right
+
+        1.0f, 0.5f, 0.0f,        // orange
+        1.0f, -1.0f, 1.0f,
+        -1.0f, -1.0f, 1.0f,
+        -1.0f, -1.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,
+
+        1.0f, 0.0f, 0.0f,        // Red
+        1.0f, 1.0f, 1.0f,
+        -1.0f, 1.0f, 1.0f,
+        -1.0f, -1.0f, 1.0f,
+        1.0f, -1.0f, 1.0f,
+
+        1.0f, 1.0f, 0.0f,            // yellow
+        1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, 1.0f, -1.0f,
+        1.0f, 1.0f, -1.0f,
+
+        0.0f, 0.0f, 1.0f,            // blue
+        -1.0f, 1.0f, 1.0f,
+        -1.0f, 1.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,
+        -1.0f, -1.0f, 1.0f,
+
+        1.0f, 0.0f, 1.0f,            // purple
+        1.0f, 1.0f, -1.0f,
+        1.0f, 1.0f, 1.0f,
+        1.0f, -1.0f, 1.0f,
+        1.0f, -1.0f, -1.0f
+};
 
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
@@ -47,66 +92,24 @@ event_loop() {
     }
 }
 
-static void draw_gl() {
+static void draw_scene() {
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glFlush();
+}
 
-    glLoadIdentity();
-    glTranslatef(0.0f, 0.0f, -7.0f);    // Сдвинуть вглубь экрана
-
-    glRotatef(xrf, 1.0f, 0.0f, 0.0f);    // Вращение куба по X, Y, Z
-    glRotatef(yrf, 0.0f, 1.0f, 0.0f);    // Вращение куба по X, Y, Z
-    glRotatef(zrf, 0.0f, 0.0f, 1.0f);    // Вращение куба по X, Y, Z
-
-    glBegin(GL_QUADS);        // Рисуем куб
-
-    glColor3f(0.0f, 1.0f, 0.0f);        // Синяя сторона (Верхняя)
-    glVertex3f(1.0f, 1.0f, -1.0f);        // Верхний правый угол квадрата
-    glVertex3f(-1.0f, 1.0f, -1.0f);        // Верхний левый
-    glVertex3f(-1.0f, 1.0f, 1.0f);        // Нижний левый
-    glVertex3f(1.0f, 1.0f, 1.0f);        // Нижний правый
-
-    glColor3f(1.0f, 0.5f, 0.0f);        // Оранжевая сторона (Нижняя)
-    glVertex3f(1.0f, -1.0f, 1.0f);    // Верхний правый угол квадрата
-    glVertex3f(-1.0f, -1.0f, 1.0f);    // Верхний левый
-    glVertex3f(-1.0f, -1.0f, -1.0f);    // Нижний левый
-    glVertex3f(1.0f, -1.0f, -1.0f);    // Нижний правый
-
-    glColor3f(1.0f, 0.0f, 0.0f);        // Красная сторона (Передняя)
-    glVertex3f(1.0f, 1.0f, 1.0f);        // Верхний правый угол квадрата
-    glVertex3f(-1.0f, 1.0f, 1.0f);        // Верхний левый
-    glVertex3f(-1.0f, -1.0f, 1.0f);        // Нижний левый
-    glVertex3f(1.0f, -1.0f, 1.0f);        // Нижний правый
-
-    glColor3f(1.0f, 1.0f, 0.0f);            // Желтая сторона (Задняя)
-    glVertex3f(1.0f, -1.0f, -1.0f);    // Верхний правый угол квадрата
-    glVertex3f(-1.0f, -1.0f, -1.0f);    // Верхний левый
-    glVertex3f(-1.0f, 1.0f, -1.0f);    // Нижний левый
-    glVertex3f(1.0f, 1.0f, -1.0f);    // Нижний правый
-
-    glColor3f(0.0f, 0.0f, 1.0f);            // Синяя сторона (Левая)
-    glVertex3f(-1.0f, 1.0f, 1.0f);    // Верхний правый угол квадрата
-    glVertex3f(-1.0f, 1.0f, -1.0f);    // Верхний левый
-    glVertex3f(-1.0f, -1.0f, -1.0f);    // Нижний левый
-    glVertex3f(-1.0f, -1.0f, 1.0f);    // Нижний правый
-
-    glColor3f(1.0f, 0.0f, 1.0f);            // Фиолетовая сторона (Правая)
-    glVertex3f(1.0f, 1.0f, -1.0f);    // Верхний правый угол квадрата
-    glVertex3f(1.0f, 1.0f, 1.0f);    // Верхний левый
-    glVertex3f(1.0f, -1.0f, 1.0f);    // Нижний левый
-    glVertex3f(1.0f, -1.0f, -1.0f);    // Нижний правый
-
-    glEnd();    // Закончили квадраты
+static void
+update_scene() {
+    cube_data[0] -= 1;
+    cube_data[1] -= 1;
+    cube_data[2] -= 1;
 }
 
 static void
 update_screen() {
-    xrf -= 1;
-    yrf -= 1;
-    zrf -= 1;
-
-    draw_gl();
-    glFlush();
+    update_scene();
+    draw_scene();
     SDL_GL_SwapWindow(window);
 }
 
@@ -117,15 +120,20 @@ initialize_gl() {
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 6);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
 
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // устанавливаем фоновый цвет на черный
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
     glClearDepth(1.0);
     glDepthFunc(GL_LESS);
-    glEnable(GL_DEPTH_TEST); // включаем тест глубины
+    glEnable(GL_DEPTH_TEST); // enable depth test?
     glShadeModel(GL_SMOOTH);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(45.0f, (float) WIDTH / (float) HEIGHT, 0.1f, 100.0f); // настраиваем трехмерную перспективу
-    glMatrixMode(GL_MODELVIEW); // переходим в трехмерный режим
+    gluPerspective(45.0f, (float) WIDTH / (float) HEIGHT, 0.1f, 100.0f); // set up perspective
+    glMatrixMode(GL_MODELVIEW); // 3d mode
+
+    glGenBuffers(1, &cube_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, cube_buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof cube_buffer, cube_data, GL_STATIC_DRAW);
+
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
                 "OpenGL:\nVendor: %s\nRenderer: %s\nVersion: %s\nExtensions: %s",
                 glGetString(GL_VENDOR),
