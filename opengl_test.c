@@ -126,6 +126,13 @@ initialize_gl() {
     glLoadIdentity();
     gluPerspective(45.0f, (float) WIDTH / (float) HEIGHT, 0.1f, 100.0f); // настраиваем трехмерную перспективу
     glMatrixMode(GL_MODELVIEW); // переходим в трехмерный режим
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                "OpenGL:\nVendor: %s\nRenderer: %s\nVersion: %s\nExtensions: %s",
+                glGetString(GL_VENDOR),
+                glGetString(GL_RENDER),
+                glGetString(GL_VERSION),
+                glGetString(GL_EXTENSIONS)
+    );
 }
 
 static bool
