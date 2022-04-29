@@ -3,7 +3,7 @@
 #include <time.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include <GLES/gl.h>
+#include <GLES2/gl2.h>
 
 static const int WIDTH = 640;
 static const int HEIGHT = 640;
@@ -133,6 +133,9 @@ initialize_gl() {
     glGenBuffers(1, &cube_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, cube_buffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof cube_buffer, cube_data, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (const void *) (sizeof(float) * 3 * 6));
+    glEnableVertexAttribArray(0);
 
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
                 "OpenGL:\nVendor: %s\nRenderer: %s\nVersion: %s\nExtensions: %s",
