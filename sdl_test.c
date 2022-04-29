@@ -45,17 +45,14 @@ int main() {
 static void
 event_loop() {
     SDL_Event event;
-    Uint32 currentTicks = 0;
     while (true) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 return;
             }
         }
-        if (SDL_GetTicks() - currentTicks > FPS_SIZE_MS) {
-            update_screen();
-            currentTicks = SDL_GetTicks();
-        }
+        update_screen();
+        SDL_Delay(FPS_SIZE_MS);
     }
 }
 
@@ -148,7 +145,7 @@ recalc_buffer(Uint8 **old_buffer_ptr) {
 static bool
 initialize_app() {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        fprintf(stderr, "Failed to initialize SDL: %s\n", SDL_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL: %s\n", SDL_GetError());
         return false;
     }
     window = SDL_CreateWindow("program", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT,
