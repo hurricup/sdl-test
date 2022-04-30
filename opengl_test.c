@@ -5,6 +5,7 @@
 #include <GL/glu.h>
 #include <GLES2/gl2.h>
 #include "data.h"
+#include <errno.h>
 
 static const int WIDTH = 640;
 static const int HEIGHT = 640;
@@ -26,11 +27,12 @@ static struct {
 #define COLOR_OFFSET (AXES_OFFSET + AXES_SIZE)
 #define CUBE_OFFSET (COLOR_OFFSET + COLOR_SIZE)
 #define CUBE_VERTEX_ATTRIBUTE_ID 0
+#define CUBE_COLOR_ATTRIBUTE_ID 1
 
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
 
-static void recalc_buffer(Uint8 **old_buffer);
+static unsigned int create_shader(const char *vertex_shader_name, const char *fragment_shader_name);
 
 static bool initialize_app();
 
@@ -63,8 +65,7 @@ event_loop() {
 }
 
 static void draw_scene() {
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glFlush();
 }
@@ -85,12 +86,12 @@ update_screen() {
 
 static void
 initialize_gl() {
+/*
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 6);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
 
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
     glClearDepth(1.0);
     glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST); // enable depth test?
@@ -99,13 +100,20 @@ initialize_gl() {
     glLoadIdentity();
     gluPerspective(45.0f, (float) WIDTH / (float) HEIGHT, 0.1f, 100.0f); // set up perspective
     glMatrixMode(GL_MODELVIEW); // 3d mode
+*/
 
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
     glGenBuffers(1, &cube_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, cube_buffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof cube_data, &cube_data, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, POINT3_SIZE, (void *) CUBE_OFFSET);
     glEnableVertexAttribArray(CUBE_VERTEX_ATTRIBUTE_ID);
+    glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, POINT3_SIZE, (void *) CUBE_OFFSET);
+//    glVertexAttribPointer(CUBE_COLOR_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, COLOR_SIZE, (void *) COLOR_OFFSET);
+//    glEnableVertexAttribArray(CUBE_COLOR_ATTRIBUTE_ID);
+
+    unsigned int shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
+    glUseProgram(shader);
 
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
                 "OpenGL:\nVendor: %s\nRenderer: %s\nVersion: %s\nExtensions: %s",
@@ -160,6 +168,89 @@ initialize_app() {
     return true;
 }
 
+
+static const char *
+load_text_file(const char *shader_name) {
+    char *buffer;
+    long length;
+    FILE *file = fopen(shader_name, "rb");
+
+    if (file) {
+        fseek(file, 0, SEEK_END);
+        length = ftell(file);
+        fseek(file, 0, SEEK_SET);
+        buffer = malloc(length);
+        if (buffer) {
+            fread(buffer, 1, length, file);
+        }
+        fclose(file);
+    } else {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error reading file: %s, errno: %d", shader_name, errno);
+        return NULL;
+    }
+    return buffer;
+}
+
+static unsigned int
+load_shader(unsigned int shader_type, const char *shader_name) {
+    unsigned int id = glCreateShader(shader_type);
+    const char *src = load_text_file(shader_name);
+    if (src == NULL) {
+        return 0;
+    }
+    glShaderSource(id, 1, &src, NULL);
+    glCompileShader(id);
+
+    int result;
+    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
+    if (result == GL_FALSE) {
+        int length;
+        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
+        char *msg = alloca((length + 1) * sizeof(char));
+        glGetShaderInfoLog(id, length, &length, msg);
+        msg[length] = '\0';
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to compile shader %s: %s", shader_name, msg);
+        glDeleteShader(id);
+        return 0;
+    }
+
+    return id;
+}
+
+static unsigned int
+create_shader(const char *vertex_shader_name, const char *fragment_shader_name) {
+    unsigned int program = glCreateProgram();
+    unsigned vertex_shader = load_shader(GL_VERTEX_SHADER, vertex_shader_name);
+    unsigned fragment_shader = load_shader(GL_FRAGMENT_SHADER, fragment_shader_name);
+
+    glAttachShader(program, vertex_shader);
+    glAttachShader(program, fragment_shader);
+    glLinkProgram(program);
+
+    GLint program_linked;
+    glGetProgramiv(program, GL_LINK_STATUS, &program_linked);
+    if (program_linked != GL_TRUE) {
+        GLsizei log_length = 0;
+        GLchar message[1024];
+        glGetProgramInfoLog(program, 1024, &log_length, message);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error linking program: %s", message);
+        glDeleteProgram(program);
+        return 0;
+    }
+    glValidateProgram(program);
+    GLint program_validated;
+    glGetProgramiv(program, GL_VALIDATE_STATUS, &program_validated);
+    if (program_validated != GL_TRUE) {
+        GLsizei log_length = 0;
+        GLchar message[1024];
+        glGetProgramInfoLog(program, 1024, &log_length, message);
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error validating program: %s", message);
+        glDeleteProgram(program);
+        return 0;
+    }
+
+    return program;
+}
 
 static void
 shutdown_app() {
