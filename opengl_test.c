@@ -65,7 +65,7 @@ event_loop() {
 
 static void draw_scene() {
     glClear(GL_COLOR_BUFFER_BIT);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_QUADS, 0, 4);
     glFlush();
 }
 
@@ -114,16 +114,16 @@ static void initialize_data() {
              0, 0, 1);
     set_color(&cube_data.color, 1, 0, 0);
     set_square(&cube_data.cube.side_a,
-               1.0f, 1.0f, 1.0f,
-               -1.0f, 1.0f, 1.0f,
-               -1.0f, -1.0f, 1.0f,
-               1.0f, -1.0f, 1.0f);
+               0.9f, 0.9f, 0.9f,
+               -0.9f, 0.9f, 0.9f,
+               -0.9f, -0.9f, 0.9f,
+               0.9f, -0.9f, 0.9f);
 
     set_square(&cube_data.cube.side_b,
-               1.0f, -1.0f, -1.0f,
-               -1.0f, -1.0f, -1.0f,
-               -1.0f, 1.0f, -1.0f,
-               1.0f, 1.0f, -1.0f);
+               0.9f, -0.9f, -0.9f,
+               -0.9f, -0.9f, -0.9f,
+               -0.9f, 0.9f, -0.9f,
+               0.9f, 0.9f, -0.9f);
 }
 
 static bool
