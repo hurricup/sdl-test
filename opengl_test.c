@@ -20,6 +20,12 @@ static struct {
     color_t color;
     cube_t cube;
 } cube_data;
+#define ANGLES_OFFSET 0
+#define DEPTH_OFFSET (ANGLES_OFFSET + VEC3_SIZE)
+#define AXES_OFFSET (DEPTH_OFFSET + VEC3_SIZE)
+#define COLOR_OFFSET (AXES_OFFSET + AXES_SIZE)
+#define CUBE_OFFSET (COLOR_OFFSET + COLOR_SIZE)
+#define CUBE_VERTEX_ATTRIBUTE_ID 0
 
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
@@ -96,10 +102,10 @@ initialize_gl() {
 
     glGenBuffers(1, &cube_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, cube_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof cube_buffer, &cube_data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof cube_data, &cube_data, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (const void *) (sizeof(float) * 3 * 6));
-    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, POINT3_SIZE, (void *) CUBE_OFFSET);
+    glEnableVertexAttribArray(CUBE_VERTEX_ATTRIBUTE_ID);
 
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
                 "OpenGL:\nVendor: %s\nRenderer: %s\nVersion: %s\nExtensions: %s",

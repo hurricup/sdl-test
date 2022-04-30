@@ -4,7 +4,7 @@ typedef struct color {
     float blue;
 } color_t;
 
-#define COLOR_SIZE sizeof color_t
+#define COLOR_SIZE sizeof(color_t)
 
 static inline void
 set_color(color_t color, float red, float green, float blue) {
@@ -19,7 +19,7 @@ typedef struct point3 {
     float z;
 } point3_t;
 
-#define POINT3_SIZE sizeof point3_t
+#define POINT3_SIZE sizeof(point3_t)
 
 static inline void
 set_point3(point3_t point, float x, float y, float z) {
@@ -38,7 +38,7 @@ typedef struct line {
     point3_t b;
 } line_t;
 
-#define LINE_SIZE sizeof line_t
+#define LINE_SIZE sizeof(line_t)
 
 typedef struct triangle {
     point3_t a;
@@ -46,7 +46,7 @@ typedef struct triangle {
     point3_t c;
 } triangle_t;
 
-#define TRIANGLE_SIZE sizeof triangle_t
+#define TRIANGLE_SIZE sizeof(triangle_t)
 
 typedef struct square {
     point3_t a;
@@ -55,7 +55,7 @@ typedef struct square {
     point3_t d;
 } square_t;
 
-#define SQUARE_SIZE sizeof square_t
+#define SQUARE_SIZE sizeof(square_t)
 
 static inline void
 set_square(square_t square,
@@ -85,13 +85,13 @@ set_axes(axes_t axes,
     set_vec3(axes.az, x3, y3, z3);
 }
 
-#define AXES_SIZE sizeof axes_t
+#define AXES_SIZE sizeof(axes_t)
 
 typedef struct cube {
     square_t side_a;
     square_t side_b;
 } cube_t;
 
-#define CUBE_SIZE sizeof cube_t
+#define CUBE_SIZE sizeof(cube_t)
 #define CUBE_SIDE_B_OFFSET SQUARE_SIZE
 
