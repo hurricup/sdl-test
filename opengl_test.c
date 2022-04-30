@@ -125,20 +125,20 @@ initialize_gl() {
 }
 
 static void initialize_data() {
-    set_point3(cube_data.angles, 0, 0, 0);
-    set_point3(cube_data.depth, 0, 0, -7);
-    set_axes(cube_data.axes,
+    set_point3(&cube_data.angles, 0, 0, 0);
+    set_point3(&cube_data.depth, 0, 0, -7);
+    set_axes(&cube_data.axes,
              1, 0, 0,
              0, 1, 0,
              0, 0, 1);
-    set_color(cube_data.color, 1, 0, 0);
-    set_square(cube_data.cube.side_a,
+    set_color(&cube_data.color, 1, 0, 0);
+    set_square(&cube_data.cube.side_a,
                1.0f, 1.0f, 1.0f,
                -1.0f, 1.0f, 1.0f,
                -1.0f, -1.0f, 1.0f,
                1.0f, -1.0f, 1.0f);
 
-    set_square(cube_data.cube.side_b,
+    set_square(&cube_data.cube.side_b,
                1.0f, -1.0f, -1.0f,
                -1.0f, -1.0f, -1.0f,
                -1.0f, 1.0f, -1.0f,

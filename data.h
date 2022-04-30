@@ -7,10 +7,10 @@ typedef struct color {
 #define COLOR_SIZE sizeof(color_t)
 
 static inline void
-set_color(color_t color, float red, float green, float blue) {
-    color.red = red;
-    color.green = green;
-    color.blue = blue;
+set_color(color_t *color, float red, float green, float blue) {
+    color->red = red;
+    color->green = green;
+    color->blue = blue;
 }
 
 typedef struct point3 {
@@ -22,10 +22,10 @@ typedef struct point3 {
 #define POINT3_SIZE sizeof(point3_t)
 
 static inline void
-set_point3(point3_t point, float x, float y, float z) {
-    point.x = x;
-    point.y = y;
-    point.z = z;
+set_point3(point3_t *point, float x, float y, float z) {
+    point->x = x;
+    point->y = y;
+    point->z = z;
 }
 
 #define set_vec3 set_point3
@@ -58,15 +58,15 @@ typedef struct square {
 #define SQUARE_SIZE sizeof(square_t)
 
 static inline void
-set_square(square_t square,
+set_square(square_t *square,
            float x1, float y1, float z1,
            float x2, float y2, float z2,
            float x3, float y3, float z3,
            float x4, float y4, float z4) {
-    set_point3(square.a, x1, y1, z1);
-    set_point3(square.b, x2, y2, z2);
-    set_point3(square.c, x3, y3, z3);
-    set_point3(square.d, x4, y4, z4);
+    set_point3(&(square->a), x1, y1, z1);
+    set_point3(&(square->b), x2, y2, z2);
+    set_point3(&(square->c), x3, y3, z3);
+    set_point3(&(square->d), x4, y4, z4);
 }
 
 typedef struct axes {
@@ -76,13 +76,13 @@ typedef struct axes {
 } axes_t;
 
 static inline void
-set_axes(axes_t axes,
+set_axes(axes_t *axes,
          float x1, float y1, float z1,
          float x2, float y2, float z2,
          float x3, float y3, float z3) {
-    set_vec3(axes.ax, x1, y1, z1);
-    set_vec3(axes.ay, x2, y2, z2);
-    set_vec3(axes.az, x3, y3, z3);
+    set_vec3(&(axes->ax), x1, y1, z1);
+    set_vec3(&(axes->ay), x2, y2, z2);
+    set_vec3(&(axes->az), x3, y3, z3);
 }
 
 #define AXES_SIZE sizeof(axes_t)
