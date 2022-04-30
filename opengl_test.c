@@ -4,6 +4,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <GLES2/gl2.h>
+#include "data.h"
 
 static const int WIDTH = 640;
 static const int HEIGHT = 640;
