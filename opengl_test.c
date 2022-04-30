@@ -27,7 +27,6 @@ static struct {
 #define COLOR_OFFSET (AXES_OFFSET + AXES_SIZE)
 #define CUBE_OFFSET (COLOR_OFFSET + COLOR_SIZE)
 #define CUBE_VERTEX_ATTRIBUTE_ID 0
-#define CUBE_COLOR_ATTRIBUTE_ID 1
 
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
@@ -86,22 +85,6 @@ update_screen() {
 
 static void
 initialize_gl() {
-/*
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 6);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
-
-    glClearDepth(1.0);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_DEPTH_TEST); // enable depth test?
-    glShadeModel(GL_SMOOTH);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(45.0f, (float) WIDTH / (float) HEIGHT, 0.1f, 100.0f); // set up perspective
-    glMatrixMode(GL_MODELVIEW); // 3d mode
-*/
-
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
     glGenBuffers(1, &cube_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, cube_buffer);
@@ -109,8 +92,6 @@ initialize_gl() {
 
     glEnableVertexAttribArray(CUBE_VERTEX_ATTRIBUTE_ID);
     glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, POINT3_SIZE, (void *) CUBE_OFFSET);
-//    glVertexAttribPointer(CUBE_COLOR_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, COLOR_SIZE, (void *) COLOR_OFFSET);
-//    glEnableVertexAttribArray(CUBE_COLOR_ATTRIBUTE_ID);
 
     unsigned int shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
     glUseProgram(shader);
