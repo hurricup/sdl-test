@@ -13,50 +13,13 @@ static const Uint32 FPS = 30;
 static const Uint32 FPS_SIZE_MS = 1000 / FPS;
 
 static unsigned int cube_buffer;
-static float cube_data[] = {
-        0.0f, 0.0f, 0.0f,     // xrf, yrf, zrf
-        0.0f, 0.0f, -7.0f,    // depth
-
-        1.0f, 0.0f, 0.0f,    // xrf axis
-        0.0f, 1.0f, 0.0f,    // yrf axis
-        0.0f, 0.0f, 1.0f,    // zrf axis
-
-        0.0f, 1.0f, 0.0f,         // blue color
-        1.0f, 1.0f, -1.0f,        // top-right
-        -1.0f, 1.0f, -1.0f,        // top-left
-        -1.0f, 1.0f, 1.0f,         // low-left
-        1.0f, 1.0f, 1.0f,         // low-right
-
-        1.0f, 0.5f, 0.0f,        // orange
-        1.0f, -1.0f, 1.0f,
-        -1.0f, -1.0f, 1.0f,
-        -1.0f, -1.0f, -1.0f,
-        1.0f, -1.0f, -1.0f,
-
-        1.0f, 0.0f, 0.0f,        // Red
-        1.0f, 1.0f, 1.0f,
-        -1.0f, 1.0f, 1.0f,
-        -1.0f, -1.0f, 1.0f,
-        1.0f, -1.0f, 1.0f,
-
-        1.0f, 1.0f, 0.0f,            // yellow
-        1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,
-        -1.0f, 1.0f, -1.0f,
-        1.0f, 1.0f, -1.0f,
-
-        0.0f, 0.0f, 1.0f,            // blue
-        -1.0f, 1.0f, 1.0f,
-        -1.0f, 1.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,
-        -1.0f, -1.0f, 1.0f,
-
-        1.0f, 0.0f, 1.0f,            // purple
-        1.0f, 1.0f, -1.0f,
-        1.0f, 1.0f, 1.0f,
-        1.0f, -1.0f, 1.0f,
-        1.0f, -1.0f, -1.0f
-};
+static struct {
+    vec3_t angles;
+    vec3_t depth;
+    axes_t axes;
+    color_t color;
+    cube_t cube;
+} cube_data;
 
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
@@ -102,9 +65,9 @@ static void draw_scene() {
 
 static void
 update_scene() {
-    cube_data[0] -= 1;
-    cube_data[1] -= 1;
-    cube_data[2] -= 1;
+    cube_data.angles.x -= 1;
+    cube_data.angles.y -= 1;
+    cube_data.angles.z -= 1;
 }
 
 static void
@@ -133,7 +96,7 @@ initialize_gl() {
 
     glGenBuffers(1, &cube_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, cube_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof cube_buffer, cube_data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof cube_buffer, &cube_data, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (const void *) (sizeof(float) * 3 * 6));
     glEnableVertexAttribArray(0);
@@ -145,6 +108,27 @@ initialize_gl() {
                 glGetString(GL_VERSION),
                 glGetString(GL_EXTENSIONS)
     );
+}
+
+static void initialize_data() {
+    set_point3(cube_data.angles, 0, 0, 0);
+    set_point3(cube_data.depth, 0, 0, -7);
+    set_axes(cube_data.axes,
+             1, 0, 0,
+             0, 1, 0,
+             0, 0, 1);
+    set_color(cube_data.color, 1, 0, 0);
+    set_square(cube_data.cube.side_a,
+               1.0f, 1.0f, 1.0f,
+               -1.0f, 1.0f, 1.0f,
+               -1.0f, -1.0f, 1.0f,
+               1.0f, -1.0f, 1.0f);
+
+    set_square(cube_data.cube.side_b,
+               1.0f, -1.0f, -1.0f,
+               -1.0f, -1.0f, -1.0f,
+               -1.0f, 1.0f, -1.0f,
+               1.0f, 1.0f, -1.0f);
 }
 
 static bool
@@ -164,6 +148,7 @@ initialize_app() {
         return false;
     }
 
+    initialize_data();
     initialize_gl();
 
     return true;
