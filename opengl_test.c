@@ -150,7 +150,7 @@ initialize_app() {
 }
 
 
-static const char *
+static char *
 load_text_file(const char *shader_name) {
     char *buffer;
     long length;
@@ -175,12 +175,13 @@ load_text_file(const char *shader_name) {
 static unsigned int
 load_shader(unsigned int shader_type, const char *shader_name) {
     unsigned int id = glCreateShader(shader_type);
-    const char *src = load_text_file(shader_name);
+    char *src = load_text_file(shader_name);
     if (src == NULL) {
         return 0;
     }
     glShaderSource(id, 1, &src, NULL);
     glCompileShader(id);
+    free(src);
 
     int result;
     glGetShaderiv(id, GL_COMPILE_STATUS, &result);
@@ -194,7 +195,6 @@ load_shader(unsigned int shader_type, const char *shader_name) {
         glDeleteShader(id);
         return 0;
     }
-
     return id;
 }
 
@@ -229,6 +229,8 @@ create_shader(const char *vertex_shader_name, const char *fragment_shader_name) 
         glDeleteProgram(program);
         return 0;
     }
+    glDeleteShader(vertex_shader);
+    glDeleteShader(fragment_shader);
 
     return program;
 }
