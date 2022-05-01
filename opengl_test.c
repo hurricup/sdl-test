@@ -34,13 +34,16 @@ static struct {
     axes_t axes;
     color_t color;
     cube_t cube;
+    cube_t cube_texture;
 } cube_data;
 #define ANGLES_OFFSET 0
 #define DEPTH_OFFSET (ANGLES_OFFSET + VEC3_SIZE)
 #define AXES_OFFSET (DEPTH_OFFSET + VEC3_SIZE)
 #define COLOR_OFFSET (AXES_OFFSET + AXES_SIZE)
 #define CUBE_OFFSET (COLOR_OFFSET + COLOR_SIZE)
+#define CUBE_TEXTURE_OFFSET (CUBE_OFFSET + CUBE_SIZE)
 #define CUBE_VERTEX_ATTRIBUTE_ID 0
+#define CUBE_TEXTURE_VERTEX_ATTRIBUTE_ID 1
 
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
@@ -82,7 +85,7 @@ static void draw_scene() {
     glBindVertexArray(cube_vao);
     color_t cube_color = cube_data.color;
     glUniform3f(shader_color_location, cube_color.red, cube_color.green, cube_color.blue);
-    glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_QUADS, 3 * 4, GL_UNSIGNED_INT, 0);
     glFlush();
 }
 
@@ -92,7 +95,10 @@ update_scene() {
     cube_data.angles.y -= 1;
     cube_data.angles.z -= 1;
 
-    cube_data.color.green = (float) sin(SDL_GetTicks() / 100) / 4 + 0.5f;
+    double base_value = ((double) (SDL_GetTicks() % 3000)) * 2 * M_PI / 3000;
+    cube_data.color.red = (float) sin(base_value) / 1 + 0.5f;
+    cube_data.color.green = (float) sin(base_value + 2 * M_PI / 3) / 1 + 0.5f;
+    cube_data.color.blue = (float) sin(base_value + M_PI / 3) / 1 + 0.5f;
 }
 
 static void
@@ -122,6 +128,10 @@ initialize_gl() {
     glEnableVertexAttribArray(CUBE_VERTEX_ATTRIBUTE_ID);
     glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, 0, (void *) CUBE_OFFSET);
 
+    glEnableVertexAttribArray(CUBE_TEXTURE_VERTEX_ATTRIBUTE_ID);
+    glVertexAttribPointer(CUBE_TEXTURE_VERTEX_ATTRIBUTE_ID, 2, GL_FLOAT, GL_FALSE, POINT3_SIZE,
+                          (void *) CUBE_TEXTURE_OFFSET);
+
     unsigned int shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
     glUseProgram(shader);
     shader_color_location = glGetUniformLocation(shader, "passed_color");
@@ -133,6 +143,30 @@ initialize_gl() {
                 glGetString(GL_VERSION),
                 glGetString(GL_EXTENSIONS)
     );
+
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    // configure texture options
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // generating texture
+    int width, height, channels_number;
+    const char *filename = "texture1.png";
+    unsigned char *data = stbi_load(filename, &width, &height, &channels_number, 0);
+    if (data == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error loading texture");
+    } else {
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                    "Loaded %s: %u x %u, channels %u", filename, width, height, channels_number);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    stbi_image_free(data);
 }
 
 static void initialize_data() {
@@ -154,6 +188,19 @@ static void initialize_data() {
                0.3f, -0.9f, -0.9f,
                -0.9f, -0.9f, -0.9f,
                -0.9f, 0.3f, -0.9f);
+
+    set_square(&cube_data.cube_texture.side_a,
+               1.0f, 1.0f, 0.0f,
+               1.0f, 0.0f, 0.0f,
+               0.0f, 0.0f, 0.0f,
+               0.0f, 1.0f, 0.0f);
+
+    // this is most likely be wrong, because of index buffer
+    set_square(&cube_data.cube_texture.side_b,
+               0.0f, 0.0f, 0.0f,
+               0.0f, 1.0f, 0.0f,
+               1.0f, 1.0f, 0.0f,
+               1.0f, 0.0f, 0.0f);
 }
 
 static bool
