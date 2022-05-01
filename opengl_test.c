@@ -91,7 +91,7 @@ initialize_gl() {
     glBufferData(GL_ARRAY_BUFFER, sizeof cube_data, &cube_data, GL_STATIC_DRAW); // copying data
 
     glEnableVertexAttribArray(CUBE_VERTEX_ATTRIBUTE_ID);
-    glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, POINT3_SIZE, (void *) CUBE_OFFSET);
+    glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, 0, (void *) CUBE_OFFSET);
 
     unsigned int shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
     glUseProgram(shader);
