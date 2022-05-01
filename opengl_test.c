@@ -13,7 +13,7 @@ static const Uint32 FPS = 30;
 static const Uint32 FPS_SIZE_MS = 1000 / FPS;
 
 static unsigned int cube_vao;
-static unsigned int cube_buffer;
+static unsigned int cube_vbo;
 static struct {
     vec3_t angles;
     vec3_t depth;
@@ -91,8 +91,8 @@ initialize_gl() {
     glGenVertexArrays(1, &cube_vao); // creating vertex arrays, pretty useless now, but still
     glBindVertexArray(cube_vao);
 
-    glGenBuffers(1, &cube_buffer); // creating buffers
-    glBindBuffer(GL_ARRAY_BUFFER, cube_buffer); // selecting buffer of particular type
+    glGenBuffers(1, &cube_vbo); // creating buffers
+    glBindBuffer(GL_ARRAY_BUFFER, cube_vbo); // selecting buffer of particular type
     glBufferData(GL_ARRAY_BUFFER, sizeof cube_data, &cube_data, GL_STATIC_DRAW); // copying data
 
     glEnableVertexAttribArray(CUBE_VERTEX_ATTRIBUTE_ID);
