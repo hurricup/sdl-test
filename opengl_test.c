@@ -2,8 +2,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include <GL/gl.h>
-#include <GL/glu.h>
-#include <GLES2/gl2.h>
+#include <GLES3/gl3.h>
 #include "data.h"
 #include <errno.h>
 
@@ -13,6 +12,7 @@ static const int HEIGHT = 640;
 static const Uint32 FPS = 30;
 static const Uint32 FPS_SIZE_MS = 1000 / FPS;
 
+static unsigned int cube_vao;
 static unsigned int cube_buffer;
 static struct {
     vec3_t angles;
@@ -65,6 +65,7 @@ event_loop() {
 
 static void draw_scene() {
     glClear(GL_COLOR_BUFFER_BIT);
+    glBindVertexArray(cube_vao);
     glDrawArrays(GL_QUADS, 0, 4);
     glFlush();
 }
@@ -86,6 +87,10 @@ update_screen() {
 static void
 initialize_gl() {
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
+
+    glGenVertexArrays(1, &cube_vao); // creating vertex arrays, pretty useless now, but still
+    glBindVertexArray(cube_vao);
+
     glGenBuffers(1, &cube_buffer); // creating buffers
     glBindBuffer(GL_ARRAY_BUFFER, cube_buffer); // selecting buffer of particular type
     glBufferData(GL_ARRAY_BUFFER, sizeof cube_data, &cube_data, GL_STATIC_DRAW); // copying data
