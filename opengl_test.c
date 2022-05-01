@@ -5,6 +5,7 @@
 #include <GLES3/gl3.h>
 #include "data.h"
 #include <errno.h>
+#include <math.h>
 
 static const int WIDTH = 640;
 static const int HEIGHT = 640;
@@ -23,6 +24,7 @@ uivec4_t cube_sides[] = {
         {2, 6, 7, 3},
         {3, 7, 4, 0}
 };
+static int shader_color_location;
 static struct {
     vec3_t angles;
     vec3_t depth;
@@ -75,6 +77,8 @@ event_loop() {
 static void draw_scene() {
     glClear(GL_COLOR_BUFFER_BIT);
     glBindVertexArray(cube_vao);
+    color_t cube_color = cube_data.color;
+    glUniform3f(shader_color_location, cube_color.red, cube_color.green, cube_color.blue);
     glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
     glFlush();
 }
@@ -84,6 +88,8 @@ update_scene() {
     cube_data.angles.x -= 1;
     cube_data.angles.y -= 1;
     cube_data.angles.z -= 1;
+
+    cube_data.color.green = 0.8f;
 }
 
 static void
@@ -108,13 +114,14 @@ initialize_gl() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_sides), cube_sides, GL_STATIC_DRAW);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+//    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnableVertexAttribArray(CUBE_VERTEX_ATTRIBUTE_ID);
     glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, 0, (void *) CUBE_OFFSET);
 
     unsigned int shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
     glUseProgram(shader);
+    shader_color_location = glGetUniformLocation(shader, "passed_color");
 
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
                 "OpenGL:\nVendor: %s\nRenderer: %s\nVersion: %s\nExtensions: %s",
@@ -132,7 +139,7 @@ static void initialize_data() {
              1, 0, 0,
              0, 1, 0,
              0, 0, 1);
-    set_color(&cube_data.color, 1, 0, 0);
+    set_color(&cube_data.color, 0, 0, 0);
     set_square(&cube_data.cube.side_a,
                0.9f, 0.9f, 0.9f,
                0.9f, -0.3f, 0.9f,
@@ -195,13 +202,13 @@ load_text_file(const char *shader_name) {
 static unsigned int
 load_shader(unsigned int shader_type, const char *shader_name) {
     unsigned int id = glCreateShader(shader_type);
-    char *src = load_text_file(shader_name);
+    const char *src = load_text_file(shader_name);
     if (src == NULL) {
         return 0;
     }
     glShaderSource(id, 1, &src, NULL);
     glCompileShader(id);
-    free(src);
+    free((void *) src);
 
     int result;
     glGetShaderiv(id, GL_COMPILE_STATUS, &result);
