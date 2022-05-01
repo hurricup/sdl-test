@@ -86,9 +86,9 @@ update_screen() {
 static void
 initialize_gl() {
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
-    glGenBuffers(1, &cube_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, cube_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof cube_data, &cube_data, GL_STATIC_DRAW);
+    glGenBuffers(1, &cube_buffer); // creating buffers
+    glBindBuffer(GL_ARRAY_BUFFER, cube_buffer); // selecting buffer of particular type
+    glBufferData(GL_ARRAY_BUFFER, sizeof cube_data, &cube_data, GL_STATIC_DRAW); // copying data
 
     glEnableVertexAttribArray(CUBE_VERTEX_ATTRIBUTE_ID);
     glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, POINT3_SIZE, (void *) CUBE_OFFSET);
