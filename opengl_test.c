@@ -5,7 +5,10 @@
 #include <GLES3/gl3.h>
 #include "data.h"
 #include <errno.h>
-#include <math.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+
+#include "stb_image.h"
 
 static const int WIDTH = 640;
 static const int HEIGHT = 640;
