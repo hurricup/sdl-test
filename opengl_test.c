@@ -92,7 +92,7 @@ update_scene() {
     cube_data.angles.y -= 1;
     cube_data.angles.z -= 1;
 
-    cube_data.color.green = 0.8f;
+    cube_data.color.green = (float) sin(SDL_GetTicks() / 100) / 4 + 0.5f;
 }
 
 static void
