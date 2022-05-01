@@ -14,6 +14,15 @@ static const Uint32 FPS_SIZE_MS = 1000 / FPS;
 
 static unsigned int cube_vao;
 static unsigned int cube_vbo;
+static unsigned int cube_ebo;
+uivec4_t cube_sides[] = {
+        {0, 1, 2, 3},
+        {4, 5, 6, 7},
+        {0, 4, 5, 1},
+        {1, 5, 6, 2},
+        {2, 6, 7, 3},
+        {3, 7, 4, 0}
+};
 static struct {
     vec3_t angles;
     vec3_t depth;
@@ -66,7 +75,7 @@ event_loop() {
 static void draw_scene() {
     glClear(GL_COLOR_BUFFER_BIT);
     glBindVertexArray(cube_vao);
-    glDrawArrays(GL_QUADS, 0, 4);
+    glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
     glFlush();
 }
 
@@ -91,9 +100,13 @@ initialize_gl() {
     glGenVertexArrays(1, &cube_vao); // creating vertex arrays, pretty useless now, but still
     glBindVertexArray(cube_vao);
 
-    glGenBuffers(1, &cube_vbo); // creating buffers
+    glGenBuffers(1, &cube_vbo); // creating VBO
     glBindBuffer(GL_ARRAY_BUFFER, cube_vbo); // selecting buffer of particular type
     glBufferData(GL_ARRAY_BUFFER, sizeof cube_data, &cube_data, GL_STATIC_DRAW); // copying data
+
+    glGenBuffers(1, &cube_ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_sides), cube_sides, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(CUBE_VERTEX_ATTRIBUTE_ID);
     glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, 0, (void *) CUBE_OFFSET);
@@ -120,15 +133,15 @@ static void initialize_data() {
     set_color(&cube_data.color, 1, 0, 0);
     set_square(&cube_data.cube.side_a,
                0.9f, 0.9f, 0.9f,
-               -0.9f, 0.9f, 0.9f,
-               -0.9f, -0.9f, 0.9f,
-               0.9f, -0.9f, 0.9f);
+               0.9f, -0.3f, 0.9f,
+               -0.3f, -0.3f, 0.9f,
+               -0.3f, 0.9f, 0.9f);
 
     set_square(&cube_data.cube.side_b,
-               0.9f, -0.9f, -0.9f,
+               0.3f, 0.3f, -0.9f,
+               0.3f, -0.9f, -0.9f,
                -0.9f, -0.9f, -0.9f,
-               -0.9f, 0.9f, -0.9f,
-               0.9f, 0.9f, -0.9f);
+               -0.9f, 0.3f, -0.9f);
 }
 
 static bool
