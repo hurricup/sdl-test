@@ -11,8 +11,8 @@
 
 #include "stb_image.h"
 
-static const int WIDTH = 800;
-static const int HEIGHT = 600;
+static const int WIDTH = 1280;
+static const int HEIGHT = WIDTH / 16 * 9;
 
 static const Uint32 FPS = 30;
 static const Uint32 FPS_SIZE_MS = 1000 / FPS;
