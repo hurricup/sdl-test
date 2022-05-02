@@ -95,10 +95,10 @@ update_scene() {
     cube_data.angles.y -= 1;
     cube_data.angles.z -= 1;
 
-    double base_value = ((double) (SDL_GetTicks() % 3000)) * 2 * M_PI / 3000;
-    cube_data.color.red = (float) sin(base_value) / 1 + 0.5f;
-    cube_data.color.green = (float) sin(base_value + 2 * M_PI / 3) / 1 + 0.5f;
-    cube_data.color.blue = (float) sin(base_value + M_PI / 3) / 1 + 0.5f;
+    double base_value = ((double) (SDL_GetTicks() % 5000)) * 2 * M_PI / 5000;
+    cube_data.color.red = (float) sin(base_value) / 2 + 0.5f;
+    cube_data.color.green = (float) sin(base_value + 2 * M_PI / 3) / 2 + 0.5f;
+    cube_data.color.blue = (float) sin(base_value + M_PI / 3) / 2 + 0.5f;
 }
 
 static void
