@@ -11,8 +11,8 @@
 
 #include "stb_image.h"
 
-static const int WIDTH = 640;
-static const int HEIGHT = 640;
+static const int WIDTH = 800;
+static const int HEIGHT = 600;
 
 static const Uint32 FPS = 30;
 static const Uint32 FPS_SIZE_MS = 1000 / FPS;
@@ -28,11 +28,13 @@ uivec4_t cube_sides[] = {
         {1, 5, 6, 2},
         {3, 7, 4, 0}
 };
+static int model_location;
+static int view_location;
+static int projection_location;
 static int shader_color_location;
-static int cube_transformation_location;
-static vec4 cube_scale = {1.0f, 1.0f, 1.0f, 1.0f};
-static vec4 cube_translation = {0.0f, 0.0f, 0.0f, 1.0f};
-static mat4 cube_transformation = GLM_MAT4_IDENTITY;
+static mat4 model_m = GLM_MAT4_IDENTITY;
+static mat4 view_m = GLM_MAT4_IDENTITY;
+static mat4 project_m = GLM_MAT4_IDENTITY;
 static struct {
     vec3_t angles;
     vec3_t depth;
@@ -90,7 +92,9 @@ static void draw_scene() {
     glBindVertexArray(cube_vao);
     color_t cube_color = cube_data.color;
     glUniform3f(shader_color_location, cube_color.red, cube_color.green, cube_color.blue);
-    glUniformMatrix4fv(cube_transformation_location, 1, GL_FALSE, (GLfloat *) cube_transformation);
+    glUniformMatrix4fv(model_location, 1, GL_FALSE, (GLfloat *) model_m);
+    glUniformMatrix4fv(view_location, 1, GL_FALSE, (GLfloat *) view_m);
+    glUniformMatrix4fv(projection_location, 1, GL_FALSE, (GLfloat *) project_m);
     glDrawElements(GL_QUADS, 4 * 4, GL_UNSIGNED_INT, 0);
     glFlush();
 }
@@ -104,30 +108,29 @@ update_scene() {
     cube_data.color.blue = (float) sin(base_value + M_PI / 3) / 2 + 0.5f;
 
     // creating identity matrix
-    glm_mat4_identity(cube_transformation);
-
-    // translation (moving)
-    cube_translation[0] = (float) cos(base_value) * 0.5f;
-    cube_translation[1] = (float) sin(base_value) * 0.5f;
-
-    glm_translate(cube_transformation, cube_translation);
-
+    glm_mat4_identity(model_m);
     // rotating
     cube_data.angles.x += 0.01f;
     cube_data.angles.y += 0.012f;
     cube_data.angles.z += 0.013f;
 
-    glm_rotate_x(cube_transformation, cube_data.angles.x, cube_transformation);
-    glm_rotate_y(cube_transformation, cube_data.angles.y, cube_transformation);
-    glm_rotate_z(cube_transformation, cube_data.angles.z, cube_transformation);
+    glm_rotate_x(model_m, cube_data.angles.x, model_m);
+    glm_rotate_y(model_m, cube_data.angles.y, model_m);
+    glm_rotate_z(model_m, cube_data.angles.z, model_m);
 
-    // scaling
-    float scale_value = (float) sin(base_value + 2 * M_PI / 5) / 4 + 1.0f;
-    cube_scale[0] = scale_value;
-    cube_scale[1] = scale_value;
-    cube_scale[2] = scale_value;
+    // View
+    float view_base_sin = (float) sin(base_value + 2 * M_PI / 5);
+    float view_base_cos = (float) cos(base_value + 2 * M_PI / 5);
+    vec3 view_translation = GLM_VEC3_ZERO_INIT;
+    view_translation[0] = view_base_sin * 3 + 2.0f;
+    view_translation[1] = view_base_cos * 3;
+    view_translation[2] = -10.0f - 5 * view_base_sin;
 
-    glm_scale(cube_transformation, cube_scale);
+    glm_mat4_identity(view_m);
+    glm_translate(view_m, view_translation);
+
+    // projection
+    glm_perspective(M_PI_4, (float) WIDTH / (float) HEIGHT, 0.1f, 100.0f, project_m);
 }
 
 static void
@@ -192,7 +195,9 @@ initialize_gl() {
     unsigned int shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
     glUseProgram(shader);
     shader_color_location = glGetUniformLocation(shader, "passed_color");
-    cube_transformation_location = glGetUniformLocation(shader, "cube_transformation");
+    model_location = glGetUniformLocation(shader, "model_m");
+    view_location = glGetUniformLocation(shader, "view_m");
+    projection_location = glGetUniformLocation(shader, "project_m");
 
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
                 "OpenGL:\nVendor: %s\nRenderer: %s\nVersion: %s\nExtensions: %s",
@@ -292,9 +297,6 @@ static unsigned int
 load_shader(unsigned int shader_type, const char *shader_name) {
     unsigned int id = glCreateShader(shader_type);
     const char *src = load_text_file(shader_name);
-    if (src == NULL) {
-        return 0;
-    }
     glShaderSource(id, 1, &src, NULL);
     glCompileShader(id);
     free((void *) src);
