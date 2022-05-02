@@ -32,6 +32,9 @@ static int model_location;
 static int view_location;
 static int projection_location;
 static int shader_color_location;
+static vec3 camera_eye = GLM_VEC3_ZERO;
+static vec3 camera_center = GLM_VEC3_ZERO;
+static vec3 camera_up = {0.0f, 1.0f, 0.0f};
 static mat4 model_m = GLM_MAT4_IDENTITY;
 static mat4 view_m = GLM_MAT4_IDENTITY;
 static mat4 project_m = GLM_MAT4_IDENTITY;
@@ -119,15 +122,12 @@ update_scene() {
     glm_rotate_z(model_m, cube_data.angles.z, model_m);
 
     // View
+    const float radius = 10.0f;
     float view_base_sin = (float) sin(base_value + 2 * M_PI / 5);
     float view_base_cos = (float) cos(base_value + 2 * M_PI / 5);
-    vec3 view_translation = GLM_VEC3_ZERO_INIT;
-    view_translation[0] = view_base_sin * 3 + 2.0f;
-    view_translation[1] = view_base_cos * 3;
-    view_translation[2] = -10.0f - 5 * view_base_sin;
-
-    glm_mat4_identity(view_m);
-    glm_translate(view_m, view_translation);
+    camera_eye[0] = view_base_sin * radius;
+    camera_eye[2] = view_base_cos * radius;
+    glm_lookat(camera_eye, camera_center, camera_up, view_m);
 
     // projection
     glm_perspective(M_PI_4, (float) WIDTH / (float) HEIGHT, 0.1f, 100.0f, project_m);
