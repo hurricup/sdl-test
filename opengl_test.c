@@ -88,14 +88,14 @@ event_loop() {
 }
 
 static void draw_scene() {
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glBindVertexArray(cube_vao);
     color_t cube_color = cube_data.color;
     glUniform3f(shader_color_location, cube_color.red, cube_color.green, cube_color.blue);
     glUniformMatrix4fv(model_location, 1, GL_FALSE, (GLfloat *) model_m);
     glUniformMatrix4fv(view_location, 1, GL_FALSE, (GLfloat *) view_m);
     glUniformMatrix4fv(projection_location, 1, GL_FALSE, (GLfloat *) project_m);
-    glDrawElements(GL_QUADS, 4 * 4, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
     glFlush();
 }
 
@@ -170,6 +170,8 @@ static void load_texture(GLenum texture_unit, const char *filename) {
 
 static void
 initialize_gl() {
+    glEnable(GL_DEPTH_TEST); // enables z-buffering
+
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
 
     glGenVertexArrays(1, &cube_vao); // creating vertex arrays, pretty useless now, but still
