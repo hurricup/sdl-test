@@ -21,10 +21,10 @@ static unsigned int cube_vbo;
 static unsigned int cube_ebo;
 uivec4_t cube_sides[] = {
         {0, 1, 2, 3},
-        {4, 5, 6, 7},
-        {0, 4, 5, 1},
-        {1, 5, 6, 2},
         {2, 6, 7, 3},
+        {0, 4, 5, 1},
+        {4, 5, 6, 7},
+        {1, 5, 6, 2},
         {3, 7, 4, 0}
 };
 static int shader_color_location;
@@ -85,7 +85,7 @@ static void draw_scene() {
     glBindVertexArray(cube_vao);
     color_t cube_color = cube_data.color;
     glUniform3f(shader_color_location, cube_color.red, cube_color.green, cube_color.blue);
-    glDrawElements(GL_QUADS, 3 * 4, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_QUADS, 4 * 4, GL_UNSIGNED_INT, 0);
     glFlush();
 }
 
