@@ -5,6 +5,7 @@
 #include <GLES3/gl3.h>
 #include "data.h"
 #include <errno.h>
+#include "cglm/cglm.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -28,6 +29,10 @@ uivec4_t cube_sides[] = {
         {3, 7, 4, 0}
 };
 static int shader_color_location;
+static int cube_transformation_location;
+static vec4 cube_scale = {1.0f, 1.0f, 1.0f, 1.0f};
+static vec4 cube_translation = {0.0f, 0.0f, 0.0f, 1.0f};
+static mat4 cube_transformation = GLM_MAT4_IDENTITY;
 static struct {
     vec3_t angles;
     vec3_t depth;
@@ -85,20 +90,44 @@ static void draw_scene() {
     glBindVertexArray(cube_vao);
     color_t cube_color = cube_data.color;
     glUniform3f(shader_color_location, cube_color.red, cube_color.green, cube_color.blue);
+    glUniformMatrix4fv(cube_transformation_location, 1, GL_FALSE, (GLfloat *) cube_transformation);
     glDrawElements(GL_QUADS, 4 * 4, GL_UNSIGNED_INT, 0);
     glFlush();
 }
 
 static void
 update_scene() {
-    cube_data.angles.x -= 1;
-    cube_data.angles.y -= 1;
-    cube_data.angles.z -= 1;
 
     double base_value = ((double) (SDL_GetTicks() % 5000)) * 2 * M_PI / 5000;
     cube_data.color.red = (float) sin(base_value) / 2 + 0.5f;
     cube_data.color.green = (float) sin(base_value + 2 * M_PI / 3) / 2 + 0.5f;
     cube_data.color.blue = (float) sin(base_value + M_PI / 3) / 2 + 0.5f;
+
+    // creating identity matrix
+    glm_mat4_identity(cube_transformation);
+
+    // translation (moving)
+    cube_translation[0] = (float) cos(base_value) * 0.5f;
+    cube_translation[1] = (float) sin(base_value) * 0.5f;
+
+    glm_translate(cube_transformation, cube_translation);
+
+    // rotating
+    cube_data.angles.x += 0.01f;
+    cube_data.angles.y += 0.012f;
+    cube_data.angles.z += 0.013f;
+
+    glm_rotate_x(cube_transformation, cube_data.angles.x, cube_transformation);
+    glm_rotate_y(cube_transformation, cube_data.angles.y, cube_transformation);
+    glm_rotate_z(cube_transformation, cube_data.angles.z, cube_transformation);
+
+    // scaling
+    float scale_value = (float) sin(base_value + 2 * M_PI / 5) / 4 + 1.0f;
+    cube_scale[0] = scale_value;
+    cube_scale[1] = scale_value;
+    cube_scale[2] = scale_value;
+
+    glm_scale(cube_transformation, cube_scale);
 }
 
 static void
@@ -163,6 +192,7 @@ initialize_gl() {
     unsigned int shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
     glUseProgram(shader);
     shader_color_location = glGetUniformLocation(shader, "passed_color");
+    cube_transformation_location = glGetUniformLocation(shader, "cube_transformation");
 
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
                 "OpenGL:\nVendor: %s\nRenderer: %s\nVersion: %s\nExtensions: %s",
@@ -186,16 +216,16 @@ static void initialize_data() {
              0, 0, 1);
     set_color(&cube_data.color, 0, 0, 0);
     set_square(&cube_data.cube.side_a,
-               0.9f, 0.9f, 0.9f,
-               0.9f, -0.3f, 0.9f,
-               -0.3f, -0.3f, 0.9f,
-               -0.3f, 0.9f, 0.9f);
+               0.5f, 0.5f, 0.5f,
+               0.5f, -0.5f, 0.5f,
+               -0.5f, -0.5f, 0.5f,
+               -0.5f, 0.5f, 0.5f);
 
     set_square(&cube_data.cube.side_b,
-               0.3f, 0.3f, -0.9f,
-               0.3f, -0.9f, -0.9f,
-               -0.9f, -0.9f, -0.9f,
-               -0.9f, 0.3f, -0.9f);
+               0.5f, 0.5f, -0.5f,
+               0.5f, -0.5f, -0.5f,
+               -0.5f, -0.5f, -0.5f,
+               -0.5f, 0.5f, -0.5f);
 
     set_square(&cube_data.cube_texture.side_a,
                1.0f, 1.0f, 0.0f,
