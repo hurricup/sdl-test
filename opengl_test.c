@@ -123,6 +123,7 @@ static void load_texture(GLenum texture_unit, const char *filename) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // creating from external file
+    stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load(filename, &width, &height, &channels_number, 0);
     if (data == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error loading texture");
@@ -204,10 +205,10 @@ static void initialize_data() {
 
     // this is most likely be wrong, because of index buffer
     set_square(&cube_data.cube_texture.side_b,
-               0.0f, 0.0f, 0.0f,
                0.0f, 1.0f, 0.0f,
-               1.0f, 1.0f, 0.0f,
-               1.0f, 0.0f, 0.0f);
+               0.0f, 0.0f, 0.0f,
+               1.0f, 0.0f, 0.0f,
+               1.0f, 1.0f, 0.0f);
 }
 
 static bool
