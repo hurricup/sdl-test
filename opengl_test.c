@@ -32,7 +32,9 @@ static int model_location;
 static int view_location;
 static int projection_location;
 static int shader_color_location;
-static vec3 camera_eye = GLM_VEC3_ZERO;
+static const float camera_speed = 0.05f;
+static const float camera_angle_speed = M_PI / 90;
+static vec3 camera_eye = {0.0f, 0.0f, 10.0f};
 static vec3 camera_center = GLM_VEC3_ZERO;
 static vec3 camera_up = {0.0f, 1.0f, 0.0f};
 static mat4 model_m = GLM_MAT4_IDENTITY;
@@ -83,6 +85,31 @@ event_loop() {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 return;
+            } else if (event.type == SDL_KEYDOWN) {
+                switch (event.key.keysym.sym) {
+                    case SDLK_a: // move center left
+                        camera_center[0] += camera_speed;
+                        break;
+                    case SDLK_d: // move center right
+                        camera_center[0] -= camera_speed;
+                        break;
+                    case SDLK_w: // move center up
+                        camera_center[1] -= camera_speed;
+                        break;
+                    case SDLK_s: // move center down
+                        camera_center[1] += camera_speed;
+                        break;
+                    case SDLK_q: // rotate up vector around eye vector ccw
+                        glm_vec3_rotate(camera_up, camera_angle_speed, camera_eye);
+                        glm_normalize(camera_up);
+                        break;
+                    case SDLK_e: // rotate up vector around eye vector cw
+                        glm_vec3_rotate(camera_up, -camera_angle_speed, camera_eye);
+                        glm_normalize(camera_up);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
         update_screen();
@@ -117,16 +144,11 @@ update_scene() {
     cube_data.angles.y += 0.012f;
     cube_data.angles.z += 0.013f;
 
-    glm_rotate_x(model_m, cube_data.angles.x, model_m);
-    glm_rotate_y(model_m, cube_data.angles.y, model_m);
-    glm_rotate_z(model_m, cube_data.angles.z, model_m);
+//    glm_rotate_x(model_m, cube_data.angles.x, model_m);
+//    glm_rotate_y(model_m, cube_data.angles.y, model_m);
+//    glm_rotate_z(model_m, cube_data.angles.z, model_m);
 
     // View
-    const float radius = 10.0f;
-    float view_base_sin = (float) sin(base_value + 2 * M_PI / 5);
-    float view_base_cos = (float) cos(base_value + 2 * M_PI / 5);
-    camera_eye[0] = view_base_sin * radius;
-    camera_eye[2] = view_base_cos * radius;
     glm_lookat(camera_eye, camera_center, camera_up, view_m);
 
     // projection
