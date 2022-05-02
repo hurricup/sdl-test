@@ -160,7 +160,7 @@ static bool
 initialize_app() {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL: %s\n", SDL_GetError());
-        return false;
+        exit(1);
     }
     window = SDL_CreateWindow("program", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT,
                               SDL_WINDOW_SHOWN);
@@ -197,7 +197,7 @@ load_text_file(const char *shader_name) {
         fclose(file);
     } else {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error reading file: %s, errno: %d", shader_name, errno);
-        return NULL;
+        exit(1);
     }
     return buffer;
 }
@@ -223,7 +223,7 @@ load_shader(unsigned int shader_type, const char *shader_name) {
         msg[length] = '\0';
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to compile shader %s: %s", shader_name, msg);
         glDeleteShader(id);
-        return 0;
+        exit(1);
     }
     return id;
 }
@@ -246,7 +246,7 @@ create_shader(const char *vertex_shader_name, const char *fragment_shader_name) 
         glGetProgramInfoLog(program, 1024, &log_length, message);
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error linking program: %s", message);
         glDeleteProgram(program);
-        return 0;
+        exit(1);
     }
     glValidateProgram(program);
     GLint program_validated;
@@ -257,7 +257,7 @@ create_shader(const char *vertex_shader_name, const char *fragment_shader_name) 
         glGetProgramInfoLog(program, 1024, &log_length, message);
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error validating program: %s", message);
         glDeleteProgram(program);
-        return 0;
+        exit(1);
     }
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
