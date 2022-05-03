@@ -34,9 +34,12 @@ static int projection_location;
 static int shader_color_location;
 static const float camera_speed_y = 0.2f;
 static const float camera_speed_x = 0.2f;
-static const float camera_angle_speed = M_PI / 90;
+static const float mouse_sensitivity = 0.001f;
+static vec3 camera_pos_default = {0.0f, 0.0f, 10.0f};
 static vec3 camera_pos = {0.0f, 0.0f, 10.0f};
+static vec3 camera_up_default = {0.0f, 1.0f, 0.0f};
 static vec3 camera_up = {0.0f, 1.0f, 0.0f};
+static vec3 camera_front_default = {0.0f, 0.0f, -1.0f};
 static vec3 camera_front = {0.0f, 0.0f, -1.0f};
 static mat4 model_m = GLM_MAT4_IDENTITY;
 static mat4 view_m = GLM_MAT4_IDENTITY;
@@ -80,6 +83,13 @@ int main() {
 }
 
 static void
+reset_camera() {
+    glm_vec3_copy(camera_front_default, camera_front);
+    glm_vec3_copy(camera_pos_default, camera_pos);
+    glm_vec3_copy(camera_up_default, camera_up);
+};
+
+static void
 move_camera_vertically(float sign) {
     vec3 up = GLM_VEC3_ZERO_INIT;
     glm_vec3_scale(camera_up, sign * camera_speed_y, up);
@@ -96,12 +106,38 @@ move_camera_horizontally(float sign) {
 }
 
 static void
+move_camera_sight(int x, int y) {
+    if (x == 0 && y == 0) {
+        return;
+    }
+    vec3 delta_up = GLM_VEC3_ZERO_INIT;
+    vec3 right = GLM_VEC3_ZERO_INIT;
+    vec3 delta_right = GLM_VEC3_ZERO_INIT;
+
+    glm_vec3_cross(camera_front, camera_up, right);
+    glm_normalize(right);
+
+    glm_vec3_scale(camera_up, -(float) y * mouse_sensitivity, delta_up);
+    glm_vec3_scale(right, (float) x * mouse_sensitivity, delta_right);
+
+    glm_vec3_add(camera_front, delta_right, camera_front);
+    glm_vec3_cross(camera_front, camera_up, right);
+    glm_vec3_add(camera_front, delta_up, camera_front);
+    glm_vec3_cross(right, camera_front, camera_up);
+
+    glm_normalize(camera_front);
+    glm_normalize(camera_up);
+}
+
+static void
 event_loop() {
     SDL_Event event;
     while (true) {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 return;
+            } else if (event.type == SDL_MOUSEMOTION) {
+                move_camera_sight(event.motion.xrel, event.motion.yrel);
             } else if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
                     case SDLK_a: // move camera right according to right vector
@@ -115,6 +151,9 @@ event_loop() {
                         break;
                     case SDLK_f: // move camera down according to up vector
                         move_camera_vertically(-1);
+                        break;
+                    case SDLK_z: // reset camera position
+                        reset_camera();
                         break;
                     default:
                         break;
