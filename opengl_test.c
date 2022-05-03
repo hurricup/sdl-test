@@ -47,15 +47,19 @@ static mat4 model3_m = GLM_MAT4_IDENTITY;
 static mat4 model4_m = GLM_MAT4_IDENTITY;
 static mat4 view_m = GLM_MAT4_IDENTITY;
 static mat4 project_m = GLM_MAT4_IDENTITY;
-static struct {
+static struct cube_object {
     vec3_t angles;
     color_t color;
+} cube_object;
+
+#define ANGLES_OFFSET 0
+#define COLOR_OFFSET (ANGLES_OFFSET + VEC3_SIZE)
+
+static struct {
     cube_t cube;
     cube_t cube_texture;
 } cube_data;
-#define ANGLES_OFFSET 0
-#define COLOR_OFFSET (ANGLES_OFFSET + VEC3_SIZE)
-#define CUBE_OFFSET (COLOR_OFFSET + COLOR_SIZE)
+#define CUBE_OFFSET 0
 #define CUBE_TEXTURE_OFFSET (CUBE_OFFSET + CUBE_SIZE)
 #define CUBE_VERTEX_ATTRIBUTE_ID 0
 #define CUBE_TEXTURE_VERTEX_ATTRIBUTE_ID 1
@@ -179,7 +183,7 @@ event_loop() {
 static void draw_scene() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glBindVertexArray(cube_vao);
-    color_t cube_color = cube_data.color;
+    color_t cube_color = cube_object.color;
     glUniform3f(shader_color_location, cube_color.red, cube_color.green, cube_color.blue);
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
     glm_mat4_mul(project_m, view_m, project_view);
@@ -202,29 +206,29 @@ static void
 update_scene() {
 
     double base_value = ((double) (SDL_GetTicks() % 5000)) * 2 * M_PI / 5000;
-    cube_data.color.red = (float) sin(base_value) / 2 + 0.5f;
-    cube_data.color.green = (float) sin(base_value + 2 * M_PI / 3) / 2 + 0.5f;
-    cube_data.color.blue = (float) sin(base_value + M_PI / 3) / 2 + 0.5f;
+    cube_object.color.red = (float) sin(base_value) / 2 + 0.5f;
+    cube_object.color.green = (float) sin(base_value + 2 * M_PI / 3) / 2 + 0.5f;
+    cube_object.color.blue = (float) sin(base_value + M_PI / 3) / 2 + 0.5f;
 
     // rotating
-    cube_data.angles.x += 0.01f;
-    cube_data.angles.y += 0.012f;
-    cube_data.angles.z += 0.013f;
+    cube_object.angles.x += 0.01f;
+    cube_object.angles.y += 0.012f;
+    cube_object.angles.z += 0.013f;
 
     // creating identity matrix
     glm_mat4_identity(model_m);
 
     glm_mat4_identity(model2_m);
     glm_translate_x(model2_m, 3.0f);
-    glm_rotate_y(model2_m, cube_data.angles.x, model2_m);
+    glm_rotate_y(model2_m, cube_object.angles.x, model2_m);
 
     glm_mat4_identity(model3_m);
     glm_translate_y(model3_m, 3.0f);
-    glm_rotate_z(model3_m, cube_data.angles.y, model3_m);
+    glm_rotate_z(model3_m, cube_object.angles.y, model3_m);
 
     glm_mat4_identity(model4_m);
     glm_translate_z(model4_m, 3.0f);
-    glm_rotate_x(model4_m, cube_data.angles.z, model4_m);
+    glm_rotate_x(model4_m, cube_object.angles.z, model4_m);
 
     // View
     glm_look(camera_pos, camera_front, camera_up, view_m);
@@ -314,8 +318,8 @@ initialize_gl() {
 }
 
 static void initialize_data() {
-    set_point3(&cube_data.angles, 0, 0, 0);
-    set_color(&cube_data.color, 0, 0, 0);
+    set_point3(&cube_object.angles, 0, 0, 0);
+    set_color(&cube_object.color, 0, 0, 0);
     set_square(&cube_data.cube.side_a,
                0.5f, 0.5f, 0.5f,
                0.5f, -0.5f, 0.5f,
