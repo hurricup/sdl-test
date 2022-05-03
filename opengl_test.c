@@ -32,6 +32,7 @@ static int model_location;
 static int view_location;
 static int projection_location;
 static int shader_color_location;
+static const float camera_speed = 0.2f;
 static const float camera_speed_y = 0.2f;
 static const float camera_speed_x = 0.2f;
 static const float mouse_sensitivity = 0.001f;
@@ -105,6 +106,12 @@ move_camera_horizontally(float sign) {
     glm_vec3_add(camera_pos, right, camera_pos);
 }
 
+static void move_camera_front(float sign) {
+    vec3 delta_front = GLM_VEC3_ZERO_INIT;
+    glm_vec3_scale(camera_front, camera_speed * (float) sign, delta_front);
+    glm_vec3_add(camera_pos, delta_front, camera_pos);
+}
+
 static void
 move_camera_sight(int x, int y) {
     if (x == 0 && y == 0) {
@@ -151,6 +158,12 @@ event_loop() {
                         break;
                     case SDLK_f: // move camera down according to up vector
                         move_camera_vertically(-1);
+                        break;
+                    case SDLK_w: // move camera forward
+                        move_camera_front(1);
+                        break;
+                    case SDLK_s: // move camera backward
+                        move_camera_front(-1);
                         break;
                     case SDLK_z: // reset camera position
                         reset_camera();
