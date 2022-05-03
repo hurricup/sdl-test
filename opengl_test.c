@@ -6,6 +6,7 @@
 #include "data.h"
 #include <errno.h>
 #include "cglm/cglm.h"
+#include "opengl/camera.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -31,16 +32,7 @@ uivec4_t cube_sides[] = {
 static int model_location;
 static int project_view_location;
 static int shader_color_location;
-static const float camera_speed = 0.2f;
-static const float camera_speed_y = 0.2f;
-static const float camera_speed_x = 0.2f;
-static const float mouse_sensitivity = 0.001f;
-static vec3 camera_pos_default = {0.0f, 0.0f, 10.0f};
-static vec3 camera_pos = {0.0f, 0.0f, 10.0f};
-static vec3 camera_up_default = {0.0f, 1.0f, 0.0f};
-static vec3 camera_up = {0.0f, 1.0f, 0.0f};
-static vec3 camera_front_default = {0.0f, 0.0f, -1.0f};
-static vec3 camera_front = {0.0f, 0.0f, -1.0f};
+static camera_t camera;
 static mat4 model_m = GLM_MAT4_IDENTITY;
 static mat4 model2_m = GLM_MAT4_IDENTITY;
 static mat4 model3_m = GLM_MAT4_IDENTITY;
@@ -85,58 +77,6 @@ int main() {
     event_loop();
 }
 
-static void
-reset_camera() {
-    glm_vec3_copy(camera_front_default, camera_front);
-    glm_vec3_copy(camera_pos_default, camera_pos);
-    glm_vec3_copy(camera_up_default, camera_up);
-};
-
-static void
-move_camera_vertically(float sign) {
-    vec3 up = GLM_VEC3_ZERO_INIT;
-    glm_vec3_scale(camera_up, sign * camera_speed_y, up);
-    glm_vec3_add(camera_pos, up, camera_pos);
-}
-
-static void
-move_camera_horizontally(float sign) {
-    vec3 right = GLM_VEC3_ZERO_INIT;
-    glm_vec3_cross(camera_front, camera_up, right);
-    glm_normalize(right);
-    glm_vec3_scale(right, sign * camera_speed_x, right);
-    glm_vec3_add(camera_pos, right, camera_pos);
-}
-
-static void move_camera_front(float sign) {
-    vec3 delta_front = GLM_VEC3_ZERO_INIT;
-    glm_vec3_scale(camera_front, camera_speed * (float) sign, delta_front);
-    glm_vec3_add(camera_pos, delta_front, camera_pos);
-}
-
-static void
-move_camera_sight(int x, int y) {
-    if (x == 0 && y == 0) {
-        return;
-    }
-    vec3 delta_up = GLM_VEC3_ZERO_INIT;
-    vec3 right = GLM_VEC3_ZERO_INIT;
-    vec3 delta_right = GLM_VEC3_ZERO_INIT;
-
-    glm_vec3_cross(camera_front, camera_up, right);
-    glm_normalize(right);
-
-    glm_vec3_scale(camera_up, -(float) y * mouse_sensitivity, delta_up);
-    glm_vec3_scale(right, (float) x * mouse_sensitivity, delta_right);
-
-    glm_vec3_add(camera_front, delta_right, camera_front);
-    glm_vec3_cross(camera_front, camera_up, right);
-    glm_vec3_add(camera_front, delta_up, camera_front);
-    glm_vec3_cross(right, camera_front, camera_up);
-
-    glm_normalize(camera_front);
-    glm_normalize(camera_up);
-}
 
 static void
 event_loop() {
@@ -146,29 +86,29 @@ event_loop() {
             if (event.type == SDL_QUIT) {
                 return;
             } else if (event.type == SDL_MOUSEMOTION && event.motion.state & SDL_BUTTON_RMASK) {
-                move_camera_sight(event.motion.xrel, event.motion.yrel);
+                move_camera_sight(&camera, event.motion.xrel, event.motion.yrel);
             } else if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
                     case SDLK_a: // move camera right according to right vector
-                        move_camera_horizontally(-1);
+                        move_camera_horizontally(&camera, -1);
                         break;
                     case SDLK_d: // move camera left according to up vector
-                        move_camera_horizontally(1);
+                        move_camera_horizontally(&camera, 1);
                         break;
                     case SDLK_r: // move camera up according to up vector
-                        move_camera_vertically(1);
+                        move_camera_vertically(&camera, 1);
                         break;
                     case SDLK_f: // move camera down according to up vector
-                        move_camera_vertically(-1);
+                        move_camera_vertically(&camera, -1);
                         break;
                     case SDLK_w: // move camera forward
-                        move_camera_front(1);
+                        move_camera_front(&camera, 1);
                         break;
                     case SDLK_s: // move camera backward
-                        move_camera_front(-1);
+                        move_camera_front(&camera, -1);
                         break;
                     case SDLK_z: // reset camera position
-                        reset_camera();
+                        camera_init(&camera);
                         break;
                     default:
                         break;
@@ -231,7 +171,7 @@ update_scene() {
     glm_rotate_x(model4_m, cube_object.angles.z, model4_m);
 
     // View
-    glm_look(camera_pos, camera_front, camera_up, view_m);
+    camera_view(&camera, view_m);
 
     // projection
     glm_perspective(M_PI_4, (float) WIDTH / (float) HEIGHT, 0.1f, 100.0f, project_m);
@@ -318,6 +258,7 @@ initialize_gl() {
 }
 
 static void initialize_data() {
+    camera_init(&camera);
     set_point3(&cube_object.angles, 0, 0, 0);
     set_color(&cube_object.color, 0, 0, 0);
     set_square(&cube_model.cube.side_a,
