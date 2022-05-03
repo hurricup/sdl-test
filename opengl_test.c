@@ -136,7 +136,7 @@ event_loop() {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 return;
-            } else if (event.type == SDL_MOUSEMOTION) {
+            } else if (event.type == SDL_MOUSEMOTION && event.motion.state & SDL_BUTTON_RMASK) {
                 move_camera_sight(event.motion.xrel, event.motion.yrel);
             } else if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
