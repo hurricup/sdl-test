@@ -32,7 +32,8 @@ static int model_location;
 static int view_location;
 static int projection_location;
 static int shader_color_location;
-static const float camera_speed = 0.05f;
+static const float camera_speed_y = 0.2f;
+static const float camera_speed_x = 0.2f;
 static const float camera_angle_speed = M_PI / 90;
 static vec3 camera_eye = {0.0f, 0.0f, 10.0f};
 static vec3 camera_center = GLM_VEC3_ZERO;
@@ -79,6 +80,39 @@ int main() {
 }
 
 static void
+move_camera_vertically(float sign) {
+    vec3 sight = GLM_VEC3_ZERO_INIT;
+    vec3 right = GLM_VEC3_ZERO_INIT;
+    glm_vec3_sub(camera_center, camera_eye, sight);
+    glm_vec3_cross(camera_up, sight, right);
+    glm_normalize(right);
+    glm_vec3_scale(camera_up, sign * camera_speed_y, camera_up);
+    glm_vec3_add(camera_eye, camera_up, camera_eye);
+    // adjusting up vector for the new eye position
+    glm_vec3_cross(right, camera_eye, camera_up);
+    glm_normalize(camera_up);
+}
+
+static void
+move_camera_horizontally(float sign) {
+    vec3 sight = GLM_VEC3_ZERO_INIT;
+    vec3 right = GLM_VEC3_ZERO_INIT;
+    glm_vec3_sub(camera_center, camera_eye, sight);
+    glm_vec3_cross(sight, camera_up, right);
+    glm_normalize(right);
+    glm_vec3_scale(right, camera_speed_x, right);
+    if (sign > 0) {
+        glm_vec3_add(camera_eye, right, camera_eye);
+    } else {
+        glm_vec3_sub(camera_eye, right, camera_eye);
+    }
+
+    // adjusting up vector for the new eye position
+    glm_vec3_cross(camera_eye, right, camera_up);
+    glm_normalize(camera_up);
+}
+
+static void
 event_loop() {
     SDL_Event event;
     while (true) {
@@ -88,16 +122,16 @@ event_loop() {
             } else if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
                     case SDLK_a: // move center left
-                        camera_center[0] += camera_speed;
+                        move_camera_horizontally(-1);
                         break;
                     case SDLK_d: // move center right
-                        camera_center[0] -= camera_speed;
+                        move_camera_horizontally(1);
                         break;
                     case SDLK_w: // move center up
-                        camera_center[1] -= camera_speed;
+                        move_camera_vertically(1);
                         break;
                     case SDLK_s: // move center down
-                        camera_center[1] += camera_speed;
+                        move_camera_vertically(-1);
                         break;
                     case SDLK_q: // rotate up vector around eye vector ccw
                         glm_vec3_rotate(camera_up, camera_angle_speed, camera_eye);
