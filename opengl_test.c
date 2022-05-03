@@ -4,9 +4,9 @@
 #include <GL/gl.h>
 #include <GLES3/gl3.h>
 #include "data.h"
-#include <errno.h>
 #include "cglm/cglm.h"
 #include "opengl/camera.h"
+#include "opengl/file_util.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -310,29 +310,6 @@ initialize_app() {
     return true;
 }
 
-
-static char *
-load_text_file(const char *shader_name) {
-    char *buffer;
-    long length;
-    FILE *file = fopen(shader_name, "rb");
-
-    if (file) {
-        fseek(file, 0, SEEK_END);
-        length = ftell(file);
-        fseek(file, 0, SEEK_SET);
-        buffer = malloc(length + 1);
-        if (buffer) {
-            fread(buffer, 1, length, file);
-        }
-        fclose(file);
-        buffer[length] = '\0';
-    } else {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error reading file: %s, errno: %d", shader_name, errno);
-        exit(1);
-    }
-    return buffer;
-}
 
 static unsigned int
 load_shader(unsigned int shader_type, const char *shader_name) {
