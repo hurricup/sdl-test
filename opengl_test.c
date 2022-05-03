@@ -49,14 +49,12 @@ static mat4 view_m = GLM_MAT4_IDENTITY;
 static mat4 project_m = GLM_MAT4_IDENTITY;
 static struct {
     vec3_t angles;
-    axes_t axes;
     color_t color;
     cube_t cube;
     cube_t cube_texture;
 } cube_data;
 #define ANGLES_OFFSET 0
-#define AXES_OFFSET (ANGLES_OFFSET + VEC3_SIZE)
-#define COLOR_OFFSET (AXES_OFFSET + AXES_SIZE)
+#define COLOR_OFFSET (ANGLES_OFFSET + VEC3_SIZE)
 #define CUBE_OFFSET (COLOR_OFFSET + COLOR_SIZE)
 #define CUBE_TEXTURE_OFFSET (CUBE_OFFSET + CUBE_SIZE)
 #define CUBE_VERTEX_ATTRIBUTE_ID 0
@@ -317,10 +315,6 @@ initialize_gl() {
 
 static void initialize_data() {
     set_point3(&cube_data.angles, 0, 0, 0);
-    set_axes(&cube_data.axes,
-             1, 0, 0,
-             0, 1, 0,
-             0, 0, 1);
     set_color(&cube_data.color, 0, 0, 0);
     set_square(&cube_data.cube.side_a,
                0.5f, 0.5f, 0.5f,
