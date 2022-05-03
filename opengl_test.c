@@ -35,9 +35,9 @@ static int shader_color_location;
 static const float camera_speed_y = 0.2f;
 static const float camera_speed_x = 0.2f;
 static const float camera_angle_speed = M_PI / 90;
-static vec3 camera_eye = {0.0f, 0.0f, 10.0f};
-static vec3 camera_center = GLM_VEC3_ZERO;
+static vec3 camera_pos = {0.0f, 0.0f, 10.0f};
 static vec3 camera_up = {0.0f, 1.0f, 0.0f};
+static vec3 camera_center = GLM_VEC3_ZERO;
 static mat4 model_m = GLM_MAT4_IDENTITY;
 static mat4 view_m = GLM_MAT4_IDENTITY;
 static mat4 project_m = GLM_MAT4_IDENTITY;
@@ -83,13 +83,13 @@ static void
 move_camera_vertically(float sign) {
     vec3 sight = GLM_VEC3_ZERO_INIT;
     vec3 right = GLM_VEC3_ZERO_INIT;
-    glm_vec3_sub(camera_center, camera_eye, sight);
+    glm_vec3_sub(camera_center, camera_pos, sight);
     glm_vec3_cross(camera_up, sight, right);
     glm_normalize(right);
     glm_vec3_scale(camera_up, sign * camera_speed_y, camera_up);
-    glm_vec3_add(camera_eye, camera_up, camera_eye);
+    glm_vec3_add(camera_pos, camera_up, camera_pos);
     // adjusting up vector for the new eye position
-    glm_vec3_cross(right, camera_eye, camera_up);
+    glm_vec3_cross(right, camera_pos, camera_up);
     glm_normalize(camera_up);
 }
 
@@ -97,18 +97,18 @@ static void
 move_camera_horizontally(float sign) {
     vec3 sight = GLM_VEC3_ZERO_INIT;
     vec3 right = GLM_VEC3_ZERO_INIT;
-    glm_vec3_sub(camera_center, camera_eye, sight);
+    glm_vec3_sub(camera_center, camera_pos, sight);
     glm_vec3_cross(sight, camera_up, right);
     glm_normalize(right);
     glm_vec3_scale(right, camera_speed_x, right);
     if (sign > 0) {
-        glm_vec3_add(camera_eye, right, camera_eye);
+        glm_vec3_add(camera_pos, right, camera_pos);
     } else {
-        glm_vec3_sub(camera_eye, right, camera_eye);
+        glm_vec3_sub(camera_pos, right, camera_pos);
     }
 
     // adjusting up vector for the new eye position
-    glm_vec3_cross(camera_eye, right, camera_up);
+    glm_vec3_cross(camera_pos, right, camera_up);
     glm_normalize(camera_up);
 }
 
@@ -134,11 +134,11 @@ event_loop() {
                         move_camera_vertically(-1);
                         break;
                     case SDLK_q: // rotate up vector around eye vector ccw
-                        glm_vec3_rotate(camera_up, camera_angle_speed, camera_eye);
+                        glm_vec3_rotate(camera_up, camera_angle_speed, camera_pos);
                         glm_normalize(camera_up);
                         break;
                     case SDLK_e: // rotate up vector around eye vector cw
-                        glm_vec3_rotate(camera_up, -camera_angle_speed, camera_eye);
+                        glm_vec3_rotate(camera_up, -camera_angle_speed, camera_pos);
                         glm_normalize(camera_up);
                         break;
                     default:
@@ -183,7 +183,7 @@ update_scene() {
 //    glm_rotate_z(model_m, cube_data.angles.z, model_m);
 
     // View
-    glm_lookat(camera_eye, camera_center, camera_up, view_m);
+    glm_lookat(camera_pos, camera_center, camera_up, view_m);
 
     // projection
     glm_perspective(M_PI_4, (float) WIDTH / (float) HEIGHT, 0.1f, 100.0f, project_m);
