@@ -104,25 +104,17 @@ event_loop() {
                 return;
             } else if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
-                    case SDLK_a: // move center left
+                    case SDLK_a: // move camera right according to right vector
                         move_camera_horizontally(-1);
                         break;
-                    case SDLK_d: // move center right
+                    case SDLK_d: // move camera left according to up vector
                         move_camera_horizontally(1);
                         break;
-                    case SDLK_w: // move center up
+                    case SDLK_r: // move camera up according to up vector
                         move_camera_vertically(1);
                         break;
-                    case SDLK_s: // move center down
+                    case SDLK_f: // move camera down according to up vector
                         move_camera_vertically(-1);
-                        break;
-                    case SDLK_q: // rotate up vector around eye vector ccw
-                        glm_vec3_rotate(camera_up, camera_angle_speed, camera_pos);
-                        glm_normalize(camera_up);
-                        break;
-                    case SDLK_e: // rotate up vector around eye vector cw
-                        glm_vec3_rotate(camera_up, -camera_angle_speed, camera_pos);
-                        glm_normalize(camera_up);
                         break;
                     default:
                         break;
