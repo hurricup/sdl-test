@@ -29,8 +29,7 @@ uivec4_t cube_sides[] = {
         {3, 7, 4, 0}
 };
 static int model_location;
-static int view_location;
-static int projection_location;
+static int project_view_location;
 static int shader_color_location;
 static const float camera_speed = 0.2f;
 static const float camera_speed_y = 0.2f;
@@ -186,8 +185,9 @@ static void draw_scene() {
     glBindVertexArray(cube_vao);
     color_t cube_color = cube_data.color;
     glUniform3f(shader_color_location, cube_color.red, cube_color.green, cube_color.blue);
-    glUniformMatrix4fv(view_location, 1, GL_FALSE, (GLfloat *) view_m);
-    glUniformMatrix4fv(projection_location, 1, GL_FALSE, (GLfloat *) project_m);
+    mat4 project_view = GLM_MAT4_IDENTITY_INIT;
+    glm_mat4_mul(project_m, view_m, project_view);
+    glUniformMatrix4fv(project_view_location, 1, GL_FALSE, (GLfloat *) project_view);
     glUniformMatrix4fv(model_location, 1, GL_FALSE, (GLfloat *) model_m);
     glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
 
@@ -302,8 +302,7 @@ initialize_gl() {
     glUseProgram(shader);
     shader_color_location = glGetUniformLocation(shader, "passed_color");
     model_location = glGetUniformLocation(shader, "model_m");
-    view_location = glGetUniformLocation(shader, "view_m");
-    projection_location = glGetUniformLocation(shader, "project_m");
+    project_view_location = glGetUniformLocation(shader, "project_view_m");
 
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
                 "OpenGL:\nVendor: %s\nRenderer: %s\nVersion: %s\nExtensions: %s",
