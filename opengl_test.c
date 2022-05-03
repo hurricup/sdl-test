@@ -15,6 +15,7 @@ static const int HEIGHT = WIDTH / 16 * 9;
 static const Uint32 FPS = 30;
 static const Uint32 FPS_SIZE_MS = 1000 / FPS;
 
+static unsigned int cube_shader;
 static unsigned int cube_vao;
 static unsigned int cube_vbo;
 static unsigned int cube_ebo;
@@ -26,19 +27,29 @@ uivec4_t cube_sides[] = {
         {1, 5, 6, 2},
         {3, 7, 4, 0}
 };
-static int model_location;
-static int project_view_location;
-static int shader_color_location;
+static int cube_model_location;
+static int cube_project_location;
+static int cube_color_location;
 static camera_t camera;
 static mat4 model1_m = GLM_MAT4_IDENTITY;
 static mat4 model2_m = GLM_MAT4_IDENTITY;
 static mat4 model3_m = GLM_MAT4_IDENTITY;
 static mat4 model4_m = GLM_MAT4_IDENTITY;
+
+static mat4 light_m = GLM_MAT4_IDENTITY;
+static vec3 light_scale = {0.2f, 0.2f, 0.2f};
+static vec3 light_pos = {0.0f, -3.0f, 0.0f};
+static vec3 light_color = {0.95f, 0.95f, 0.95f};
+static int light_model_location;
+static int light_project_location;
+static int light_color_location;
+static unsigned int light_shader;
+static unsigned int light_vao;
+
 static mat4 view_m = GLM_MAT4_IDENTITY;
 static mat4 project_m = GLM_MAT4_IDENTITY;
 static struct cube_object {
     vec3_t angles;
-    color_t color;
 } cube_object;
 
 #define ANGLES_OFFSET 0
@@ -115,35 +126,67 @@ event_loop() {
     }
 }
 
-static void draw_scene() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glBindVertexArray(cube_vao);
-    color_t cube_color = cube_object.color;
-    glUniform3f(shader_color_location, cube_color.red, cube_color.green, cube_color.blue);
+static void
+draw_light() {
+    glBindVertexArray(light_vao);
+    glUseProgram(light_shader);
+
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
     glm_mat4_mul(project_m, view_m, project_view);
-    glUniformMatrix4fv(project_view_location, 1, GL_FALSE, (GLfloat *) project_view);
-    glUniformMatrix4fv(model_location, 1, GL_FALSE, (GLfloat *) model1_m);
+    glUniform3f(light_color_location, light_color[0], light_color[1], light_color[2]);
+    glUniformMatrix4fv(light_project_location, 1, GL_FALSE, (GLfloat *) project_view);
+    glUniformMatrix4fv(light_model_location, 1, GL_FALSE, (GLfloat *) light_m);
+
+    glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
+}
+
+static void
+draw_cubes() {
+    glBindVertexArray(cube_vao);
+    glUseProgram(cube_shader);
+
+    glUniform3f(cube_color_location, light_color[0], 0, 0);
+
+    mat4 project_view = GLM_MAT4_IDENTITY_INIT;
+    glm_mat4_mul(project_m, view_m, project_view);
+    glUniformMatrix4fv(cube_project_location, 1, GL_FALSE, (GLfloat *) project_view);
+    glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model1_m);
     glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
 
-    glUniformMatrix4fv(model_location, 1, GL_FALSE, (GLfloat *) model2_m);
+    glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model2_m);
     glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
 
-    glUniformMatrix4fv(model_location, 1, GL_FALSE, (GLfloat *) model3_m);
+    glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model3_m);
     glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
 
-    glUniformMatrix4fv(model_location, 1, GL_FALSE, (GLfloat *) model4_m);
+    glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model4_m);
     glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
+}
+
+static void draw_scene() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    draw_cubes();
+    draw_light();
+
     glFlush();
 }
 
 static void
-update_scene() {
-
+update_light() {
     double base_value = ((double) (SDL_GetTicks() % 5000)) * 2 * M_PI / 5000;
-    cube_object.color.red = (float) sin(base_value) / 2 + 0.5f;
-    cube_object.color.green = (float) sin(base_value + 2 * M_PI / 3) / 2 + 0.5f;
-    cube_object.color.blue = (float) sin(base_value + M_PI / 3) / 2 + 0.5f;
+
+    light_color[0] = (float) sin(base_value) / 2 + 0.5f;;
+    light_color[1] = (float) sin(base_value + 2 * M_PI / 3) / 2 + 0.5f;
+    light_color[2] = (float) sin(base_value + M_PI / 3) / 2 + 0.5f;
+
+    glm_mat4_identity(light_m);
+    glm_scale(light_m, light_scale);
+    glm_translate(light_m, light_pos);
+}
+
+static void
+update_cubes() {
 
     // rotating
     cube_object.angles.x += 0.01f;
@@ -166,6 +209,13 @@ update_scene() {
     glm_mat4_identity(model4_m);
     glm_translate_z(model4_m, 3.0f);
     glm_rotate_x(model4_m, cube_object.angles.z, model4_m);
+}
+
+static void
+update_scene() {
+
+    update_cubes();
+    update_light();
 
     // View
     camera_view(&camera, view_m);
@@ -181,13 +231,25 @@ update_screen() {
     SDL_GL_SwapWindow(window);
 }
 
-static void
-initialize_gl() {
-    glEnable(GL_DEPTH_TEST); // enables z-buffering
+static
+void initialize_gl_light() {
+    glGenVertexArrays(1, &light_vao);
+    glBindVertexArray(light_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, cube_vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ebo);
 
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
+    glEnableVertexAttribArray(CUBE_VERTEX_ATTRIBUTE_ID);
+    glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, 0, (void *) CUBE_OFFSET);
 
-    glGenVertexArrays(1, &cube_vao); // creating vertex arrays, pretty useless now, but still
+    light_shader = create_shader("shaders/light_vertex.glsl", "shaders/light_fragment.glsl");
+    light_color_location = glGetUniformLocation(light_shader, "passed_color");
+    light_model_location = glGetUniformLocation(light_shader, "model_m");
+    light_project_location = glGetUniformLocation(light_shader, "project_view_m");
+}
+
+static
+void initialize_gl_cube() {
+    glGenVertexArrays(1, &cube_vao);
     glBindVertexArray(cube_vao);
 
     glGenBuffers(1, &cube_vbo); // creating VBO
@@ -198,8 +260,6 @@ initialize_gl() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_sides), cube_sides, GL_STATIC_DRAW);
 
-//    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
     glEnableVertexAttribArray(CUBE_VERTEX_ATTRIBUTE_ID);
     glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, 0, (void *) CUBE_OFFSET);
 
@@ -207,12 +267,19 @@ initialize_gl() {
     glVertexAttribPointer(CUBE_TEXTURE_VERTEX_ATTRIBUTE_ID, 2, GL_FLOAT, GL_FALSE, POINT3_SIZE,
                           (void *) CUBE_TEXTURE_OFFSET);
 
-    unsigned int shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
-    glUseProgram(shader);
-    shader_color_location = glGetUniformLocation(shader, "passed_color");
-    model_location = glGetUniformLocation(shader, "model1_m");
-    project_view_location = glGetUniformLocation(shader, "project_view_m");
+    cube_shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
 
+    cube_color_location = glGetUniformLocation(cube_shader, "passed_color");
+    cube_model_location = glGetUniformLocation(cube_shader, "model_m");
+    cube_project_location = glGetUniformLocation(cube_shader, "project_view_m");
+
+    // generating texture
+    load_texture(GL_TEXTURE0, "texture1.png");
+    load_texture(GL_TEXTURE1, "texture2.png");
+}
+
+static void
+initialize_gl() {
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
                 "OpenGL:\nVendor: %s\nRenderer: %s\nVersion: %s\nExtensions: %s",
                 glGetString(GL_VENDOR),
@@ -220,16 +287,19 @@ initialize_gl() {
                 glGetString(GL_VERSION),
                 glGetString(GL_EXTENSIONS)
     );
+    glEnable(GL_DEPTH_TEST); // enables z-buffering
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
+//    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-    // generating texture
-    load_texture(GL_TEXTURE0, "texture1.png");
-    load_texture(GL_TEXTURE1, "texture2.png");
+    // cube
+    initialize_gl_cube();
+    initialize_gl_light();
 }
+
 
 static void initialize_data() {
     camera_init(&camera);
     set_point3(&cube_object.angles, 0, 0, 0);
-    set_color(&cube_object.color, 0, 0, 0);
     set_square(&cube_model.cube.side_a,
                0.5f, 0.5f, 0.5f,
                0.5f, -0.5f, 0.5f,

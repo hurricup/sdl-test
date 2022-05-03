@@ -9,5 +9,5 @@ layout(binding = 1) uniform sampler2D texture2;
 out vec4 color;
 
 void main(){
-    color = mix(texture(texture1, vertex_tex_coord), texture(texture2, vertex_tex_coord), vertex_color.x) * vertex_color;
+    color = mix(texture(texture1, vertex_tex_coord), texture(texture2, vertex_tex_coord), vertex_color.x);
 }
