@@ -58,7 +58,7 @@ static struct cube_object {
 static struct {
     cube_t cube;
     cube_t cube_texture;
-} cube_data;
+} cube_model;
 #define CUBE_OFFSET 0
 #define CUBE_TEXTURE_OFFSET (CUBE_OFFSET + CUBE_SIZE)
 #define CUBE_VERTEX_ATTRIBUTE_ID 0
@@ -283,7 +283,7 @@ initialize_gl() {
 
     glGenBuffers(1, &cube_vbo); // creating VBO
     glBindBuffer(GL_ARRAY_BUFFER, cube_vbo); // selecting buffer of particular type
-    glBufferData(GL_ARRAY_BUFFER, sizeof cube_data, &cube_data, GL_STATIC_DRAW); // copying data
+    glBufferData(GL_ARRAY_BUFFER, sizeof cube_model, &cube_model, GL_STATIC_DRAW); // copying data
 
     glGenBuffers(1, &cube_ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ebo);
@@ -320,26 +320,26 @@ initialize_gl() {
 static void initialize_data() {
     set_point3(&cube_object.angles, 0, 0, 0);
     set_color(&cube_object.color, 0, 0, 0);
-    set_square(&cube_data.cube.side_a,
+    set_square(&cube_model.cube.side_a,
                0.5f, 0.5f, 0.5f,
                0.5f, -0.5f, 0.5f,
                -0.5f, -0.5f, 0.5f,
                -0.5f, 0.5f, 0.5f);
 
-    set_square(&cube_data.cube.side_b,
+    set_square(&cube_model.cube.side_b,
                0.5f, 0.5f, -0.5f,
                0.5f, -0.5f, -0.5f,
                -0.5f, -0.5f, -0.5f,
                -0.5f, 0.5f, -0.5f);
 
-    set_square(&cube_data.cube_texture.side_a,
+    set_square(&cube_model.cube_texture.side_a,
                1.0f, 1.0f, 0.0f,
                1.0f, 0.0f, 0.0f,
                0.0f, 0.0f, 0.0f,
                0.0f, 1.0f, 0.0f);
 
     // this is most likely be wrong, because of index buffer
-    set_square(&cube_data.cube_texture.side_b,
+    set_square(&cube_model.cube_texture.side_b,
                0.0f, 1.0f, 0.0f,
                0.0f, 0.0f, 0.0f,
                1.0f, 0.0f, 0.0f,
