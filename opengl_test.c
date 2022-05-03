@@ -43,6 +43,9 @@ static vec3 camera_up = {0.0f, 1.0f, 0.0f};
 static vec3 camera_front_default = {0.0f, 0.0f, -1.0f};
 static vec3 camera_front = {0.0f, 0.0f, -1.0f};
 static mat4 model_m = GLM_MAT4_IDENTITY;
+static mat4 model2_m = GLM_MAT4_IDENTITY;
+static mat4 model3_m = GLM_MAT4_IDENTITY;
+static mat4 model4_m = GLM_MAT4_IDENTITY;
 static mat4 view_m = GLM_MAT4_IDENTITY;
 static mat4 project_m = GLM_MAT4_IDENTITY;
 static struct {
@@ -183,9 +186,18 @@ static void draw_scene() {
     glBindVertexArray(cube_vao);
     color_t cube_color = cube_data.color;
     glUniform3f(shader_color_location, cube_color.red, cube_color.green, cube_color.blue);
-    glUniformMatrix4fv(model_location, 1, GL_FALSE, (GLfloat *) model_m);
     glUniformMatrix4fv(view_location, 1, GL_FALSE, (GLfloat *) view_m);
     glUniformMatrix4fv(projection_location, 1, GL_FALSE, (GLfloat *) project_m);
+    glUniformMatrix4fv(model_location, 1, GL_FALSE, (GLfloat *) model_m);
+    glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
+
+    glUniformMatrix4fv(model_location, 1, GL_FALSE, (GLfloat *) model2_m);
+    glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
+
+    glUniformMatrix4fv(model_location, 1, GL_FALSE, (GLfloat *) model3_m);
+    glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
+
+    glUniformMatrix4fv(model_location, 1, GL_FALSE, (GLfloat *) model4_m);
     glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
     glFlush();
 }
@@ -198,16 +210,25 @@ update_scene() {
     cube_data.color.green = (float) sin(base_value + 2 * M_PI / 3) / 2 + 0.5f;
     cube_data.color.blue = (float) sin(base_value + M_PI / 3) / 2 + 0.5f;
 
-    // creating identity matrix
-    glm_mat4_identity(model_m);
     // rotating
     cube_data.angles.x += 0.01f;
     cube_data.angles.y += 0.012f;
     cube_data.angles.z += 0.013f;
 
-//    glm_rotate_x(model_m, cube_data.angles.x, model_m);
-//    glm_rotate_y(model_m, cube_data.angles.y, model_m);
-//    glm_rotate_z(model_m, cube_data.angles.z, model_m);
+    // creating identity matrix
+    glm_mat4_identity(model_m);
+
+    glm_mat4_identity(model2_m);
+    glm_translate_x(model2_m, 3.0f);
+    glm_rotate_y(model2_m, cube_data.angles.x, model2_m);
+
+    glm_mat4_identity(model3_m);
+    glm_translate_y(model3_m, 3.0f);
+    glm_rotate_z(model3_m, cube_data.angles.y, model3_m);
+
+    glm_mat4_identity(model4_m);
+    glm_translate_z(model4_m, 3.0f);
+    glm_rotate_x(model4_m, cube_data.angles.z, model4_m);
 
     // View
     glm_look(camera_pos, camera_front, camera_up, view_m);
