@@ -30,7 +30,7 @@ static int model_location;
 static int project_view_location;
 static int shader_color_location;
 static camera_t camera;
-static mat4 model_m = GLM_MAT4_IDENTITY;
+static mat4 model1_m = GLM_MAT4_IDENTITY;
 static mat4 model2_m = GLM_MAT4_IDENTITY;
 static mat4 model3_m = GLM_MAT4_IDENTITY;
 static mat4 model4_m = GLM_MAT4_IDENTITY;
@@ -123,7 +123,7 @@ static void draw_scene() {
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
     glm_mat4_mul(project_m, view_m, project_view);
     glUniformMatrix4fv(project_view_location, 1, GL_FALSE, (GLfloat *) project_view);
-    glUniformMatrix4fv(model_location, 1, GL_FALSE, (GLfloat *) model_m);
+    glUniformMatrix4fv(model_location, 1, GL_FALSE, (GLfloat *) model1_m);
     glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
 
     glUniformMatrix4fv(model_location, 1, GL_FALSE, (GLfloat *) model2_m);
@@ -151,7 +151,9 @@ update_scene() {
     cube_object.angles.z += 0.013f;
 
     // creating identity matrix
-    glm_mat4_identity(model_m);
+    glm_mat4_identity(model1_m);
+    glm_translate_x(model1_m, -3.0f);
+    glm_rotate_y(model1_m, -cube_object.angles.y, model1_m);
 
     glm_mat4_identity(model2_m);
     glm_translate_x(model2_m, 3.0f);
@@ -208,7 +210,7 @@ initialize_gl() {
     unsigned int shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
     glUseProgram(shader);
     shader_color_location = glGetUniformLocation(shader, "passed_color");
-    model_location = glGetUniformLocation(shader, "model_m");
+    model_location = glGetUniformLocation(shader, "model1_m");
     project_view_location = glGetUniformLocation(shader, "project_view_m");
 
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
