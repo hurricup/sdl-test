@@ -1,17 +1,3 @@
-typedef struct color {
-    float red;
-    float green;
-    float blue;
-} color_t;
-
-#define COLOR_SIZE sizeof(color_t)
-
-static inline void
-set_color(color_t *color, float red, float green, float blue) {
-    color->red = red;
-    color->green = green;
-    color->blue = blue;
-}
 
 typedef struct point3 {
     float x;
