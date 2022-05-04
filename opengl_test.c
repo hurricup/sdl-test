@@ -3,11 +3,12 @@
 #include <time.h>
 #include <GL/gl.h>
 #include <GLES3/gl3.h>
-#include "data.h"
+#include "opengl/cglm_ext.h"
 #include "cglm/cglm.h"
 #include "opengl/camera.h"
 #include "opengl/texture.h"
 #include "opengl/shader.h"
+#include "models/cube.h"
 
 static const int WIDTH = 1280;
 static const int HEIGHT = WIDTH / 16 * 9;
@@ -18,15 +19,6 @@ static const Uint32 FPS_SIZE_MS = 1000 / FPS;
 static unsigned int cube_shader;
 static unsigned int cube_vao;
 static unsigned int cube_vbo;
-static unsigned int cube_ebo;
-ivec4 cube_sides[] = {
-        {0, 1, 2, 3},
-        {2, 6, 7, 3},
-        {0, 4, 5, 1},
-        {4, 5, 6, 7},
-        {1, 5, 6, 2},
-        {3, 7, 4, 0}
-};
 static int cube_model_location;
 static int cube_project_location;
 static int cube_light_color_location;
@@ -55,10 +47,11 @@ static struct cube_object {
 #define ANGLES_OFFSET 0
 #define COLOR_OFFSET (ANGLES_OFFSET + VEC3_SIZE)
 
-static struct {
-    cube_t cube;
-    cube_t cube_texture;
+static struct textured_cube {
+    cube_t model;
+    cube_textures_t textures;
 } cube_model;
+
 #define CUBE_OFFSET 0
 #define CUBE_TEXTURE_OFFSET (CUBE_OFFSET + CUBE_SIZE)
 #define CUBE_VERTEX_ATTRIBUTE_ID 0
@@ -137,7 +130,7 @@ draw_light() {
     glUniformMatrix4fv(light_project_location, 1, GL_FALSE, (GLfloat *) project_view);
     glUniformMatrix4fv(light_model_location, 1, GL_FALSE, (GLfloat *) light_m);
 
-    glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_QUADS, 0, 6 * 4);
 }
 
 static void
@@ -151,16 +144,16 @@ draw_cubes() {
     glm_mat4_mul(project_m, view_m, project_view);
     glUniformMatrix4fv(cube_project_location, 1, GL_FALSE, (GLfloat *) project_view);
     glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model1_m);
-    glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_QUADS, 0, 6 * 4);
 
     glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model2_m);
-    glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_QUADS, 0, 6 * 4);
 
     glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model3_m);
-    glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_QUADS, 0, 6 * 4);
 
     glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model4_m);
-    glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, 0);
+    glDrawArrays(GL_QUADS, 0, 6 * 4);
 }
 
 static void draw_scene() {
@@ -236,7 +229,6 @@ void initialize_gl_light() {
     glGenVertexArrays(1, &light_vao);
     glBindVertexArray(light_vao);
     glBindBuffer(GL_ARRAY_BUFFER, cube_vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ebo);
 
     glEnableVertexAttribArray(CUBE_VERTEX_ATTRIBUTE_ID);
     glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, 0, (void *) CUBE_OFFSET);
@@ -256,15 +248,11 @@ void initialize_gl_cube() {
     glBindBuffer(GL_ARRAY_BUFFER, cube_vbo); // selecting buffer of particular type
     glBufferData(GL_ARRAY_BUFFER, sizeof cube_model, &cube_model, GL_STATIC_DRAW); // copying data
 
-    glGenBuffers(1, &cube_ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_sides), cube_sides, GL_STATIC_DRAW);
-
     glEnableVertexAttribArray(CUBE_VERTEX_ATTRIBUTE_ID);
     glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, 0, (void *) CUBE_OFFSET);
 
     glEnableVertexAttribArray(CUBE_TEXTURE_VERTEX_ATTRIBUTE_ID);
-    glVertexAttribPointer(CUBE_TEXTURE_VERTEX_ATTRIBUTE_ID, 2, GL_FLOAT, GL_FALSE, sizeof(vec3),
+    glVertexAttribPointer(CUBE_TEXTURE_VERTEX_ATTRIBUTE_ID, 2, GL_FLOAT, GL_FALSE, 0,
                           (void *) CUBE_TEXTURE_OFFSET);
 
     cube_shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
@@ -300,30 +288,8 @@ initialize_gl() {
 static void initialize_data() {
     camera_init(&camera);
     vec3_set(cube_object.angles, 0, 0, 0);
-    set_square(&cube_model.cube.side_a,
-               0.5f, 0.5f, 0.5f,
-               0.5f, -0.5f, 0.5f,
-               -0.5f, -0.5f, 0.5f,
-               -0.5f, 0.5f, 0.5f);
-
-    set_square(&cube_model.cube.side_b,
-               0.5f, 0.5f, -0.5f,
-               0.5f, -0.5f, -0.5f,
-               -0.5f, -0.5f, -0.5f,
-               -0.5f, 0.5f, -0.5f);
-
-    set_square(&cube_model.cube_texture.side_a,
-               1.0f, 1.0f, 0.0f,
-               1.0f, 0.0f, 0.0f,
-               0.0f, 0.0f, 0.0f,
-               0.0f, 1.0f, 0.0f);
-
-    // this is most likely be wrong, because of index buffer
-    set_square(&cube_model.cube_texture.side_b,
-               0.0f, 1.0f, 0.0f,
-               0.0f, 0.0f, 0.0f,
-               1.0f, 0.0f, 0.0f,
-               1.0f, 1.0f, 0.0f);
+    cube_model_init(&cube_model.model);
+    cube_textures_init(&cube_model.textures);
 }
 
 static bool
