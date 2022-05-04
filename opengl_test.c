@@ -49,7 +49,7 @@ static unsigned int light_vao;
 static mat4 view_m = GLM_MAT4_IDENTITY;
 static mat4 project_m = GLM_MAT4_IDENTITY;
 static struct cube_object {
-    vec3_t angles;
+    vec3 angles;
 } cube_object;
 
 #define ANGLES_OFFSET 0
@@ -189,26 +189,26 @@ static void
 update_cubes() {
 
     // rotating
-    cube_object.angles.x += 0.01f;
-    cube_object.angles.y += 0.012f;
-    cube_object.angles.z += 0.013f;
+    cube_object.angles[0] += 0.01f;
+    cube_object.angles[1] += 0.012f;
+    cube_object.angles[2] += 0.013f;
 
     // creating identity matrix
     glm_mat4_identity(model1_m);
     glm_translate_x(model1_m, -3.0f);
-    glm_rotate_y(model1_m, -cube_object.angles.y, model1_m);
+    glm_rotate_y(model1_m, -cube_object.angles[1], model1_m);
 
     glm_mat4_identity(model2_m);
     glm_translate_x(model2_m, 3.0f);
-    glm_rotate_y(model2_m, cube_object.angles.x, model2_m);
+    glm_rotate_y(model2_m, cube_object.angles[0], model2_m);
 
     glm_mat4_identity(model3_m);
     glm_translate_y(model3_m, 3.0f);
-    glm_rotate_z(model3_m, cube_object.angles.y, model3_m);
+    glm_rotate_z(model3_m, cube_object.angles[1], model3_m);
 
     glm_mat4_identity(model4_m);
     glm_translate_z(model4_m, 3.0f);
-    glm_rotate_x(model4_m, cube_object.angles.z, model4_m);
+    glm_rotate_x(model4_m, cube_object.angles[2], model4_m);
 }
 
 static void
@@ -264,7 +264,7 @@ void initialize_gl_cube() {
     glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, 0, (void *) CUBE_OFFSET);
 
     glEnableVertexAttribArray(CUBE_TEXTURE_VERTEX_ATTRIBUTE_ID);
-    glVertexAttribPointer(CUBE_TEXTURE_VERTEX_ATTRIBUTE_ID, 2, GL_FLOAT, GL_FALSE, POINT3_SIZE,
+    glVertexAttribPointer(CUBE_TEXTURE_VERTEX_ATTRIBUTE_ID, 2, GL_FLOAT, GL_FALSE, sizeof(vec3),
                           (void *) CUBE_TEXTURE_OFFSET);
 
     cube_shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
@@ -299,7 +299,7 @@ initialize_gl() {
 
 static void initialize_data() {
     camera_init(&camera);
-    set_point3(&cube_object.angles, 0, 0, 0);
+    vec3_set(cube_object.angles, 0, 0, 0);
     set_square(&cube_model.cube.side_a,
                0.5f, 0.5f, 0.5f,
                0.5f, -0.5f, 0.5f,
