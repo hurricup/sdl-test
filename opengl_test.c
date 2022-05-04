@@ -29,7 +29,7 @@ uivec4_t cube_sides[] = {
 };
 static int cube_model_location;
 static int cube_project_location;
-static int cube_color_location;
+static int cube_light_color_location;
 static camera_t camera;
 static mat4 model1_m = GLM_MAT4_IDENTITY;
 static mat4 model2_m = GLM_MAT4_IDENTITY;
@@ -145,7 +145,7 @@ draw_cubes() {
     glBindVertexArray(cube_vao);
     glUseProgram(cube_shader);
 
-    glUniform3f(cube_color_location, light_color[0], 0, 0);
+    glUniform3f(cube_light_color_location, light_color[0], light_color[1], light_color[2]);
 
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
     glm_mat4_mul(project_m, view_m, project_view);
@@ -269,7 +269,7 @@ void initialize_gl_cube() {
 
     cube_shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
 
-    cube_color_location = glGetUniformLocation(cube_shader, "passed_color");
+    cube_light_color_location = glGetUniformLocation(cube_shader, "light_color");
     cube_model_location = glGetUniformLocation(cube_shader, "model_m");
     cube_project_location = glGetUniformLocation(cube_shader, "project_view_m");
 
