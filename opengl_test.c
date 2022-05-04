@@ -20,8 +20,10 @@ static unsigned int cube_shader;
 static unsigned int cube_vao;
 static unsigned int cube_vbo;
 static int cube_model_location;
+static int cube_normals_model_location;
 static int cube_project_location;
 static int cube_light_color_location;
+static int cube_light_pos_location;
 static camera_t camera;
 static mat4 model1_m = GLM_MAT4_IDENTITY;
 static mat4 model2_m = GLM_MAT4_IDENTITY;
@@ -50,12 +52,16 @@ static struct cube_object {
 static struct textured_cube {
     cube_t model;
     cube_textures_t textures;
+    cube_t normals; // this is expensive, we should have a normal vector for each vertex from model
 } cube_model;
 
 #define CUBE_OFFSET 0
 #define CUBE_TEXTURE_OFFSET (CUBE_OFFSET + CUBE_SIZE)
+#define CUBE_NORMALS_OFFSET (CUBE_TEXTURE_OFFSET + CUBE_TEXTURES_SIZE)
+
 #define CUBE_VERTEX_ATTRIBUTE_ID 0
 #define CUBE_TEXTURE_VERTEX_ATTRIBUTE_ID 1
+#define CUBE_NORMALS_ATTRIBUTE_ID 2
 
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
@@ -134,26 +140,35 @@ draw_light() {
 }
 
 static void
+draw_cube(mat4 model) {
+    mat4 normals_model4;
+    mat3 normals_model3;
+
+    glm_mat4_inv(model, normals_model4);
+    glm_mat4_transpose(normals_model4);
+    glm_mat4_pick3(normals_model4, normals_model3);
+
+    glUniformMatrix3fv(cube_normals_model_location, 1, GL_FALSE, (GLfloat *) normals_model3);
+    glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model);
+    glDrawArrays(GL_QUADS, 0, 6 * 4);
+}
+
+static void
 draw_cubes() {
     glBindVertexArray(cube_vao);
     glUseProgram(cube_shader);
 
     glUniform3f(cube_light_color_location, light_color[0], light_color[1], light_color[2]);
+    glUniform3f(cube_light_pos_location, light_pos[0], light_pos[1], light_pos[2]);
 
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
     glm_mat4_mul(project_m, view_m, project_view);
     glUniformMatrix4fv(cube_project_location, 1, GL_FALSE, (GLfloat *) project_view);
-    glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model1_m);
-    glDrawArrays(GL_QUADS, 0, 6 * 4);
 
-    glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model2_m);
-    glDrawArrays(GL_QUADS, 0, 6 * 4);
-
-    glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model3_m);
-    glDrawArrays(GL_QUADS, 0, 6 * 4);
-
-    glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model4_m);
-    glDrawArrays(GL_QUADS, 0, 6 * 4);
+    draw_cube(model1_m);
+    draw_cube(model2_m);
+    draw_cube(model3_m);
+    draw_cube(model4_m);
 }
 
 static void draw_scene() {
@@ -188,20 +203,33 @@ update_cubes() {
 
     // creating identity matrix
     glm_mat4_identity(model1_m);
-    glm_translate_x(model1_m, -3.0f);
+    glm_translate_x(model1_m, -2.0f);
+    glm_translate_y(model1_m, -2.0f);
+    glm_translate_z(model1_m, -2.0f);
+    glm_rotate_x(model1_m, -cube_object.angles[0], model1_m);
     glm_rotate_y(model1_m, -cube_object.angles[1], model1_m);
 
     glm_mat4_identity(model2_m);
-    glm_translate_x(model2_m, 3.0f);
-    glm_rotate_y(model2_m, cube_object.angles[0], model2_m);
+    glm_translate_x(model2_m, 2.0f);
+    glm_translate_y(model2_m, 2.0f);
+    glm_translate_z(model2_m, 2.0f);
+    glm_rotate_y(model2_m, cube_object.angles[1], model2_m);
+    glm_rotate_z(model2_m, cube_object.angles[2], model2_m);
 
     glm_mat4_identity(model3_m);
-    glm_translate_y(model3_m, 3.0f);
-    glm_rotate_z(model3_m, cube_object.angles[1], model3_m);
+    glm_translate_x(model3_m, 2.0f);
+    glm_translate_y(model3_m, 2.0f);
+    glm_translate_z(model3_m, -2.0f);
+    glm_rotate_x(model3_m, cube_object.angles[0], model3_m);
+    glm_rotate_z(model3_m, cube_object.angles[2], model3_m);
 
     glm_mat4_identity(model4_m);
-    glm_translate_z(model4_m, 3.0f);
-    glm_rotate_x(model4_m, cube_object.angles[2], model4_m);
+    glm_translate_x(model4_m, -2.0f);
+    glm_translate_y(model4_m, 2.0f);
+    glm_translate_z(model4_m, 2.0f);
+    glm_rotate_x(model4_m, cube_object.angles[0], model4_m);
+    glm_rotate_y(model4_m, cube_object.angles[1], model4_m);
+    glm_rotate_z(model4_m, cube_object.angles[2], model4_m);
 }
 
 static void
@@ -235,8 +263,8 @@ void initialize_gl_light() {
 
     light_shader = create_shader("shaders/light_vertex.glsl", "shaders/light_fragment.glsl");
     light_color_location = glGetUniformLocation(light_shader, "passed_color");
-    light_model_location = glGetUniformLocation(light_shader, "model_m");
-    light_project_location = glGetUniformLocation(light_shader, "project_view_m");
+    light_model_location = glGetUniformLocation(light_shader, "model");
+    light_project_location = glGetUniformLocation(light_shader, "project_view");
 }
 
 static
@@ -255,11 +283,16 @@ void initialize_gl_cube() {
     glVertexAttribPointer(CUBE_TEXTURE_VERTEX_ATTRIBUTE_ID, 2, GL_FLOAT, GL_FALSE, 0,
                           (void *) CUBE_TEXTURE_OFFSET);
 
+    glEnableVertexAttribArray(CUBE_NORMALS_ATTRIBUTE_ID);
+    glVertexAttribPointer(CUBE_NORMALS_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, 0, (void *) CUBE_NORMALS_OFFSET);
+
     cube_shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
 
+    cube_light_pos_location = glGetUniformLocation(cube_shader, "light_pos");
     cube_light_color_location = glGetUniformLocation(cube_shader, "light_color");
-    cube_model_location = glGetUniformLocation(cube_shader, "model_m");
-    cube_project_location = glGetUniformLocation(cube_shader, "project_view_m");
+    cube_model_location = glGetUniformLocation(cube_shader, "model");
+    cube_normals_model_location = glGetUniformLocation(cube_shader, "normals_model");
+    cube_project_location = glGetUniformLocation(cube_shader, "project_view");
 
     // generating texture
     load_texture(GL_TEXTURE0, "texture1.png");
@@ -290,6 +323,7 @@ static void initialize_data() {
     vec3_set(cube_object.angles, 0, 0, 0);
     cube_model_init(&cube_model.model);
     cube_textures_init(&cube_model.textures);
+    cube_normals_init(&cube_model.normals);
 }
 
 static bool

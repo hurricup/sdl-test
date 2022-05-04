@@ -41,8 +41,10 @@ typedef struct cube_textures {
 
 #define CUBE_TEXTURES_SIZE sizeof(cube_textures_t)
 
-void cube_model_init(cube_t *cube_model);
+void cube_model_init(cube_t *cube);
 
-void cube_textures_init(cube_textures_t *cube_model);
+void cube_textures_init(cube_textures_t *cube_textures);
+
+void cube_normals_init(cube_t *cube_normals);
 
 #endif //SDL_TEST_CUBE_H

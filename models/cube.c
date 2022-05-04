@@ -26,44 +26,44 @@ set_square3(square3_t *square,
 }
 
 void
-cube_model_init(cube_t *cube_model) {
+cube_model_init(cube_t *cube) {
     // front
-    set_square3(&cube_model->side_a,
+    set_square3(&cube->side_a,
                 0.5f, 0.5f, 0.5f,
                 0.5f, -0.5f, 0.5f,
                 -0.5f, -0.5f, 0.5f,
                 -0.5f, 0.5f, 0.5f
     );
     // back
-    set_square3(&cube_model->side_b,
+    set_square3(&cube->side_b,
                 0.5f, 0.5f, -0.5f,
                 0.5f, -0.5f, -0.5f,
                 -0.5f, -0.5f, -0.5f,
                 -0.5f, 0.5f, -0.5f
     );
     // right
-    set_square3(&cube_model->side_c,
+    set_square3(&cube->side_c,
                 0.5f, 0.5f, 0.5f,
                 0.5f, -0.5f, 0.5f,
                 0.5f, -0.5f, -0.5f,
                 0.5f, 0.5f, -0.5f
     );
     // left
-    set_square3(&cube_model->side_d,
+    set_square3(&cube->side_d,
                 -0.5f, 0.5f, 0.5f,
                 -0.5f, -0.5f, 0.5f,
                 -0.5f, -0.5f, -0.5f,
                 -0.5f, 0.5f, -0.5f
     );
     // top
-    set_square3(&cube_model->side_e,
+    set_square3(&cube->side_e,
                 0.5f, 0.5f, 0.5f,
                 0.5f, 0.5f, -0.5f,
                 -0.5f, 0.5f, -0.5f,
                 -0.5f, 0.5f, 0.5f
     );
     // bottom
-    set_square3(&cube_model->side_f,
+    set_square3(&cube->side_f,
                 0.5f, -0.5f, 0.5f,
                 0.5f, -0.5f, -0.5f,
                 -0.5f, -0.5f, -0.5f,
@@ -84,4 +84,24 @@ cube_textures_init(cube_textures_t *cube_textures) {
     memcpy(&cube_textures->side_d, &cube_textures->side_a, sizeof(square2_t));
     memcpy(&cube_textures->side_e, &cube_textures->side_a, sizeof(square2_t));
     memcpy(&cube_textures->side_f, &cube_textures->side_a, sizeof(square2_t));
+}
+
+static void
+set_normal(square3_t *normal, float x, float y, float z) {
+    set_square3(normal,
+                x, y, z,
+                x, y, z,
+                x, y, z,
+                x, y, z);
+
+}
+
+void
+cube_normals_init(cube_t *cube_normals) {
+    set_normal(&cube_normals->side_a, 0, 0, 1);
+    set_normal(&cube_normals->side_b, 0, 0, -1);
+    set_normal(&cube_normals->side_c, 1, 0, 0);
+    set_normal(&cube_normals->side_d, -1, 0, 0);
+    set_normal(&cube_normals->side_e, 0, 1, 0);
+    set_normal(&cube_normals->side_f, 0, -1, 0);
 }
