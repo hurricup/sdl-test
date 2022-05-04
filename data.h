@@ -15,22 +15,6 @@ set_point3(point3_t *point, float x, float y, float z) {
 
 #define set_vec3 set_point3
 
-typedef struct uivec4 {
-    unsigned int x;
-    unsigned int y;
-    unsigned int z;
-    unsigned int w;
-} uivec4_t;
-#define UIVEC4_SIZE sizeof(uivec4_t)
-
-static inline void
-set_uivec4(uivec4_t *uivec4, unsigned int x, unsigned int y, unsigned int z, unsigned int w) {
-    uivec4->x = x;
-    uivec4->y = y;
-    uivec4->z = z;
-    uivec4->w = w;
-}
-
 typedef point3_t vec3_t;
 #define VEC3_SIZE POINT3_SIZE
 

@@ -19,7 +19,7 @@ static unsigned int cube_shader;
 static unsigned int cube_vao;
 static unsigned int cube_vbo;
 static unsigned int cube_ebo;
-uivec4_t cube_sides[] = {
+ivec4 cube_sides[] = {
         {0, 1, 2, 3},
         {2, 6, 7, 3},
         {0, 4, 5, 1},
