@@ -1,4 +1,3 @@
-
 typedef struct point3 {
     float x;
     float y;
@@ -70,24 +69,6 @@ set_square(square_t *square,
     set_point3(&(square->c), x3, y3, z3);
     set_point3(&(square->d), x4, y4, z4);
 }
-
-typedef struct axes {
-    vec3_t ax;
-    vec3_t ay;
-    vec3_t az;
-} axes_t;
-
-static inline void
-set_axes(axes_t *axes,
-         float x1, float y1, float z1,
-         float x2, float y2, float z2,
-         float x3, float y3, float z3) {
-    set_vec3(&(axes->ax), x1, y1, z1);
-    set_vec3(&(axes->ay), x2, y2, z2);
-    set_vec3(&(axes->az), x3, y3, z3);
-}
-
-#define AXES_SIZE sizeof(axes_t)
 
 typedef struct cube {
     square_t side_a;
