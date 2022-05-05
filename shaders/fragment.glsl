@@ -17,6 +17,7 @@ out vec4 color;
 void main(){
     float distance_decay_const = 2000;
     float ambient_strength = 0.1;
+    float specular_strength = 1.1;
 
     vec3 light_distance_vector = light_pos - frag_pos;
     float light_distance = length(light_distance_vector);
@@ -27,9 +28,14 @@ void main(){
     float diffuse = max(dot(norm, light_direction), 0.0) * light_distance_decay;
 
     vec3 camera_distance_vector = camera_pos - frag_pos;
+    vec3 camera_direction = normalize(camera_distance_vector);
     float camera_distance = length(camera_distance_vector);
     float camera_distance_decay = distance_decay_const / (camera_distance * camera_distance + distance_decay_const);
 
-    vec4 frag_color = vec4((ambient_strength + diffuse) * light_color, 1.0);
+    vec3 reflect_direction = reflect(-light_direction, norm);
+    float spec = pow(max(dot(camera_direction, reflect_direction), 0.0), 32);
+    vec3 specular = specular_strength * spec * light_color * light_distance_decay;
+
+    vec4 frag_color = vec4((ambient_strength + diffuse + specular) * light_color, 1.0);
     color = mix(texture(texture1, tex_coord), texture(texture2, tex_coord), light_color.x) * frag_color * camera_distance_decay;
 }
