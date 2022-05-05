@@ -199,6 +199,18 @@ update_light() {
     glm_translate(light_m, light_pos);
 }
 
+static void update_cube(float size, const float *trans, const float *angles, vec4 (*model)) {
+    vec3 scale4 = {size, size, size};
+    glm_mat4_identity(model);
+    glm_translate_x(model, trans[0]);
+    glm_translate_y(model, trans[1]);
+    glm_translate_z(model, trans[2]);
+    glm_scale(model, scale4);
+    glm_rotate_x(model, angles[0], model);
+    glm_rotate_y(model, angles[1], model);
+    glm_rotate_z(model, angles[2], model);
+}
+
 static void
 update_cubes() {
 
@@ -215,33 +227,17 @@ update_cubes() {
     glm_rotate_x(model1_m, -cube_object.angles[0], model1_m);
     glm_rotate_y(model1_m, -cube_object.angles[1], model1_m);
 
-    vec3 scale2 = {2, 2, 2};
-    glm_mat4_identity(model2_m);
-    glm_translate_x(model2_m, -2.0f);
-    glm_translate_y(model2_m, 2.0f);
-    glm_translate_z(model2_m, -2.0f);
-    glm_scale(model2_m, scale2);
-    glm_rotate_y(model2_m, cube_object.angles[1], model2_m);
-    glm_rotate_z(model2_m, cube_object.angles[2], model2_m);
+    float size;
+    float *angles = cube_object.angles;
 
-    vec3 scale3 = {3, 3, 3};
-    glm_mat4_identity(model3_m);
-    glm_translate_x(model3_m, 3.0f);
-    glm_translate_y(model3_m, 3.0f);
-    glm_translate_z(model3_m, -3.0f);
-    glm_scale(model3_m, scale3);
-    glm_rotate_x(model3_m, cube_object.angles[0], model3_m);
-    glm_rotate_z(model3_m, cube_object.angles[2], model3_m);
-
-    vec3 scale4 = {4, 4, 4};
-    glm_mat4_identity(model4_m);
-    glm_translate_x(model4_m, 4.0f);
-    glm_translate_y(model4_m, -4.0f);
-    glm_translate_z(model4_m, -4.0f);
-    glm_scale(model4_m, scale4);
-    glm_rotate_x(model4_m, cube_object.angles[0], model4_m);
-    glm_rotate_y(model4_m, cube_object.angles[1], model4_m);
-    glm_rotate_z(model4_m, cube_object.angles[2], model4_m);
+    size = 2.0f;
+    update_cube(size, (vec3) {-size, -size, -size}, (vec3) {angles[0], angles[1], 0}, model1_m);
+    size = 4.0f;
+    update_cube(size, (vec3) {-size, size, -size}, (vec3) {0, angles[1], angles[2]}, model2_m);
+    size = 8.0f;
+    update_cube(size, (vec3) {size, size, -size}, (vec3) {angles[0], 0, angles[2]}, model3_m);
+    size = 16.0f;
+    update_cube(size, (vec3) {size, -size, -size}, angles, model4_m);
 }
 
 static void
