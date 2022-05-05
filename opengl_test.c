@@ -203,30 +203,36 @@ update_cubes() {
 
     // creating identity matrix
     glm_mat4_identity(model1_m);
-    glm_translate_x(model1_m, -2.0f);
-    glm_translate_y(model1_m, -2.0f);
-    glm_translate_z(model1_m, -2.0f);
+    glm_translate_x(model1_m, -1.0f);
+    glm_translate_y(model1_m, -1.0f);
+    glm_translate_z(model1_m, -1.0f);
     glm_rotate_x(model1_m, -cube_object.angles[0], model1_m);
     glm_rotate_y(model1_m, -cube_object.angles[1], model1_m);
 
+    vec3 scale2 = {2, 2, 2};
     glm_mat4_identity(model2_m);
-    glm_translate_x(model2_m, 2.0f);
+    glm_translate_x(model2_m, -2.0f);
     glm_translate_y(model2_m, 2.0f);
-    glm_translate_z(model2_m, 2.0f);
+    glm_translate_z(model2_m, -2.0f);
+    glm_scale(model2_m, scale2);
     glm_rotate_y(model2_m, cube_object.angles[1], model2_m);
     glm_rotate_z(model2_m, cube_object.angles[2], model2_m);
 
+    vec3 scale3 = {3, 3, 3};
     glm_mat4_identity(model3_m);
-    glm_translate_x(model3_m, 2.0f);
-    glm_translate_y(model3_m, 2.0f);
-    glm_translate_z(model3_m, -2.0f);
+    glm_translate_x(model3_m, 3.0f);
+    glm_translate_y(model3_m, 3.0f);
+    glm_translate_z(model3_m, -3.0f);
+    glm_scale(model3_m, scale3);
     glm_rotate_x(model3_m, cube_object.angles[0], model3_m);
     glm_rotate_z(model3_m, cube_object.angles[2], model3_m);
 
+    vec3 scale4 = {4, 4, 4};
     glm_mat4_identity(model4_m);
-    glm_translate_x(model4_m, -2.0f);
-    glm_translate_y(model4_m, 2.0f);
-    glm_translate_z(model4_m, 2.0f);
+    glm_translate_x(model4_m, 4.0f);
+    glm_translate_y(model4_m, -4.0f);
+    glm_translate_z(model4_m, -4.0f);
+    glm_scale(model4_m, scale4);
     glm_rotate_x(model4_m, cube_object.angles[0], model4_m);
     glm_rotate_y(model4_m, cube_object.angles[1], model4_m);
     glm_rotate_z(model4_m, cube_object.angles[2], model4_m);
