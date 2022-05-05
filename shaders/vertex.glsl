@@ -25,9 +25,9 @@ void main(){
     vec3 norm  = normalize(normals_model * normal);
     vec3 light_distance_vector = light_pos - frag_pos;
     float light_distance = length(light_distance_vector);
-    float diffuse_decay = 1 / light_distance / light_distance * 15*15;
+    float light_distance_decay = 1 / light_distance / light_distance * 15*15;
     vec3 light_direction = normalize(light_distance_vector);
-    float diffuse = max(dot(norm, light_direction), 0.0) * diffuse_decay;
+    float diffuse = max(dot(norm, light_direction), 0.0) * light_distance_decay;
 
     float ambient_strength = 0.1;
     vec3 ambient_color = (ambient_strength + diffuse)* light_color;
