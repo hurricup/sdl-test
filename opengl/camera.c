@@ -1,6 +1,6 @@
 #include "camera.h"
 
-static vec3 camera_pos_default = {0.0f, 0.0f, 10.0f};
+static vec3 camera_pos_default = {0.0f, 0.0f, 20.0f};
 static vec3 camera_up_default = {0.0f, 1.0f, 0.0f};
 static vec3 camera_front_default = {0.0f, 0.0f, -1.0f};
 
