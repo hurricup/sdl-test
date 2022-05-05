@@ -24,6 +24,7 @@ static int cube_normals_model_location;
 static int cube_project_location;
 static int cube_light_color_location;
 static int cube_light_pos_location;
+static int camera_pos_location;
 static camera_t camera;
 static mat4 model1_m = GLM_MAT4_IDENTITY;
 static mat4 model2_m = GLM_MAT4_IDENTITY;
@@ -164,6 +165,7 @@ draw_cubes() {
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
     glm_mat4_mul(project_m, view_m, project_view);
     glUniformMatrix4fv(cube_project_location, 1, GL_FALSE, (GLfloat *) project_view);
+    glUniform3f(camera_pos_location, camera.pos[0], camera.pos[1], camera.pos[2]);
 
     draw_cube(model1_m);
     draw_cube(model2_m);
@@ -296,6 +298,7 @@ void initialize_gl_cube() {
 
     cube_shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
 
+    camera_pos_location = glGetUniformLocation(cube_shader, "camera_pos");
     cube_light_pos_location = glGetUniformLocation(cube_shader, "light_pos");
     cube_light_color_location = glGetUniformLocation(cube_shader, "light_color");
     cube_model_location = glGetUniformLocation(cube_shader, "model");
