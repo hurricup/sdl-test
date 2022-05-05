@@ -184,9 +184,15 @@ static void
 update_light() {
     double base_value = ((double) (SDL_GetTicks() % 5000)) * 2 * M_PI / 5000;
 
+/*
     light_color[0] = (float) sin(base_value) / 2 + 0.5f;;
     light_color[1] = (float) sin(base_value + 2 * M_PI / 3) / 2 + 0.5f;
     light_color[2] = (float) sin(base_value + M_PI / 3) / 2 + 0.5f;
+*/
+
+    light_color[0] = 1;
+    light_color[1] = 1;
+    light_color[2] = 1;
 
     glm_mat4_identity(light_m);
     glm_scale(light_m, light_scale);
