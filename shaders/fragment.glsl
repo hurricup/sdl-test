@@ -24,6 +24,7 @@ uniform vec3 camera_pos;
 uniform mat3 normals_model;
 uniform Material material;
 uniform Light light;
+uniform float oscillation;
 
 layout(binding = 0) uniform sampler2D texture1;
 layout(binding = 1) uniform sampler2D texture2;
@@ -54,5 +55,5 @@ void main(){
     vec3 specular_color = light.specular * (specular * material.specular) * light_distance_decay;
 
     vec4 frag_color = vec4(ambient_color + diffuse_color + specular_color, 1.0);
-    color = mix(texture(texture1, tex_coord), texture(texture2, tex_coord), 1.0f) * frag_color * camera_distance_decay;
+    color = mix(texture(texture1, tex_coord), texture(texture2, tex_coord), oscillation) * frag_color * camera_distance_decay;
 }

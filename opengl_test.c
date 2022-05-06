@@ -21,6 +21,7 @@ static const Uint32 FPS_SIZE_MS = 1000 / FPS;
 static unsigned int cube_shader;
 static unsigned int cube_vao;
 static unsigned int cube_vbo;
+static int cube_oscillation_location;
 static int cube_model_location;
 static int cube_normals_model_location;
 static int cube_project_location;
@@ -191,6 +192,9 @@ draw_cubes() {
     glm_mat4_mul(project_m, view_m, project_view);
     glUniformMatrix4fv(cube_project_location, 1, GL_FALSE, (GLfloat *) project_view);
     glUniform3f(camera_pos_location, camera.pos[0], camera.pos[1], camera.pos[2]);
+    double base_value = M_PI * SDL_GetTicks() / 180 / FPS_SIZE_MS / 0.5;
+    double oscillation = sin(base_value) / 2 + 0.5;
+    glUniform1f(cube_oscillation_location, (float) oscillation);
 
     draw_cube(model1_m, &MATERIAL_BRONZE);
     draw_cube(model2_m, &MATERIAL_CYAN_PLASTIC);
@@ -209,14 +213,6 @@ static void draw_scene() {
 
 static void
 update_light() {
-    double base_value = ((double) (SDL_GetTicks() % 5000)) * 2 * M_PI / 5000;
-
-/*
-    light_color[0] = (float) sin(base_value) / 2 + 0.5f;;
-    light_color[1] = (float) sin(base_value + 2 * M_PI / 3) / 2 + 0.5f;
-    light_color[2] = (float) sin(base_value + M_PI / 3) / 2 + 0.5f;
-*/
-
     vec3_set(light.ambient, 0.2f, 0.2f, 0.2f);
     vec3_set(light.diffuse, 0.5f, 0.5f, 0.5f);
     vec3_set(light.specular, 1, 1, 1);
@@ -328,6 +324,7 @@ void initialize_gl_cube() {
     cube_material_specular_location = glGetUniformLocation(cube_shader, "material.specular");
     cube_material_shininess_location = glGetUniformLocation(cube_shader, "material.shininess");
 
+    cube_oscillation_location = glGetUniformLocation(cube_shader, "oscillation");
     camera_pos_location = glGetUniformLocation(cube_shader, "camera_pos");
     cube_light_pos_location = glGetUniformLocation(cube_shader, "light.position");
     cube_light_ambient_location = glGetUniformLocation(cube_shader, "light.ambient");
