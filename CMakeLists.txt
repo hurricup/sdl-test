@@ -11,6 +11,6 @@ include_directories((${CGLM_INCLUDE_DIRS}))
 set(CMAKE_C_STANDARD 99)
 
 add_executable(sdl_test sdl_test.c)
-add_executable(opengl_test opengl_test.c opengl/camera.c opengl/camera.h opengl/file_util.c opengl/file_util.h opengl/texture.c opengl/texture.h opengl/shader.c opengl/shader.h models/cube.c models/cube.h)
+add_executable(opengl_test opengl_test.c opengl/camera.c opengl/camera.h opengl/file_util.c opengl/file_util.h opengl/texture.c opengl/texture.h opengl/shader.c opengl/shader.h models/cube.c models/cube.h opengl/material.h)
 target_link_libraries(sdl_test ${SDL2_LIBRARIES})
 target_link_libraries(opengl_test ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} m cglm)

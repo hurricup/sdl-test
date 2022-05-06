@@ -9,6 +9,7 @@
 #include "opengl/texture.h"
 #include "opengl/shader.h"
 #include "models/cube.h"
+#include "opengl/material.h"
 
 static const int WIDTH = 1280;
 static const int HEIGHT = WIDTH / 16 * 9;
@@ -24,6 +25,10 @@ static int cube_normals_model_location;
 static int cube_project_location;
 static int cube_light_color_location;
 static int cube_light_pos_location;
+static int cube_material_ambient_location;
+static int cube_material_diffuse_location;
+static int cube_material_specular_location;
+static int cube_material_shininess_location;
 static int camera_pos_location;
 static camera_t camera;
 static mat4 model1_m = GLM_MAT4_IDENTITY;
@@ -72,6 +77,8 @@ static bool initialize_app();
 static void update_screen();
 
 static void event_loop();
+
+static void set_cube_material(const material_t *mat);
 
 static void shutdown_app();
 
@@ -141,9 +148,11 @@ draw_light() {
 }
 
 static void
-draw_cube(mat4 model) {
+draw_cube(mat4 model, const material_t *material) {
     mat4 normals_model4;
     mat3 normals_model3;
+
+    set_cube_material(material);
 
     glm_mat4_inv(model, normals_model4);
     glm_mat4_transpose(normals_model4);
@@ -152,6 +161,13 @@ draw_cube(mat4 model) {
     glUniformMatrix3fv(cube_normals_model_location, 1, GL_FALSE, (GLfloat *) normals_model3);
     glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model);
     glDrawArrays(GL_QUADS, 0, 6 * 4);
+}
+
+static void set_cube_material(const material_t *mat) {
+    glUniform3f(cube_material_ambient_location, mat->ambient[0], mat->ambient[1], mat->ambient[2]);
+    glUniform3f(cube_material_diffuse_location, mat->diffuse[0], mat->diffuse[1], mat->diffuse[2]);
+    glUniform3f(cube_material_specular_location, mat->specular[0], mat->specular[1], mat->specular[2]);
+    glUniform1f(cube_material_shininess_location, mat->shininess);
 }
 
 static void
@@ -167,10 +183,10 @@ draw_cubes() {
     glUniformMatrix4fv(cube_project_location, 1, GL_FALSE, (GLfloat *) project_view);
     glUniform3f(camera_pos_location, camera.pos[0], camera.pos[1], camera.pos[2]);
 
-    draw_cube(model1_m);
-    draw_cube(model2_m);
-    draw_cube(model3_m);
-    draw_cube(model4_m);
+    draw_cube(model1_m, &MATERIAL_BRONZE);
+    draw_cube(model2_m, &MATERIAL_CYAN_PLASTIC);
+    draw_cube(model3_m, &MATERIAL_GREEN_RUBBER);
+    draw_cube(model4_m, &MATERIAL_OBSIDIAN);
 }
 
 static void draw_scene() {
@@ -297,6 +313,11 @@ void initialize_gl_cube() {
     glVertexAttribPointer(CUBE_NORMALS_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, 0, (void *) CUBE_NORMALS_OFFSET);
 
     cube_shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
+
+    cube_material_ambient_location = glGetUniformLocation(cube_shader, "material.ambient");
+    cube_material_diffuse_location = glGetUniformLocation(cube_shader, "material.diffuse");
+    cube_material_specular_location = glGetUniformLocation(cube_shader, "material.specular");
+    cube_material_shininess_location = glGetUniformLocation(cube_shader, "material.shininess");
 
     camera_pos_location = glGetUniformLocation(cube_shader, "camera_pos");
     cube_light_pos_location = glGetUniformLocation(cube_shader, "light_pos");
