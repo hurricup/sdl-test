@@ -11,6 +11,13 @@ typedef struct material {
 } material_t;
 
 // http://devernay.free.fr/cours/opengl/materials.html
+const material_t MATERIAL_IDEAL = {
+        1.0f, 1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,
+        32
+};
+
 const material_t MATERIAL_BRONZE = {
         0.2125f, 0.1275f, 0.054f,
         0.714f, 0.4284f, 0.18144f,
