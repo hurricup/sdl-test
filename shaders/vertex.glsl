@@ -7,14 +7,22 @@ struct Material {
     float shininess;
 };
 
+struct Light {
+    vec3 position;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};
+
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec2 tex_coord;
 layout(location = 2) in vec3 normal;
 
 uniform mat4 model;
 uniform mat4 project_view;
-uniform vec3 light_color;
 uniform Material material;
+uniform Light light;
 
 layout(location = 0) out vec2 frag_tex_coord;
 layout(location = 1) out vec3 frag_normal;
@@ -26,5 +34,5 @@ void main(){
     frag_tex_coord = tex_coord;
     frag_normal = normal;
     frag_pos = vec3(model * vec4(position, 1.0));
-    ambient_color = light_color * material.ambient;
+    ambient_color = light.ambient * material.ambient;
 }
