@@ -28,6 +28,8 @@ uniform float oscillation;
 
 layout(binding = 0) uniform sampler2D texture1;
 layout(binding = 1) uniform sampler2D texture2;
+layout(binding = 2) uniform sampler2D diffuse_map;
+layout(binding = 3) uniform sampler2D specular_map;
 
 out vec4 color;
 
@@ -43,17 +45,20 @@ void main(){
     float camera_distance = length(camera_distance_vector);
     float camera_distance_decay = distance_decay_const / (camera_distance * camera_distance + distance_decay_const);
 
+    // ambient_color
+    vec3 textured_ambient_color = ambient_color * vec3(texture(texture2, tex_coord));
+
     // diffuse color
     vec3 norm  = normalize(normals_model * normal);
     vec3 light_direction = normalize(light_distance_vector);
     float diffuse = max(dot(norm, light_direction), 0.0);
-    vec3 diffuse_color = light.diffuse * (diffuse * material.diffuse) * light_distance_decay;
+    vec3 diffuse_color = light.diffuse * (diffuse * material.diffuse * vec3(texture(texture2, tex_coord))) * light_distance_decay;
 
     // specular color
     vec3 reflect_direction = reflect(-light_direction, norm);
     float specular = pow(max(dot(camera_direction, reflect_direction), 0.0), material.shininess);
-    vec3 specular_color = light.specular * (specular * material.specular) * light_distance_decay;
+    vec3 specular_color = light.specular * (specular * material.specular * vec3(texture(specular_map, tex_coord))) * light_distance_decay;
 
-    vec4 frag_color = vec4(ambient_color + diffuse_color + specular_color, 1.0);
-    color = mix(texture(texture1, tex_coord), texture(texture2, tex_coord), oscillation) * frag_color * camera_distance_decay;
+    vec4 frag_color = vec4(textured_ambient_color + diffuse_color + specular_color, 1.0);
+    color = mix(texture(texture1, tex_coord), texture(texture2, tex_coord), 1) * frag_color * camera_distance_decay;
 }

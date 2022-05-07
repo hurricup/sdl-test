@@ -337,6 +337,8 @@ void initialize_gl_cube() {
     // generating texture
     load_texture(GL_TEXTURE0, "texture1.png");
     load_texture(GL_TEXTURE1, "texture2.png");
+    load_texture(GL_TEXTURE2, "diffuse_map.png");
+    load_texture(GL_TEXTURE3, "specular_map.png");
 }
 
 static void
