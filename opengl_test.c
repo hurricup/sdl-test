@@ -196,10 +196,10 @@ draw_cubes() {
     double oscillation = sin(base_value) / 2 + 0.5;
     glUniform1f(cube_oscillation_location, (float) oscillation);
 
-    draw_cube(model1_m, &MATERIAL_BRONZE);
+    draw_cube(model1_m, &MATERIAL_IDEAL);
     draw_cube(model2_m, &MATERIAL_IDEAL);
-    draw_cube(model3_m, &MATERIAL_GREEN_RUBBER);
-    draw_cube(model4_m, &MATERIAL_OBSIDIAN);
+    draw_cube(model3_m, &MATERIAL_IDEAL);
+    draw_cube(model4_m, &MATERIAL_IDEAL);
 }
 
 static void draw_scene() {
