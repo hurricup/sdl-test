@@ -353,11 +353,11 @@ void initialize_gl_cube() {
 static void
 initialize_gl() {
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
-                "OpenGL:\nVendor: %s\nRenderer: %s\nVersion: %s\nExtensions: %s",
+                "OpenGL information:\n\tVendor: %s\n\tRenderer: %s\n\tVersion: %s\n\tShading language: %s",
                 glGetString(GL_VENDOR),
-                glGetString(GL_RENDER),
+                glGetString(GL_RENDERER),
                 glGetString(GL_VERSION),
-                glGetString(GL_EXTENSIONS)
+                glGetString(GL_SHADING_LANGUAGE_VERSION)
     );
     glEnable(GL_DEPTH_TEST); // enables z-buffering
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
