@@ -196,7 +196,7 @@ draw_light() {
 
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
     glm_mat4_mul(project_m, view_m, project_view);
-    glUniform3f(light_color_location, omni_light.specular[0], omni_light.specular[1], omni_light.specular[2]);
+    glUniform3vf(light_color_location, omni_light.specular);
     glUniformMatrix4fv(light_project_location, 1, GL_FALSE, (GLfloat *) project_view);
     glUniformMatrix4fv(light_model_location, 1, GL_FALSE, (GLfloat *) light_m);
 
@@ -222,9 +222,9 @@ draw_cube(mat4 model, const material_t *material) {
 }
 
 static void set_cube_material(const material_t *mat) {
-    glUniform3f(cube_material_ambient_location, mat->ambient[0], mat->ambient[1], mat->ambient[2]);
-    glUniform3f(cube_material_diffuse_location, mat->diffuse[0], mat->diffuse[1], mat->diffuse[2]);
-    glUniform3f(cube_material_specular_location, mat->specular[0], mat->specular[1], mat->specular[2]);
+    glUniform3vf(cube_material_ambient_location, mat->ambient);
+    glUniform3vf(cube_material_diffuse_location, mat->diffuse);
+    glUniform3vf(cube_material_specular_location, mat->specular);
     glUniform1f(cube_material_shininess_location, mat->shininess);
 }
 
@@ -235,15 +235,11 @@ draw_cubes() {
 
     // spot light
     if (camera_light_on) {
-        glUniform3f(spot_light_pos_location, spot_light.light.position[0], spot_light.light.position[1],
-                    spot_light.light.position[2]);
-        glUniform3f(spot_light_ambient_location, spot_light.light.ambient[0], spot_light.light.ambient[1],
-                    spot_light.light.ambient[2]);
-        glUniform3f(spot_light_diffuse_location, spot_light.light.diffuse[0], spot_light.light.diffuse[1],
-                    spot_light.light.diffuse[2]);
-        glUniform3f(spot_light_specular_location, spot_light.light.specular[0], spot_light.light.specular[1],
-                    spot_light.light.specular[2]);
-        glUniform3f(spot_light_front_location, spot_light.front[0], spot_light.front[1], spot_light.front[2]);
+        glUniform3vf(spot_light_pos_location, spot_light.light.position);
+        glUniform3vf(spot_light_ambient_location, spot_light.light.ambient);
+        glUniform3vf(spot_light_diffuse_location, spot_light.light.diffuse);
+        glUniform3vf(spot_light_specular_location, spot_light.light.specular);
+        glUniform3vf(spot_light_front_location, spot_light.front);
         glUniform1f(spot_light_angle_location, (float) cos((double) spot_light.angle));
         glUniform1f(spot_light_smooth_angle_location, (float) cos((double) spot_light.angle + spot_light.smooth_angle));
     } else {
@@ -257,10 +253,10 @@ draw_cubes() {
     glUniform3vf(direct_light_specular_location, direct_light.specular);
 
     // light source
-    glUniform3f(cube_light_pos_location, omni_light.position[0], omni_light.position[1], omni_light.position[2]);
-    glUniform3f(cube_light_ambient_location, omni_light.ambient[0], omni_light.ambient[1], omni_light.ambient[2]);
-    glUniform3f(cube_light_diffuse_location, omni_light.diffuse[0], omni_light.diffuse[1], omni_light.diffuse[2]);
-    glUniform3f(cube_light_specular_location, omni_light.specular[0], omni_light.specular[1], omni_light.specular[2]);
+    glUniform3vf(cube_light_pos_location, omni_light.position);
+    glUniform3vf(cube_light_ambient_location, omni_light.ambient);
+    glUniform3vf(cube_light_diffuse_location, omni_light.diffuse);
+    glUniform3vf(cube_light_specular_location, omni_light.specular);
 
     // project * view matrix
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
@@ -268,7 +264,7 @@ draw_cubes() {
     glUniformMatrix4fv(cube_project_location, 1, GL_FALSE, (GLfloat *) project_view);
 
     // camera position
-    glUniform3f(camera_pos_location, camera.pos[0], camera.pos[1], camera.pos[2]);
+    glUniform3vf(camera_pos_location, camera.pos);
 
     // oscillation for 2 textures
     double base_value = M_PI * SDL_GetTicks() / 180 / FPS_SIZE_MS / 0.5;
