@@ -78,7 +78,7 @@ static struct textured_cube {
 #define CUBE_NORMALS_ATTRIBUTE_ID 2
 
 static SDL_Window *window = NULL;
-static SDL_Renderer *renderer = NULL;
+static SDL_GLContext context = NULL;
 
 static bool initialize_app();
 
@@ -382,15 +382,15 @@ initialize_app() {
         exit(1);
     }
     window = SDL_CreateWindow("program", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT,
-                              SDL_WINDOW_SHOWN);
+                              SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
     if (!window) {
         return false;
     }
 
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (!renderer) {
-        return false;
-    }
+    context = SDL_GL_CreateContext(window);
+    SDL_CHECK_ERROR;
+    SDL_GL_SetSwapInterval(1);
+    SDL_CHECK_ERROR;
 
     initialize_data();
     initialize_gl();
@@ -400,9 +400,9 @@ initialize_app() {
 
 static void
 shutdown_app() {
-    if (renderer) {
-        SDL_DestroyRenderer(renderer);
-        renderer = NULL;
+    if (context) {
+        SDL_GL_DeleteContext(context);
+        context = NULL;
     }
     if (window) {
         SDL_DestroyWindow(window);
