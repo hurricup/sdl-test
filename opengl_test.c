@@ -214,7 +214,7 @@ static void draw_scene() {
 static void
 update_light() {
     vec3_set(light.ambient, 0.2f, 0.2f, 0.2f);
-    vec3_set(light.diffuse, 0.5f, 0.5f, 0.5f);
+    vec3_set(light.diffuse, 0.8f, 0.8f, 0.8f);
     vec3_set(light.specular, 1, 1, 1);
 
     glm_mat4_identity(light_m);
