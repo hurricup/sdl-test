@@ -41,6 +41,8 @@ typedef struct cube_textures {
 
 #define CUBE_TEXTURES_SIZE sizeof(cube_textures_t)
 
+extern const ivec3 cube_triangles[12];
+
 void cube_model_init(cube_t *cube);
 
 void cube_textures_init(cube_textures_t *cube_textures);

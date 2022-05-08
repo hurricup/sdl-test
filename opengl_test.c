@@ -20,6 +20,7 @@ static const Uint32 FPS_SIZE_MS = 1000 / FPS;
 static unsigned int cube_shader;
 static unsigned int cube_vao;
 static unsigned int cube_vbo;
+static unsigned int cube_ebo;
 static int cube_oscillation_location;
 static int cube_model_location;
 static int cube_normals_model_location;
@@ -158,7 +159,7 @@ draw_light() {
     glUniformMatrix4fv(light_project_location, 1, GL_FALSE, (GLfloat *) project_view);
     glUniformMatrix4fv(light_model_location, 1, GL_FALSE, (GLfloat *) light_m);
 
-    glDrawArrays(GL_QUADS, 0, 6 * 4);
+    glDrawElements(GL_TRIANGLES, 6 * 3 * 2, GL_UNSIGNED_INT, 0);
     glCheckError(__FILE__, __LINE__);
 }
 
@@ -175,7 +176,7 @@ draw_cube(mat4 model, const material_t *material) {
 
     glUniformMatrix3fv(cube_normals_model_location, 1, GL_FALSE, (GLfloat *) normals_model3);
     glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model);
-    glDrawArrays(GL_QUADS, 0, 6 * 4);
+    glDrawElements(GL_TRIANGLES, 6 * 3 * 2, GL_UNSIGNED_INT, 0);
     GL_CHECK_ERROR;
 }
 
@@ -289,6 +290,7 @@ void initialize_gl_light() {
     glGenVertexArrays(1, &light_vao);
     glBindVertexArray(light_vao);
     glBindBuffer(GL_ARRAY_BUFFER, cube_vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ebo);
 
     glEnableVertexAttribArray(CUBE_VERTEX_ATTRIBUTE_ID);
     glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, 0, (void *) CUBE_OFFSET);
@@ -307,6 +309,10 @@ void initialize_gl_cube() {
     glGenBuffers(1, &cube_vbo); // creating VBO
     glBindBuffer(GL_ARRAY_BUFFER, cube_vbo); // selecting buffer of particular type
     glBufferData(GL_ARRAY_BUFFER, sizeof cube_model, &cube_model, GL_STATIC_DRAW); // copying data
+
+    glGenBuffers(1, &cube_ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_triangles), cube_triangles, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(CUBE_VERTEX_ATTRIBUTE_ID);
     glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, 0, (void *) CUBE_OFFSET);
