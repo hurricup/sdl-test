@@ -46,7 +46,7 @@ void main(){
     float camera_attenuation = 1 / (camera_distance * camera_distance * attenuation_const_quadratic + 1.0);
 
     // ambient_color
-    vec3 textured_ambient_color = ambient_color * vec3(texture(texture2, tex_coord));
+    vec3 textured_ambient_color = light_attenuation * ambient_color * vec3(texture(texture2, tex_coord));
 
     // diffuse color
     vec3 norm  = normalize(normals_model * normal);
