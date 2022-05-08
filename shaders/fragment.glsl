@@ -43,30 +43,30 @@ out vec4 color;
 void main(){
     float attenuation_const_quadratic = 1.0 / 2000.0;
 
-    vec3 light_distance_vector = light.position - frag_pos;
-    float light_distance = length(light_distance_vector);
-    float light_attenuation = 1 / (light_distance * light_distance * attenuation_const_quadratic + 1.0);
+    vec3 light_frag_vector = frag_pos - light.position;
+    float light_frag_distance = length(light_frag_vector);
+    float light_attenuation = 1 / (light_frag_distance * light_frag_distance * attenuation_const_quadratic + 1.0);
 
-    vec3 camera_distance_vector = camera_pos - frag_pos;
-    vec3 camera_direction = normalize(camera_distance_vector);
-    float camera_distance = length(camera_distance_vector);
-    float camera_attenuation = 1 / (camera_distance * camera_distance * attenuation_const_quadratic + 1.0);
+    vec3 camera_frag_vector = frag_pos - camera_pos;
+    vec3 camera_frag_direction = normalize(camera_frag_vector);
+    float camera_frag_distance = length(camera_frag_vector);
+    float camera_attenuation = 1 / (camera_frag_distance * camera_frag_distance * attenuation_const_quadratic + 1.0);
 
     // ambient_color
     vec3 textured_ambient_color = light_attenuation * ambient_color * vec3(texture(texture2, tex_coord));
 
     // diffuse color
-    vec3 norm  = normalize(normals_model * normal);
-    vec3 light_direction = normalize(light_distance_vector);
-    float diffuse = max(dot(norm, light_direction), 0.0);
-    vec3 diffuse_color = light.diffuse * (diffuse * material.diffuse * vec3(texture(texture2, tex_coord))) * light_attenuation;
+    vec3 frag_normal  = normalize(normals_model * normal);
+    vec3 light_frag_direction = normalize(light_frag_vector);
+    float light_diffuse = max(dot(frag_normal, -light_frag_direction), 0.0);
+    vec3 light_diffuse_color = light.diffuse * (light_diffuse * material.diffuse * vec3(texture(texture2, tex_coord))) * light_attenuation;
 
     // specular color
-    vec3 reflect_direction = reflect(-light_direction, norm);
-    float specular = pow(max(dot(camera_direction, reflect_direction), 0.0), material.shininess);
-    vec3 specular_color = light.specular * (specular * material.specular * vec3(texture(specular_map, tex_coord))) * light_attenuation;
+    vec3 light_reflect_direction = reflect(light_frag_direction, frag_normal);
+    float light_specular = pow(max(dot(-camera_frag_direction, light_reflect_direction), 0.0), material.shininess);
+    vec3 light_specular_color = light.specular * (light_specular * material.specular * vec3(texture(specular_map, tex_coord))) * light_attenuation;
 
-    vec3 frag_color3 = textured_ambient_color + diffuse_color + specular_color;
+    vec3 frag_color3 = textured_ambient_color + light_diffuse_color + light_specular_color;
 
     // spotlight
     if (spot_light.angle_cos > 0.0f){
@@ -80,12 +80,12 @@ void main(){
             float spot_light_attenuation = 1 / (spot_distance * spot_distance * attenuation_const_quadratic + 1.0);
 
             // spot diffuse
-            float spot_diffuse = max(dot(norm, -spot_frag_direction), 0.0);
+            float spot_diffuse = max(dot(frag_normal, -spot_frag_direction), 0.0);
             vec3 spot_diffuse_color = spot_light.light.diffuse * (spot_diffuse * material.diffuse * vec3(texture(texture2, tex_coord))) * spot_light_attenuation;
 
             // spot specular
-            vec3 spot_reflect_direction = reflect(spot_frag_direction, norm);
-            float spot_specular = pow(max(dot(camera_direction, spot_reflect_direction), 0.0), material.shininess);
+            vec3 spot_reflect_direction = reflect(spot_frag_direction, frag_normal);
+            float spot_specular = pow(max(dot(-camera_frag_direction, spot_reflect_direction), 0.0), material.shininess);
             vec3 spot_specular_color = spot_light.light.specular * (spot_specular * material.specular * vec3(texture(specular_map, tex_coord))) * spot_light_attenuation;
 
             frag_color3 += spot_diffuse_color + spot_specular_color;
