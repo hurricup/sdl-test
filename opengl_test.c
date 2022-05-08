@@ -11,8 +11,8 @@
 #include "opengl/material.h"
 #include "opengl/light.h"
 
-static const int WIDTH = 1280;
-static const int HEIGHT = WIDTH / 16 * 9;
+static int window_width = 1280;
+static int window_height = 1280 / 16 * 9;
 
 static const Uint32 FPS = 30;
 static const Uint32 FPS_SIZE_MS = 1000 / FPS;
@@ -129,6 +129,9 @@ event_loop() {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 return;
+            } else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+                SDL_GetWindowSize(window, &window_width, &window_height);
+                glViewport(0, 0, window_width, window_height);
             } else if (event.type == SDL_MOUSEMOTION && event.motion.state & SDL_BUTTON_RMASK) {
                 move_camera_front(&camera, event.motion.xrel, event.motion.yrel);
             } else if (event.type == SDL_KEYDOWN) {
@@ -334,7 +337,7 @@ update_scene() {
     camera_view(&camera, view_m);
 
     // projection
-    glm_perspective(M_PI_4, (float) WIDTH / (float) HEIGHT, 0.1f, 100.0f, project_m);
+    glm_perspective(M_PI_4, (float) window_width / (float) window_height, 0.1f, 100.0f, project_m);
 }
 
 static void
@@ -450,8 +453,8 @@ initialize_app() {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL: %s\n", SDL_GetError());
         exit(1);
     }
-    window = SDL_CreateWindow("program", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT,
-                              SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
+    window = SDL_CreateWindow("program", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, window_width, window_height,
+                              SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     SDL_CHECK_ERROR;
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
