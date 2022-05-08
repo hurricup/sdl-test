@@ -383,9 +383,7 @@ initialize_app() {
     }
     window = SDL_CreateWindow("program", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT,
                               SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
-    if (!window) {
-        return false;
-    }
+    SDL_CHECK_ERROR;
 
     context = SDL_GL_CreateContext(window);
     SDL_CHECK_ERROR;
