@@ -359,7 +359,6 @@ initialize_gl() {
     );
     glEnable(GL_DEPTH_TEST); // enables z-buffering
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
-//    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // cube
     initialize_gl_cube();
