@@ -22,6 +22,15 @@ struct SpotLight {
     float smooth_angle_cos;
 };
 
+struct DirectLight {
+    vec3 front;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+};
+
+
 layout(location = 0) in vec2 tex_coord;
 layout(location = 1) in vec3 normal;
 layout(location = 2) in vec3 frag_pos;
@@ -31,6 +40,7 @@ uniform vec3 camera_pos;
 uniform mat3 normals_model;
 uniform Material material;
 uniform Light light;
+uniform DirectLight direct_light;
 uniform SpotLight spot_light;
 uniform float oscillation;
 
@@ -68,6 +78,17 @@ void main(){
     vec3 light_specular_color = light.specular * (light_specular * material.specular * vec3(texture(specular_map, tex_coord))) * light_attenuation;
 
     vec3 frag_color3 = textured_ambient_color + light_diffuse_color + light_specular_color;
+
+    // direct light
+    vec3 direct_light_frag_direction = normalize(direct_light.front);
+    float direct_light_diffuse = max(dot(frag_normal, -direct_light_frag_direction), 0.0);
+    vec3 direct_light_diffuse_color = direct_light.diffuse * (direct_light_diffuse * material.diffuse * vec3(texture(texture2, tex_coord)));
+
+    vec3 direct_light_reflect_direction = reflect(direct_light_frag_direction, frag_normal);
+    float direct_light_specular = pow(max(dot(-camera_frag_direction, direct_light_reflect_direction), 0.0), material.shininess);
+    vec3 direct_light_specular_color = direct_light.specular * (direct_light_specular * material.specular * vec3(texture(specular_map, tex_coord)));
+
+    frag_color3 += direct_light_diffuse_color + direct_light_specular_color;
 
     // spotlight
     if (spot_light.angle_cos > 0.0f){

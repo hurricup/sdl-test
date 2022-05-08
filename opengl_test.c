@@ -26,6 +26,11 @@ static int cube_model_location;
 static int cube_normals_model_location;
 static int cube_project_location;
 
+static int direct_light_front_location;
+static int direct_light_ambient_location;
+static int direct_light_diffuse_location;
+static int direct_light_specular_location;
+
 static int spot_light_pos_location;
 static int spot_light_ambient_location;
 static int spot_light_diffuse_location;
@@ -53,6 +58,13 @@ static mat4 light_m = GLM_MAT4_IDENTITY;
 static vec3 light_scale = {0.2f, 0.2f, 0.2f};
 static omni_light_t omni_light = {
         {0.0f,  -3.0f, 0.0f},
+        {0.95f, 0.95f, 0.95f},
+        {0.95f, 0.95f, 0.95f},
+        {0.95f, 0.95f, 0.95f}
+};
+
+static direct_light_t direct_light = {
+        {1.0f,  0.0f,  1.0f},
         {0.95f, 0.95f, 0.95f},
         {0.95f, 0.95f, 0.95f},
         {0.95f, 0.95f, 0.95f}
@@ -238,6 +250,12 @@ draw_cubes() {
         glUniform1f(spot_light_angle_location, 0.0f);
     }
 
+    // direct light
+    glUniform3vf(direct_light_front_location, direct_light.front);
+    glUniform3vf(direct_light_ambient_location, direct_light.ambient);
+    glUniform3vf(direct_light_diffuse_location, direct_light.diffuse);
+    glUniform3vf(direct_light_specular_location, direct_light.specular);
+
     // light source
     glUniform3f(cube_light_pos_location, omni_light.position[0], omni_light.position[1], omni_light.position[2]);
     glUniform3f(cube_light_ambient_location, omni_light.ambient[0], omni_light.ambient[1], omni_light.ambient[2]);
@@ -275,9 +293,13 @@ static void draw_scene() {
 
 static void
 update_light() {
-    vec3_set(omni_light.ambient, 0.05f, 0.05f, 0.05f);
-    vec3_set(omni_light.diffuse, 0.8f, 0.8f, 0.8f);
-    vec3_set(omni_light.specular, 1, 1, 1);
+    vec3_set(omni_light.ambient, 0.01f, 0.01f, 0.05f);
+    vec3_set(omni_light.diffuse, 0.24f, 0.24f, 0.8f);
+    vec3_set(omni_light.specular, 0.3f, 0.3f, 1);
+
+    vec3_set(direct_light.ambient, 0.01f, 0.05f, 0.01f);
+    vec3_set(direct_light.diffuse, 0.3f, 1, 0.3f);
+    vec3_set(direct_light.specular, 0.3f, 1, 0.3f);
 
     glm_mat4_identity(light_m);
     glm_scale(light_m, light_scale);
@@ -320,8 +342,8 @@ update_cubes() {
 static void
 update_camera_light() {
     vec3_set(spot_light.light.ambient, 0.2f, 0.2f, 0.2f);
-    vec3_set(spot_light.light.diffuse, 0.8f, 0.8f, 0.8f);
-    vec3_set(spot_light.light.specular, 1, 1, 1);
+    vec3_set(spot_light.light.diffuse, 1.0f, 1.0f, 1.0f);
+    vec3_set(spot_light.light.specular, 1.0f, 1.0f, 1.0f);
 
     glm_vec3_copy(camera.pos, spot_light.light.position);
     glm_vec3_copy(camera.front, spot_light.front);
@@ -401,6 +423,11 @@ void initialize_gl_cube() {
     cube_light_ambient_location = glGetUniformLocation(cube_shader, "light.ambient");
     cube_light_diffuse_location = glGetUniformLocation(cube_shader, "light.diffuse");
     cube_light_specular_location = glGetUniformLocation(cube_shader, "light.specular");
+
+    direct_light_front_location = glGetUniformLocation(cube_shader, "direct_light.front");
+    direct_light_ambient_location = glGetUniformLocation(cube_shader, "direct_light.ambient");
+    direct_light_diffuse_location = glGetUniformLocation(cube_shader, "direct_light.diffuse");
+    direct_light_specular_location = glGetUniformLocation(cube_shader, "direct_light.specular");
 
     spot_light_pos_location = glGetUniformLocation(cube_shader, "spot_light.light.position");
     spot_light_ambient_location = glGetUniformLocation(cube_shader, "spot_light.light.ambient");

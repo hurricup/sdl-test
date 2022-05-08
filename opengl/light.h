@@ -3,6 +3,14 @@
 
 #include "cglm/cglm.h"
 
+typedef struct direct_light {
+    vec3 front;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+} direct_light_t;
+
 typedef struct omni_light {
     vec3 position;
 
