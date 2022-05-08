@@ -8,6 +8,7 @@ void camera_init(camera_t *camera) {
     camera->speed = 0.2f;
     camera->speed_y = 0.2f;
     camera->speed_x = 0.2f;
+    camera->speed_rotate = 0.02f;
     camera->mouse_sensitivity = 0.001f;
     glm_vec3_copy(camera_pos_default, camera->pos);
     glm_vec3_copy(camera_up_default, camera->up);

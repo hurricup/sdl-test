@@ -128,6 +128,12 @@ event_loop() {
                     case SDLK_s: // move camera backward
                         move_camera_front(&camera, -1);
                         break;
+                    case SDLK_q: // rotate left around sight
+                        glm_vec3_rotate(camera.up, -camera.speed_rotate, camera.front);
+                        break;
+                    case SDLK_e:  // rotate right around sight
+                        glm_vec3_rotate(camera.up, camera.speed_rotate, camera.front);
+                        break;
                     case SDLK_z: // reset camera position
                         camera_init(&camera);
                         break;

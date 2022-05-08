@@ -8,6 +8,7 @@ typedef struct camera {
     float speed_y;
     float speed_x;
     float mouse_sensitivity;
+    float speed_rotate;
     vec3 pos;
     vec3 up;
     vec3 front;
