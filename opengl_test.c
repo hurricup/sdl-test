@@ -160,7 +160,7 @@ draw_light() {
     glUniformMatrix4fv(light_model_location, 1, GL_FALSE, (GLfloat *) light_m);
 
     glDrawElements(GL_TRIANGLES, 6 * 3 * 2, GL_UNSIGNED_INT, 0);
-    glCheckError(__FILE__, __LINE__);
+    GL_CHECK_ERROR;
 }
 
 static void
