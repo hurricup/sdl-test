@@ -44,4 +44,9 @@ void move_camera_front(camera_t *camera, float sign);
  */
 void move_camera_sight(camera_t *camera, int x, int y);
 
+/**
+ * Rolling camera up vector around the front vector
+ */
+void roll_camera(camera_t *camera, float sign);
+
 #endif //SDL_TEST_CAMERA_H

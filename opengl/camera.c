@@ -39,6 +39,10 @@ void move_camera_front(camera_t *camera, float sign) {
     glm_vec3_add(camera->pos, delta_front, camera->pos);
 }
 
+void roll_camera(camera_t *camera, float sign) {
+    glm_vec3_rotate(camera->up, sign * camera->speed_rotate, camera->front);
+}
+
 void move_camera_sight(camera_t *camera, int x, int y) {
     if (x == 0 && y == 0) {
         return;
