@@ -250,14 +250,6 @@ update_cubes() {
     cube_object.angles[1] += 0.012f;
     cube_object.angles[2] += 0.013f;
 
-    // creating identity matrix
-    glm_mat4_identity(model1_m);
-    glm_translate_x(model1_m, -1.0f);
-    glm_translate_y(model1_m, -1.0f);
-    glm_translate_z(model1_m, -1.0f);
-    glm_rotate_x(model1_m, -cube_object.angles[0], model1_m);
-    glm_rotate_y(model1_m, -cube_object.angles[1], model1_m);
-
     float size;
     float *angles = cube_object.angles;
 
