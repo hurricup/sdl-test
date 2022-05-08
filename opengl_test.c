@@ -384,6 +384,13 @@ initialize_app() {
                               SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
     SDL_CHECK_ERROR;
 
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_CHECK_ERROR;
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+    SDL_CHECK_ERROR;
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_CHECK_ERROR;
+
     context = SDL_GL_CreateContext(window);
     SDL_CHECK_ERROR;
     SDL_GL_SetSwapInterval(1);
