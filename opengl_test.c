@@ -51,7 +51,7 @@ static mat4 model4_m = GLM_MAT4_IDENTITY;
 
 static mat4 light_m = GLM_MAT4_IDENTITY;
 static vec3 light_scale = {0.2f, 0.2f, 0.2f};
-static light_t light = {
+static omni_light_t omni_light = {
         {0.0f,  -3.0f, 0.0f},
         {0.95f, 0.95f, 0.95f},
         {0.95f, 0.95f, 0.95f},
@@ -184,7 +184,7 @@ draw_light() {
 
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
     glm_mat4_mul(project_m, view_m, project_view);
-    glUniform3f(light_color_location, light.specular[0], light.specular[1], light.specular[2]);
+    glUniform3f(light_color_location, omni_light.specular[0], omni_light.specular[1], omni_light.specular[2]);
     glUniformMatrix4fv(light_project_location, 1, GL_FALSE, (GLfloat *) project_view);
     glUniformMatrix4fv(light_model_location, 1, GL_FALSE, (GLfloat *) light_m);
 
@@ -239,10 +239,10 @@ draw_cubes() {
     }
 
     // light source
-    glUniform3f(cube_light_pos_location, light.position[0], light.position[1], light.position[2]);
-    glUniform3f(cube_light_ambient_location, light.ambient[0], light.ambient[1], light.ambient[2]);
-    glUniform3f(cube_light_diffuse_location, light.diffuse[0], light.diffuse[1], light.diffuse[2]);
-    glUniform3f(cube_light_specular_location, light.specular[0], light.specular[1], light.specular[2]);
+    glUniform3f(cube_light_pos_location, omni_light.position[0], omni_light.position[1], omni_light.position[2]);
+    glUniform3f(cube_light_ambient_location, omni_light.ambient[0], omni_light.ambient[1], omni_light.ambient[2]);
+    glUniform3f(cube_light_diffuse_location, omni_light.diffuse[0], omni_light.diffuse[1], omni_light.diffuse[2]);
+    glUniform3f(cube_light_specular_location, omni_light.specular[0], omni_light.specular[1], omni_light.specular[2]);
 
     // project * view matrix
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
@@ -275,13 +275,13 @@ static void draw_scene() {
 
 static void
 update_light() {
-    vec3_set(light.ambient, 0.05f, 0.05f, 0.05f);
-    vec3_set(light.diffuse, 0.8f, 0.8f, 0.8f);
-    vec3_set(light.specular, 1, 1, 1);
+    vec3_set(omni_light.ambient, 0.05f, 0.05f, 0.05f);
+    vec3_set(omni_light.diffuse, 0.8f, 0.8f, 0.8f);
+    vec3_set(omni_light.specular, 1, 1, 1);
 
     glm_mat4_identity(light_m);
     glm_scale(light_m, light_scale);
-    glm_translate(light_m, light.position);
+    glm_translate(light_m, omni_light.position);
 }
 
 static void update_cube(float size, const float *trans, const float *angles, vec4 (*model)) {

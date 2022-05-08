@@ -3,17 +3,17 @@
 
 #include "cglm/cglm.h"
 
-typedef struct light {
+typedef struct omni_light {
     vec3 position;
 
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
-} light_t;
+} omni_light_t;
 
 
 typedef struct spot_light {
-    light_t light;
+    omni_light_t light;
     vec3 front;
     float angle;
     float smooth_angle; // additional angle for smooth border
