@@ -15,6 +15,12 @@ struct Light {
     vec3 specular;
 };
 
+struct SpotLight {
+    Light light;
+    vec3 front;
+    float angle_cos;
+};
+
 layout(location = 0) in vec2 tex_coord;
 layout(location = 1) in vec3 normal;
 layout(location = 2) in vec3 frag_pos;
@@ -24,6 +30,7 @@ uniform vec3 camera_pos;
 uniform mat3 normals_model;
 uniform Material material;
 uniform Light light;
+uniform SpotLight spot_light;
 uniform float oscillation;
 
 layout(binding = 0) uniform sampler2D texture1;
@@ -59,6 +66,32 @@ void main(){
     float specular = pow(max(dot(camera_direction, reflect_direction), 0.0), material.shininess);
     vec3 specular_color = light.specular * (specular * material.specular * vec3(texture(specular_map, tex_coord))) * light_attenuation;
 
-    vec4 frag_color = vec4(textured_ambient_color + diffuse_color + specular_color, 1.0);
+    vec3 frag_color3 = textured_ambient_color + diffuse_color + specular_color;
+
+    // spotlight
+    if (spot_light.angle_cos > 0.0f){
+        vec3 spot_front_direction = normalize(spot_light.front);
+        vec3 spot_frag_light_vector = frag_pos - spot_light.light.position;
+        vec3 spot_frag_direction = normalize(spot_frag_light_vector);
+        float theta_cos = dot(spot_frag_direction, spot_front_direction);
+        if (theta_cos > spot_light.angle_cos){
+            // spot attenuation
+            float spot_distance = length(spot_frag_light_vector);
+            float spot_light_attenuation = 1 / (spot_distance * spot_distance * attenuation_const_quadratic + 1.0);
+
+            // spot diffuse
+            float spot_diffuse = max(dot(norm, -spot_frag_direction), 0.0);
+            vec3 spot_diffuse_color = spot_light.light.diffuse * (spot_diffuse * material.diffuse * vec3(texture(texture2, tex_coord))) * spot_light_attenuation;
+
+            // spot specular
+            vec3 spot_reflect_direction = reflect(spot_frag_direction, norm);
+            float spot_specular = pow(max(dot(camera_direction, spot_reflect_direction), 0.0), material.shininess);
+            vec3 spot_specular_color = spot_light.light.specular * (spot_specular * material.specular * vec3(texture(specular_map, tex_coord))) * spot_light_attenuation;
+
+            frag_color3 += spot_diffuse_color + spot_specular_color;
+        }
+    }
+
+    vec4 frag_color = vec4(frag_color3, 1.0);
     color = mix(texture(texture1, tex_coord), texture(texture2, tex_coord), 1) * frag_color * camera_attenuation;
 }

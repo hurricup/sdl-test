@@ -12,4 +12,10 @@ typedef struct light {
 } light_t;
 
 
+typedef struct spot_light {
+    light_t light;
+    vec3 front;
+    float angle;
+} spot_light_t;
+
 #endif //SDL_TEST_LIGHT_H

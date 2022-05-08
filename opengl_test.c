@@ -25,6 +25,14 @@ static int cube_oscillation_location;
 static int cube_model_location;
 static int cube_normals_model_location;
 static int cube_project_location;
+
+static int spot_light_pos_location;
+static int spot_light_ambient_location;
+static int spot_light_diffuse_location;
+static int spot_light_specular_location;
+static int spot_light_front_location;
+static int spot_light_angle_location;
+
 static int cube_light_pos_location;
 static int cube_light_ambient_location;
 static int cube_light_diffuse_location;
@@ -48,6 +56,19 @@ static light_t light = {
         {0.95f, 0.95f, 0.95f},
         {0.95f, 0.95f, 0.95f}
 };
+
+static bool camera_light_on = true;
+static spot_light_t spot_light = {
+        {
+                {0.0f, 0.0f, 0.0f},
+                {0.95f, 0.95f, 0.95f},
+                {0.95f, 0.95f, 0.95f},
+                {0.95f, 0.95f, 0.95f}
+        },
+        {0.0f, 0.0f, 0.0f},
+        12.5f * (float) M_PI / 180.0f
+};
+
 static int light_model_location;
 static int light_project_location;
 static int light_color_location;
@@ -110,6 +131,9 @@ event_loop() {
                 move_camera_front(&camera, event.motion.xrel, event.motion.yrel);
             } else if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
+                    case SDLK_l: // toggle camera light
+                        camera_light_on = !camera_light_on;
+                        break;
                     case SDLK_a: // move camera right according to right vector
                         yaw_camera(&camera, -1);
                         break;
@@ -192,19 +216,42 @@ draw_cubes() {
     glBindVertexArray(cube_vao);
     glUseProgram(cube_shader);
 
+    // spot light
+    if (camera_light_on) {
+        glUniform3f(spot_light_pos_location, spot_light.light.position[0], spot_light.light.position[1],
+                    spot_light.light.position[2]);
+        glUniform3f(spot_light_ambient_location, spot_light.light.ambient[0], spot_light.light.ambient[1],
+                    spot_light.light.ambient[2]);
+        glUniform3f(spot_light_diffuse_location, spot_light.light.diffuse[0], spot_light.light.diffuse[1],
+                    spot_light.light.diffuse[2]);
+        glUniform3f(spot_light_specular_location, spot_light.light.specular[0], spot_light.light.specular[1],
+                    spot_light.light.specular[2]);
+        glUniform3f(spot_light_front_location, spot_light.front[0], spot_light.front[1], spot_light.front[2]);
+        glUniform1f(spot_light_angle_location, (float) cos((double) spot_light.angle));
+    } else {
+        glUniform1f(spot_light_angle_location, 0.0f);
+    }
+
+    // light source
     glUniform3f(cube_light_pos_location, light.position[0], light.position[1], light.position[2]);
     glUniform3f(cube_light_ambient_location, light.ambient[0], light.ambient[1], light.ambient[2]);
     glUniform3f(cube_light_diffuse_location, light.diffuse[0], light.diffuse[1], light.diffuse[2]);
     glUniform3f(cube_light_specular_location, light.specular[0], light.specular[1], light.specular[2]);
 
+    // project * view matrix
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
     glm_mat4_mul(project_m, view_m, project_view);
     glUniformMatrix4fv(cube_project_location, 1, GL_FALSE, (GLfloat *) project_view);
+
+    // camera position
     glUniform3f(camera_pos_location, camera.pos[0], camera.pos[1], camera.pos[2]);
+
+    // oscillation for 2 textures
     double base_value = M_PI * SDL_GetTicks() / 180 / FPS_SIZE_MS / 0.5;
     double oscillation = sin(base_value) / 2 + 0.5;
     glUniform1f(cube_oscillation_location, (float) oscillation);
 
+    // drawing cube
     draw_cube(model1_m, &MATERIAL_IDEAL);
     draw_cube(model2_m, &MATERIAL_IDEAL);
     draw_cube(model3_m, &MATERIAL_IDEAL);
@@ -265,10 +312,20 @@ update_cubes() {
 }
 
 static void
-update_scene() {
+update_camera_light() {
+    vec3_set(spot_light.light.ambient, 0.2f, 0.2f, 0.2f);
+    vec3_set(spot_light.light.diffuse, 0.8f, 0.8f, 0.8f);
+    vec3_set(spot_light.light.specular, 1, 1, 1);
 
+    glm_vec3_copy(camera.pos, spot_light.light.position);
+    glm_vec3_copy(camera.front, spot_light.front);
+}
+
+static void
+update_scene() {
     update_cubes();
     update_light();
+    update_camera_light();
 
     // View
     camera_view(&camera, view_m);
@@ -333,10 +390,19 @@ void initialize_gl_cube() {
 
     cube_oscillation_location = glGetUniformLocation(cube_shader, "oscillation");
     camera_pos_location = glGetUniformLocation(cube_shader, "camera_pos");
+
     cube_light_pos_location = glGetUniformLocation(cube_shader, "light.position");
     cube_light_ambient_location = glGetUniformLocation(cube_shader, "light.ambient");
     cube_light_diffuse_location = glGetUniformLocation(cube_shader, "light.diffuse");
     cube_light_specular_location = glGetUniformLocation(cube_shader, "light.specular");
+
+    spot_light_pos_location = glGetUniformLocation(cube_shader, "spot_light.light.position");
+    spot_light_ambient_location = glGetUniformLocation(cube_shader, "spot_light.light.ambient");
+    spot_light_diffuse_location = glGetUniformLocation(cube_shader, "spot_light.light.diffuse");
+    spot_light_specular_location = glGetUniformLocation(cube_shader, "spot_light.light.specular");
+    spot_light_front_location = glGetUniformLocation(cube_shader, "spot_light.front");
+    spot_light_angle_location = glGetUniformLocation(cube_shader, "spot_light.angle_cos");
+
     cube_model_location = glGetUniformLocation(cube_shader, "model");
     cube_normals_model_location = glGetUniformLocation(cube_shader, "normals_model");
     cube_project_location = glGetUniformLocation(cube_shader, "project_view");
