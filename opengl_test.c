@@ -32,6 +32,7 @@ static int spot_light_diffuse_location;
 static int spot_light_specular_location;
 static int spot_light_front_location;
 static int spot_light_angle_location;
+static int spot_light_smooth_angle_location;
 
 static int cube_light_pos_location;
 static int cube_light_ambient_location;
@@ -66,7 +67,8 @@ static spot_light_t spot_light = {
                 {0.95f, 0.95f, 0.95f}
         },
         {0.0f, 0.0f, 0.0f},
-        12.5f * (float) M_PI / 180.0f
+        10.5f * (float) M_PI / 180.0f,
+        2.0f * (float) M_PI / 180.0f,
 };
 
 static int light_model_location;
@@ -228,6 +230,7 @@ draw_cubes() {
                     spot_light.light.specular[2]);
         glUniform3f(spot_light_front_location, spot_light.front[0], spot_light.front[1], spot_light.front[2]);
         glUniform1f(spot_light_angle_location, (float) cos((double) spot_light.angle));
+        glUniform1f(spot_light_smooth_angle_location, (float) cos((double) spot_light.angle + spot_light.smooth_angle));
     } else {
         glUniform1f(spot_light_angle_location, 0.0f);
     }
@@ -402,6 +405,7 @@ void initialize_gl_cube() {
     spot_light_specular_location = glGetUniformLocation(cube_shader, "spot_light.light.specular");
     spot_light_front_location = glGetUniformLocation(cube_shader, "spot_light.front");
     spot_light_angle_location = glGetUniformLocation(cube_shader, "spot_light.angle_cos");
+    spot_light_smooth_angle_location = glGetUniformLocation(cube_shader, "spot_light.smooth_angle_cos");
 
     cube_model_location = glGetUniformLocation(cube_shader, "model");
     cube_normals_model_location = glGetUniformLocation(cube_shader, "normals_model");

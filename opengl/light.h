@@ -16,6 +16,7 @@ typedef struct spot_light {
     light_t light;
     vec3 front;
     float angle;
+    float smooth_angle; // additional angle for smooth border
 } spot_light_t;
 
 #endif //SDL_TEST_LIGHT_H

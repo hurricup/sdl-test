@@ -19,6 +19,7 @@ struct SpotLight {
     Light light;
     vec3 front;
     float angle_cos;
+    float smooth_angle_cos;
 };
 
 layout(location = 0) in vec2 tex_coord;
@@ -74,10 +75,13 @@ void main(){
         vec3 spot_frag_light_vector = frag_pos - spot_light.light.position;
         vec3 spot_frag_direction = normalize(spot_frag_light_vector);
         float theta_cos = dot(spot_frag_direction, spot_front_direction);
-        if (theta_cos > spot_light.angle_cos){
+        if (theta_cos > spot_light.smooth_angle_cos){
             // spot attenuation
             float spot_distance = length(spot_frag_light_vector);
             float spot_light_attenuation = 1 / (spot_distance * spot_distance * attenuation_const_quadratic + 1.0);
+            if (theta_cos < spot_light.angle_cos){
+                spot_light_attenuation *= (theta_cos - spot_light.smooth_angle_cos) / (spot_light.angle_cos - spot_light.smooth_angle_cos);
+            }
 
             // spot diffuse
             float spot_diffuse = max(dot(frag_normal, -spot_frag_direction), 0.0);
