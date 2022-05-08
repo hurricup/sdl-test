@@ -107,26 +107,26 @@ event_loop() {
             if (event.type == SDL_QUIT) {
                 return;
             } else if (event.type == SDL_MOUSEMOTION && event.motion.state & SDL_BUTTON_RMASK) {
-                move_camera_sight(&camera, event.motion.xrel, event.motion.yrel);
+                move_camera_front(&camera, event.motion.xrel, event.motion.yrel);
             } else if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
                     case SDLK_a: // move camera right according to right vector
-                        move_camera_horizontally(&camera, -1);
+                        yaw_camera(&camera, -1);
                         break;
                     case SDLK_d: // move camera left according to up vector
-                        move_camera_horizontally(&camera, 1);
+                        yaw_camera(&camera, 1);
                         break;
                     case SDLK_r: // move camera up according to up vector
-                        move_camera_vertically(&camera, 1);
+                        pitch_camera(&camera, 1);
                         break;
                     case SDLK_f: // move camera down according to up vector
-                        move_camera_vertically(&camera, -1);
+                        pitch_camera(&camera, -1);
                         break;
                     case SDLK_w: // move camera forward
-                        move_camera_front(&camera, 1);
+                        move_camera(&camera, 1);
                         break;
                     case SDLK_s: // move camera backward
-                        move_camera_front(&camera, -1);
+                        move_camera(&camera, -1);
                         break;
                     case SDLK_q: // rotate left around sight
                         roll_camera(&camera, -1);

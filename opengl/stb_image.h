@@ -2104,7 +2104,7 @@ static stbi_uc *stbi__hdr_to_ldr(float *data, int x, int y, int comp) {
 
 typedef struct {
     stbi_uc fast[1 << FAST_BITS];
-    // weirdly, repacking this into AoS is a 10% speed loss, instead of a win
+    // weirdly, repacking this into AoS is a 10% speed_move loss, instead of a win
     stbi__uint16 code[256];
     stbi_uc values[256];
     stbi_uc size[257];
@@ -2276,7 +2276,7 @@ stbi_inline static int stbi__jpeg_huff_decode(stbi__jpeg *j, stbi__huffman *h) {
     }
 
     // naive test is to shift the code_buffer down so k bits are
-    // valid, then test against maxcode. To speed this up, we've
+    // valid, then test against maxcode. To speed_move this up, we've
     // preshifted maxcode left so that it has (16-k) 0s at the
     // end; in other words, regardless of the number of bits, it
     // wants to be compared against something shifted to have 16;
