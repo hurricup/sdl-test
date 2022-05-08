@@ -1,9 +1,8 @@
-#include <SDL2/SDL.h>
+#include "opengl/sdl_ext.h"
+#include "opengl/gl_ext.h"
+#include "opengl/cglm_ext.h"
 #include <stdbool.h>
 #include <time.h>
-#include <GL/gl.h>
-#include <GLES3/gl3.h>
-#include "opengl/cglm_ext.h"
 #include "cglm/cglm.h"
 #include "opengl/camera.h"
 #include "opengl/texture.h"
@@ -144,6 +143,7 @@ event_loop() {
         }
         update_screen();
         SDL_Delay(FPS_SIZE_MS);
+        SDL_CHECK_ERROR;
     }
 }
 
@@ -159,6 +159,7 @@ draw_light() {
     glUniformMatrix4fv(light_model_location, 1, GL_FALSE, (GLfloat *) light_m);
 
     glDrawArrays(GL_QUADS, 0, 6 * 4);
+    glCheckError(__FILE__, __LINE__);
 }
 
 static void
@@ -175,6 +176,7 @@ draw_cube(mat4 model, const material_t *material) {
     glUniformMatrix3fv(cube_normals_model_location, 1, GL_FALSE, (GLfloat *) normals_model3);
     glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model);
     glDrawArrays(GL_QUADS, 0, 6 * 4);
+    GL_CHECK_ERROR;
 }
 
 static void set_cube_material(const material_t *mat) {
@@ -287,6 +289,7 @@ update_screen() {
     update_scene();
     draw_scene();
     SDL_GL_SwapWindow(window);
+    SDL_CHECK_ERROR;
 }
 
 static
