@@ -308,7 +308,7 @@ update_cubes() {
     size = 8.0f;
     update_cube(size, (vec3) {size, size, -size}, (vec3) {angles[0], 0, angles[2]}, model3_m);
     size = 16.0f;
-    update_cube(size, (vec3) {size, -size, -size}, angles, model4_m);
+    update_cube(size, (vec3) {size, -size, -size}, (vec3) {angles[0], 0, 0}, model4_m);
 }
 
 static void
