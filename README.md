@@ -4,11 +4,11 @@ Tried on linux with nVidia video card.
 
 Requirements:
 
-- gcc
-- libopengl-dev
-- [libsdl2-dev](https://www.libsdl.org/)
-- [cglm](https://github.com/recp/cglm)
-- [stb](https://github.com/nothings/stb)
+- libopengl-dev - OpenGL
+- [libsdl2-dev](https://www.libsdl.org/) - os interactions (windows, input)
+- [cglm](https://github.com/recp/cglm) - OpenGL math
+- [stb](https://github.com/nothings/stb) - images loading
+- [assimp](https://github.com/assimp/assimp) - models loading
 
 Tools:
 
