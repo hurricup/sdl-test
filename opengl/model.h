@@ -28,5 +28,10 @@ typedef struct mesh {
     unsigned int ebo;
 } mesh_t;
 
+typedef struct model {
+    unsigned int meshes_number;
+    mesh_t *meshes;
+    char *directory;
+} model_t;
 
 #endif //SDL_TEST_MODEL_H

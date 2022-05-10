@@ -37,7 +37,7 @@ create_mesh(unsigned long vertices_number, GLsizei indices_number) {
     return mesh;
 }
 
-void draw(mesh_t *mesh) {
+void draw_mesh(mesh_t *mesh) {
     for (int i = 0; i < mesh->textures_number; i++) {
         glActiveTexture(GL_TEXTURE0 + i);
         glBindTexture(GL_TEXTURE_2D, mesh->textures[i].id);
@@ -68,3 +68,34 @@ destroy_mesh(mesh_t *mesh) {
     }
     free(mesh);
 }
+
+void draw_model(model_t *model) {
+    for (int i = 0; i < model->meshes_number; i++) {
+        draw_mesh(&model->meshes[i]);
+    }
+}
+
+static model_t *
+alloc_model() {
+    model_t *model = malloc(sizeof(model_t));
+    model->meshes = NULL;
+    model->meshes_number = 0;
+    model->directory = NULL;
+    return model;
+}
+
+model_t *
+load_model(char *path) {
+    return alloc_model();
+}
+
+void
+destroy_model(model_t *model) {
+    for (int i = 0; i < model->meshes_number; i++) {
+        destroy_mesh(&model->meshes[i]);
+    }
+    model->meshes_number = 0;
+    free(model->meshes);
+    model->meshes = NULL;
+    free(model);
+};
