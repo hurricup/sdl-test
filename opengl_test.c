@@ -10,6 +10,7 @@
 #include "models/cube.h"
 #include "opengl/material.h"
 #include "opengl/light.h"
+#include "opengl/model.h"
 
 static int window_width = 1280;
 static int window_height = 1280 / 16 * 9;
@@ -18,9 +19,6 @@ static const Uint32 FPS = 30;
 static const Uint32 FPS_SIZE_MS = 1000 / FPS;
 
 static unsigned int cube_shader;
-static unsigned int cube_vao;
-static unsigned int cube_vbo;
-static unsigned int cube_ebo;
 static int cube_oscillation_location;
 static int cube_model_location;
 static int cube_normals_model_location;
@@ -87,7 +85,6 @@ static int light_model_location;
 static int light_project_location;
 static int light_color_location;
 static unsigned int light_shader;
-static unsigned int light_vao;
 
 static mat4 view_m = GLM_MAT4_IDENTITY;
 static mat4 project_m = GLM_MAT4_IDENTITY;
@@ -95,22 +92,7 @@ static struct cube_object {
     vec3 angles;
 } cube_object;
 
-#define ANGLES_OFFSET 0
-#define COLOR_OFFSET (ANGLES_OFFSET + VEC3_SIZE)
-
-static struct textured_cube {
-    cube_t model;
-    cube_textures_t textures;
-    cube_t normals; // this is expensive, we should have a normal vector for each vertex from model
-} cube_model;
-
-#define CUBE_OFFSET 0
-#define CUBE_TEXTURE_OFFSET (CUBE_OFFSET + CUBE_SIZE)
-#define CUBE_NORMALS_OFFSET (CUBE_TEXTURE_OFFSET + CUBE_TEXTURES_SIZE)
-
-#define CUBE_VERTEX_ATTRIBUTE_ID 0
-#define CUBE_TEXTURE_VERTEX_ATTRIBUTE_ID 1
-#define CUBE_NORMALS_ATTRIBUTE_ID 2
+static model_t *cube_model;
 
 static SDL_Window *window = NULL;
 static SDL_GLContext context = NULL;
@@ -191,7 +173,7 @@ event_loop() {
 
 static void
 draw_light() {
-    glBindVertexArray(light_vao);
+    glBindVertexArray(cube_model->meshes->mesh.vao);
     glUseProgram(light_shader);
 
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
@@ -200,8 +182,7 @@ draw_light() {
     glUniformMatrix4fv(light_project_location, 1, GL_FALSE, (GLfloat *) project_view);
     glUniformMatrix4fv(light_model_location, 1, GL_FALSE, (GLfloat *) light_m);
 
-    glDrawElements(GL_TRIANGLES, 6 * 3 * 2, GL_UNSIGNED_INT, 0);
-    GL_CHECK_ERROR;
+    draw_model(cube_model);
 }
 
 static void
@@ -217,8 +198,7 @@ draw_cube(mat4 model, const material_t *material) {
 
     glUniformMatrix3fv(cube_normals_model_location, 1, GL_FALSE, (GLfloat *) normals_model3);
     glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model);
-    glDrawElements(GL_TRIANGLES, 6 * 3 * 2, GL_UNSIGNED_INT, 0);
-    GL_CHECK_ERROR;
+    draw_model(cube_model);
 }
 
 static void set_cube_material(const material_t *mat) {
@@ -230,7 +210,7 @@ static void set_cube_material(const material_t *mat) {
 
 static void
 draw_cubes() {
-    glBindVertexArray(cube_vao);
+    glBindVertexArray(cube_model->meshes->mesh.vao);
     glUseProgram(cube_shader);
 
     // spot light
@@ -366,44 +346,50 @@ update_screen() {
     SDL_CHECK_ERROR;
 }
 
-static
-void initialize_gl_light() {
-    glGenVertexArrays(1, &light_vao);
-    glBindVertexArray(light_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, cube_vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ebo);
+static void
+initialize_camera() {
+    camera_init(&camera);
+    camera_pos_location = glGetUniformLocation(cube_shader, "camera_pos");
+}
 
-    glEnableVertexAttribArray(CUBE_VERTEX_ATTRIBUTE_ID);
-    glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, 0, (void *) CUBE_OFFSET);
-
+static void
+initialize_light() {
     light_shader = create_shader("shaders/light_vertex.glsl", "shaders/light_fragment.glsl");
+
+    cube_light_pos_location = glGetUniformLocation(cube_shader, "light.position");
+    cube_light_ambient_location = glGetUniformLocation(cube_shader, "light.ambient");
+    cube_light_diffuse_location = glGetUniformLocation(cube_shader, "light.diffuse");
+    cube_light_specular_location = glGetUniformLocation(cube_shader, "light.specular");
+
     light_color_location = glGetUniformLocation(light_shader, "passed_color");
     light_model_location = glGetUniformLocation(light_shader, "model");
     light_project_location = glGetUniformLocation(light_shader, "project_view");
+
 }
 
-static
-void initialize_gl_cube() {
-    glGenVertexArrays(1, &cube_vao);
-    glBindVertexArray(cube_vao);
+static void
+initialize_direct_light() {
+    direct_light_front_location = glGetUniformLocation(cube_shader, "direct_light.front");
+    direct_light_ambient_location = glGetUniformLocation(cube_shader, "direct_light.ambient");
+    direct_light_diffuse_location = glGetUniformLocation(cube_shader, "direct_light.diffuse");
+    direct_light_specular_location = glGetUniformLocation(cube_shader, "direct_light.specular");
+}
 
-    glGenBuffers(1, &cube_vbo); // creating VBO
-    glBindBuffer(GL_ARRAY_BUFFER, cube_vbo); // selecting buffer of particular type
-    glBufferData(GL_ARRAY_BUFFER, sizeof cube_model, &cube_model, GL_STATIC_DRAW); // copying data
+static void
+initialize_spot_light() {
+    spot_light_pos_location = glGetUniformLocation(cube_shader, "spot_light.light.position");
+    spot_light_ambient_location = glGetUniformLocation(cube_shader, "spot_light.light.ambient");
+    spot_light_diffuse_location = glGetUniformLocation(cube_shader, "spot_light.light.diffuse");
+    spot_light_specular_location = glGetUniformLocation(cube_shader, "spot_light.light.specular");
+    spot_light_front_location = glGetUniformLocation(cube_shader, "spot_light.front");
+    spot_light_angle_location = glGetUniformLocation(cube_shader, "spot_light.angle_cos");
+    spot_light_smooth_angle_location = glGetUniformLocation(cube_shader, "spot_light.smooth_angle_cos");
+}
 
-    glGenBuffers(1, &cube_ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_triangles), cube_triangles, GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(CUBE_VERTEX_ATTRIBUTE_ID);
-    glVertexAttribPointer(CUBE_VERTEX_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, 0, (void *) CUBE_OFFSET);
-
-    glEnableVertexAttribArray(CUBE_TEXTURE_VERTEX_ATTRIBUTE_ID);
-    glVertexAttribPointer(CUBE_TEXTURE_VERTEX_ATTRIBUTE_ID, 2, GL_FLOAT, GL_FALSE, 0,
-                          (void *) CUBE_TEXTURE_OFFSET);
-
-    glEnableVertexAttribArray(CUBE_NORMALS_ATTRIBUTE_ID);
-    glVertexAttribPointer(CUBE_NORMALS_ATTRIBUTE_ID, 3, GL_FLOAT, GL_FALSE, 0, (void *) CUBE_NORMALS_OFFSET);
+static void
+initialize_cube() {
+    vec3_set(cube_object.angles, 0, 0, 0);
+    cube_model = cube_model_create();
 
     cube_shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
 
@@ -413,61 +399,16 @@ void initialize_gl_cube() {
     cube_material_shininess_location = glGetUniformLocation(cube_shader, "material.shininess");
 
     cube_oscillation_location = glGetUniformLocation(cube_shader, "oscillation");
-    camera_pos_location = glGetUniformLocation(cube_shader, "camera_pos");
-
-    cube_light_pos_location = glGetUniformLocation(cube_shader, "light.position");
-    cube_light_ambient_location = glGetUniformLocation(cube_shader, "light.ambient");
-    cube_light_diffuse_location = glGetUniformLocation(cube_shader, "light.diffuse");
-    cube_light_specular_location = glGetUniformLocation(cube_shader, "light.specular");
-
-    direct_light_front_location = glGetUniformLocation(cube_shader, "direct_light.front");
-    direct_light_ambient_location = glGetUniformLocation(cube_shader, "direct_light.ambient");
-    direct_light_diffuse_location = glGetUniformLocation(cube_shader, "direct_light.diffuse");
-    direct_light_specular_location = glGetUniformLocation(cube_shader, "direct_light.specular");
-
-    spot_light_pos_location = glGetUniformLocation(cube_shader, "spot_light.light.position");
-    spot_light_ambient_location = glGetUniformLocation(cube_shader, "spot_light.light.ambient");
-    spot_light_diffuse_location = glGetUniformLocation(cube_shader, "spot_light.light.diffuse");
-    spot_light_specular_location = glGetUniformLocation(cube_shader, "spot_light.light.specular");
-    spot_light_front_location = glGetUniformLocation(cube_shader, "spot_light.front");
-    spot_light_angle_location = glGetUniformLocation(cube_shader, "spot_light.angle_cos");
-    spot_light_smooth_angle_location = glGetUniformLocation(cube_shader, "spot_light.smooth_angle_cos");
 
     cube_model_location = glGetUniformLocation(cube_shader, "model");
     cube_normals_model_location = glGetUniformLocation(cube_shader, "normals_model");
     cube_project_location = glGetUniformLocation(cube_shader, "project_view");
 
-    // generating texture
+    // generating textures, should be moved to cube_model as well
     load_texture(GL_TEXTURE0, "texture1.png");
     load_texture(GL_TEXTURE1, "texture2.png");
     load_texture(GL_TEXTURE2, "diffuse_map.png");
     load_texture(GL_TEXTURE3, "specular_map.png");
-}
-
-static void
-initialize_gl() {
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
-                "OpenGL information:\n\tVendor: %s\n\tRenderer: %s\n\tVersion: %s\n\tShading language: %s",
-                glGetString(GL_VENDOR),
-                glGetString(GL_RENDERER),
-                glGetString(GL_VERSION),
-                glGetString(GL_SHADING_LANGUAGE_VERSION)
-    );
-    glEnable(GL_DEPTH_TEST); // enables z-buffering
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
-
-    // cube
-    initialize_gl_cube();
-    initialize_gl_light();
-}
-
-
-static void initialize_data() {
-    camera_init(&camera);
-    vec3_set(cube_object.angles, 0, 0, 0);
-    cube_model_init(&cube_model.model);
-    cube_textures_init(&cube_model.textures);
-    cube_normals_init(&cube_model.normals);
 }
 
 static bool
@@ -491,8 +432,21 @@ initialize_app() {
     SDL_GL_SetSwapInterval(1);
     SDL_CHECK_ERROR;
 
-    initialize_data();
-    initialize_gl();
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                "OpenGL information:\n\tVendor: %s\n\tRenderer: %s\n\tVersion: %s\n\tShading language: %s",
+                glGetString(GL_VENDOR),
+                glGetString(GL_RENDERER),
+                glGetString(GL_VERSION),
+                glGetString(GL_SHADING_LANGUAGE_VERSION)
+    );
+    glEnable(GL_DEPTH_TEST); // enables z-buffering
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
+
+    initialize_camera();
+    initialize_cube();
+    initialize_light();
+    initialize_direct_light();
+    initialize_spot_light();
 
     return true;
 }

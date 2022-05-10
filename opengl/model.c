@@ -64,7 +64,8 @@ destroy_mesh(mesh_t *mesh) {
     free(mesh);
 }
 
-void draw_model(model_t *model) {
+void
+draw_model(model_t *model) {
     mesh_list_item_t *current_item = model->meshes;
     while (current_item != NULL) {
         draw_mesh(&current_item->mesh);
@@ -134,13 +135,19 @@ import_mesh(mesh_t *mesh, struct aiMesh *assimp_mesh, const struct aiScene *scen
     init_mesh_gl(mesh);
 }
 
+static mesh_list_item_t *
+alloc_mesh_list_item() {
+    mesh_list_item_t *mesh_list_item = calloc(1, sizeof(mesh_list_item_t));
+    SDL_ALLOC_CHECK(mesh_list_item);
+    return mesh_list_item;
+}
+
 static void
 import_node(model_t *model, mesh_list_item_t *last_mesh_item, struct aiNode *node, const struct aiScene *scene) {
     // process all the node's meshes (if any)
     for (unsigned int i = 0; i < node->mNumMeshes; i++) {
         struct aiMesh *assimp_mesh = scene->mMeshes[node->mMeshes[i]];
-        mesh_list_item_t *mesh_list_item = calloc(1, sizeof(mesh_list_item_t));
-        SDL_ALLOC_CHECK(mesh_list_item);
+        mesh_list_item_t *mesh_list_item = alloc_mesh_list_item();
         import_mesh(&mesh_list_item->mesh, assimp_mesh, scene);
         if (last_mesh_item == NULL) {
             model->meshes = mesh_list_item;
@@ -153,6 +160,23 @@ import_node(model_t *model, mesh_list_item_t *last_mesh_item, struct aiNode *nod
     for (unsigned int i = 0; i < node->mNumChildren; i++) {
         import_node(model, last_mesh_item, node->mChildren[i], scene);
     }
+}
+
+model_t *
+create_model(unsigned int vertices_number, vertex_t *vertices, unsigned int indices_number, unsigned int *indices) {
+    model_t *model = alloc_model();
+    model->meshes = alloc_mesh_list_item();
+    mesh_t *mesh = &model->meshes->mesh;
+    mesh->vertices_number = vertices_number;
+    size_t vertices_size = vertices_number * sizeof(vertex_t);
+    mesh->vertices = malloc(vertices_size);
+    memcpy(mesh->vertices, vertices, vertices_size);
+    mesh->indices_number = indices_number;
+    size_t indices_size = indices_number * sizeof(unsigned int);
+    mesh->indices = malloc(indices_size);
+    memcpy(mesh->indices, indices, indices_size);
+    init_mesh_gl(mesh);
+    return model;
 }
 
 model_t *

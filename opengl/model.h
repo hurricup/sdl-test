@@ -38,4 +38,9 @@ typedef struct model {
     char *directory;
 } model_t;
 
+model_t *
+create_model(unsigned int vertices_number, vertex_t *vertices, unsigned int indices_number, unsigned int *indices);
+
+void draw_model(model_t *model);
+
 #endif //SDL_TEST_MODEL_H
