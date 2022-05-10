@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <SDL2/SDL.h>
+#include "sdl_ext.h"
 
 char *load_text_file(const char *shader_name);
 

@@ -21,7 +21,7 @@ load_texture(GLenum texture_unit, const char *filename) {
     stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load(filename, &width, &height, &channels_number, 0);
     if (data == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error loading texture");
+        SDL_Die("Error loading texture %s", filename);
     } else {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
                     "Loaded %s: %u x %u, channels %u", filename, width, height, channels_number);

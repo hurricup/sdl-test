@@ -16,8 +16,8 @@ load_shader(unsigned int shader_type, const char *shader_name) {
         char *msg = alloca((length + 1) * sizeof(char));
         glGetShaderInfoLog(id, length, &length, msg);
         msg[length] = '\0';
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to compile shader %s: %s", shader_name, msg);
         glDeleteShader(id);
+        SDL_Die("Failed to compile shader %s: %s", shader_name, msg);
         exit(1);
     }
     return id;
@@ -39,8 +39,8 @@ create_shader(const char *vertex_shader_name, const char *fragment_shader_name) 
         GLsizei log_length = 0;
         GLchar message[1024];
         glGetProgramInfoLog(program, 1024, &log_length, message);
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error linking program: %s", message);
         glDeleteProgram(program);
+        SDL_Die("Error linking program: %s", message);
         exit(1);
     }
     glValidateProgram(program);
@@ -50,9 +50,8 @@ create_shader(const char *vertex_shader_name, const char *fragment_shader_name) 
         GLsizei log_length = 0;
         GLchar message[1024];
         glGetProgramInfoLog(program, 1024, &log_length, message);
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error validating program: %s", message);
         glDeleteProgram(program);
-        exit(1);
+        SDL_Die("Error validating program: %s", message);
     }
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);

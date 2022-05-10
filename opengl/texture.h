@@ -2,7 +2,7 @@
 #define SDL_TEST_TEXTURE_H
 
 #include <stdbool.h>
-#include <SDL2/SDL.h>
+#include "sdl_ext.h"
 #include <GLES3/gl3.h>
 #include "stb_image.h"
 

@@ -1,7 +1,7 @@
 #ifndef SDL_TEST_SHADER_H
 #define SDL_TEST_SHADER_H
 
-#include <SDL2/SDL.h>
+#include "sdl_ext.h"
 #include <GLES3/gl3.h>
 #include "file_util.h"
 

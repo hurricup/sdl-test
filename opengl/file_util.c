@@ -17,8 +17,7 @@ load_text_file(const char *shader_name) {
         fclose(file);
         buffer[length] = '\0';
     } else {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error reading file: %s, errno: %d", shader_name, errno);
-        exit(1);
+        SDL_Die("Error reading file: %s, errno: %d", shader_name, errno);
     }
     return buffer;
 }

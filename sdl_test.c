@@ -1,4 +1,4 @@
-#include <SDL2/SDL.h>
+#include "opengl/sdl_ext.h"
 #include <stdbool.h>
 #include <time.h>
 
@@ -145,8 +145,7 @@ recalc_buffer(Uint8 **old_buffer_ptr) {
 static bool
 initialize_app() {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to initialize SDL: %s\n", SDL_GetError());
-        return false;
+        SDL_Die("Failed to initialize SDL: %s\n", SDL_GetError());
     }
     window = SDL_CreateWindow("program", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WIDTH, HEIGHT,
                               SDL_WINDOW_SHOWN);

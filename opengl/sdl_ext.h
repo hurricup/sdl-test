@@ -7,4 +7,6 @@
 
 void SDL_CheckError(const char *file, int line);
 
+void SDL_Die(const char *format, ...);
+
 #endif //SDL_TEST_SDL_EXT_H
