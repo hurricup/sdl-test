@@ -173,7 +173,6 @@ event_loop() {
 
 static void
 draw_light() {
-    glBindVertexArray(cube_model->meshes->mesh.vao);
     glUseProgram(light_shader);
 
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
@@ -210,7 +209,6 @@ static void set_cube_material(const material_t *mat) {
 
 static void
 draw_cubes() {
-    glBindVertexArray(cube_model->meshes->mesh.vao);
     glUseProgram(cube_shader);
 
     // spot light
