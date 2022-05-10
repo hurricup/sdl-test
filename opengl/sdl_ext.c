@@ -10,7 +10,6 @@ SDL_Die(const char *format, ...) {
     exit(1);
 }
 
-
 void
 SDL_CheckError(const char *file, int line) {
     const char *error = SDL_GetError();

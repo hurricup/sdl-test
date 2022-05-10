@@ -16,11 +16,11 @@ typedef struct texture {
 } texture_t;
 
 typedef struct mesh {
-    unsigned long vertices_number;
+    unsigned int vertices_number;
     vertex_t *vertices;
-    GLsizei indices_number;
+    unsigned int indices_number;
     unsigned int *indices;
-    unsigned long textures_number;
+    unsigned int textures_number;
     texture_t *textures;
 
     unsigned int vao;
@@ -28,9 +28,13 @@ typedef struct mesh {
     unsigned int ebo;
 } mesh_t;
 
+typedef struct mesh_list_item {
+    mesh_t mesh;
+    struct mesh_list_item *next;
+} mesh_list_item_t;
+
 typedef struct model {
-    unsigned int meshes_number;
-    mesh_t *meshes;
+    mesh_list_item_t *meshes;
     char *directory;
 } model_t;
 
