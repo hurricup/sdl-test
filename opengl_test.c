@@ -46,6 +46,10 @@ static int cube_material_diffuse_location;
 static int cube_material_specular_location;
 static int cube_material_shininess_location;
 static int camera_pos_location;
+
+static model_t *car;
+static mat4 model_car = GLM_MAT4_IDENTITY;
+
 static camera_t camera;
 static mat4 model1_m = GLM_MAT4_IDENTITY;
 static mat4 model2_m = GLM_MAT4_IDENTITY;
@@ -185,6 +189,16 @@ draw_light() {
 }
 
 static void
+draw_car() {
+    mat4 project_view = GLM_MAT4_IDENTITY_INIT;
+    glm_mat4_mul(project_m, view_m, project_view);
+    glUseProgram(cube_shader);
+    glUniformMatrix4fv(cube_project_location, 1, GL_FALSE, (GLfloat *) project_view);
+    glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model_car);
+    draw_model(car);
+}
+
+static void
 draw_cube(mat4 model, const material_t *material) {
     mat4 normals_model4;
     mat3 normals_model3;
@@ -256,11 +270,13 @@ draw_cubes() {
     draw_cube(model4_m, &MATERIAL_IDEAL);
 }
 
-static void draw_scene() {
+static void
+draw_scene() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     draw_cubes();
     draw_light();
+    draw_car();
 
     glFlush();
 }
@@ -294,7 +310,6 @@ static void update_cube(float size, const float *trans, const float *angles, vec
 
 static void
 update_cubes() {
-
     // rotating
     cube_object.angles[0] += 0.01f;
     cube_object.angles[1] += 0.012f;
@@ -314,6 +329,18 @@ update_cubes() {
 }
 
 static void
+update_car() {
+    glm_mat4_identity(model_car);
+    glm_translate_x(model_car, 0);
+    glm_translate_y(model_car, -4);
+    glm_translate_z(model_car, 0);
+    glm_scale(model_car, (vec3) {0.1f, 0.1f, 0.1f});
+    glm_rotate_x(model_car, 0, model_car);
+    glm_rotate_y(model_car, 0, model_car);
+    glm_rotate_z(model_car, 0, model_car);
+}
+
+static void
 update_camera_light() {
     vec3_set(spot_light.light.ambient, 0.2f, 0.2f, 0.2f);
     vec3_set(spot_light.light.diffuse, 1.0f, 1.0f, 1.0f);
@@ -328,6 +355,7 @@ update_scene() {
     update_cubes();
     update_light();
     update_camera_light();
+    update_car();
 
     // View
     camera_view(&camera, view_m);
@@ -409,6 +437,16 @@ initialize_cube() {
     load_texture(GL_TEXTURE3, "specular_map.png");
 }
 
+static void
+initialize_car() {
+    car = load_model("assets/models/lego_man/lego obj.obj");
+//    car = load_model("assets/models/Lotus_Hot_Wheels_3DS/Lotus_HW_3DS.3DS");
+//    car = load_model("assets/models/Subaru Impreza/subaru_impreza.fbx");
+//    car = load_model("assets/models/male/FinalBaseMesh.obj");
+//    car = load_model("assets/models/teapot.obj");
+}
+
+
 static bool
 initialize_app() {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -445,6 +483,7 @@ initialize_app() {
     initialize_light();
     initialize_direct_light();
     initialize_spot_light();
+    initialize_car();
     GL_CHECK_ERROR;
 
     return true;
