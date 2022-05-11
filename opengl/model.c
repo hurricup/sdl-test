@@ -67,6 +67,19 @@ destroy_mesh(mesh_t *mesh) {
 }
 
 void
+model_info(model_t *model, const char *path) {
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Model %s (%s):", path, model->directory);
+    unsigned int mesh_counter = 0;
+    mesh_list_item_t *current_item = model->meshes;
+    while (current_item != NULL) {
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "\tid: %u; vertices: %u; indices: %u", mesh_counter,
+                    current_item->mesh.vertices_number, current_item->mesh.indices_number);
+        current_item = current_item->next;
+        mesh_counter++;
+    }
+}
+
+void
 draw_model(model_t *model) {
     mesh_list_item_t *current_item = model->meshes;
     while (current_item != NULL) {
@@ -203,7 +216,7 @@ load_model(char *path) {
     }
 
     import_node(model, NULL, assimp_scene->mRootNode, assimp_scene);
-
+    model_info(model, path);
     return model;
 }
 
