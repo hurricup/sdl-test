@@ -201,9 +201,9 @@ model_t *
 load_model(char *path) {
     const struct aiScene *assimp_scene = aiImportFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
     if (assimp_scene == NULL) {
-        SDL_Die("Error loading assimp_scene from %s", path);
+        SDL_Die("Error loading assimp_scene from %s, %s", path, aiGetErrorString());
     } else if (assimp_scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
-        SDL_Die("Incomplete assimp_scene in %s", path);
+        SDL_Die("Incomplete assimp_scene in %s, %s", path, aiGetErrorString());
     } else if (assimp_scene->mRootNode == NULL) {
         SDL_Die("No root node in assimp_scene %s", path);
     }
