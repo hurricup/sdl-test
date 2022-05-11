@@ -445,6 +445,7 @@ initialize_app() {
     initialize_light();
     initialize_direct_light();
     initialize_spot_light();
+    GL_CHECK_ERROR;
 
     return true;
 }
