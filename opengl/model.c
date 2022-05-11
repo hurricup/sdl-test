@@ -41,6 +41,8 @@ void draw_mesh(mesh_t *mesh) {
 
     glBindVertexArray(mesh->vao);
     glDrawElements(GL_TRIANGLES, mesh->indices_number, GL_UNSIGNED_INT, 0);
+    GL_CHECK_ERROR;
+
     glBindVertexArray(0);
 }
 
