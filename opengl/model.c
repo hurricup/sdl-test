@@ -107,7 +107,10 @@ import_mesh_vertices(mesh_t *mesh, struct aiMesh *assimp_mesh) {
         vertex_t *vertex = &mesh->vertices[i];
         vec3_set(vertex->position, assimp_mesh->mVertices[i].x, assimp_mesh->mVertices[i].y,
                  assimp_mesh->mVertices[i].z);
-        vec3_set(vertex->normal, assimp_mesh->mNormals[i].x, assimp_mesh->mNormals[i].y, assimp_mesh->mNormals[i].z);
+        if (assimp_mesh->mNormals != NULL) {
+            vec3_set(vertex->normal, assimp_mesh->mNormals[i].x, assimp_mesh->mNormals[i].y,
+                     assimp_mesh->mNormals[i].z);
+        }
         if (assimp_mesh->mTextureCoords[0] != NULL) {
             vec2_set(vertex->texture_position, assimp_mesh->mTextureCoords[0][i].x,
                      assimp_mesh->mTextureCoords[0][i].y);
