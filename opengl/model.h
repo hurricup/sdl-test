@@ -43,4 +43,6 @@ create_model(unsigned int vertices_number, vertex_t *vertices, unsigned int indi
 
 void draw_model(model_t *model);
 
+model_t *load_model(char *path);
+
 #endif //SDL_TEST_MODEL_H
