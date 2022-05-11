@@ -161,22 +161,29 @@ alloc_mesh_list_item() {
 }
 
 static void
-import_node(model_t *model, mesh_list_item_t *last_mesh_item, struct aiNode *node, const struct aiScene *scene) {
+import_node(model_t *model, struct aiNode *node, const struct aiScene *scene) {
     // process all the node's meshes (if any)
-    for (unsigned int i = 0; i < node->mNumMeshes; i++) {
-        struct aiMesh *assimp_mesh = scene->mMeshes[node->mMeshes[i]];
-        mesh_list_item_t *mesh_list_item = alloc_mesh_list_item();
-        import_mesh(&mesh_list_item->mesh, assimp_mesh, scene);
-        if (last_mesh_item == NULL) {
-            model->meshes = mesh_list_item;
-        } else {
-            last_mesh_item->next = mesh_list_item;
+    if (node->mNumMeshes > 0) {
+        mesh_list_item_t *last_mesh_item = model->meshes;
+        while (last_mesh_item != NULL && last_mesh_item->next != NULL) {
+            last_mesh_item = last_mesh_item->next;
         }
-        last_mesh_item = mesh_list_item;
+
+        for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+            struct aiMesh *assimp_mesh = scene->mMeshes[node->mMeshes[i]];
+            mesh_list_item_t *mesh_list_item = alloc_mesh_list_item();
+            import_mesh(&mesh_list_item->mesh, assimp_mesh, scene);
+            if (last_mesh_item == NULL) {
+                model->meshes = mesh_list_item;
+            } else {
+                last_mesh_item->next = mesh_list_item;
+            }
+            last_mesh_item = mesh_list_item;
+        }
     }
     // then do the same for each of its children
     for (unsigned int i = 0; i < node->mNumChildren; i++) {
-        import_node(model, last_mesh_item, node->mChildren[i], scene);
+        import_node(model, node->mChildren[i], scene);
     }
 }
 
@@ -218,8 +225,9 @@ load_model(char *path) {
         model->directory[dir_length] = '\0';
     }
 
-    import_node(model, NULL, assimp_scene->mRootNode, assimp_scene);
+    import_node(model, assimp_scene->mRootNode, assimp_scene);
     model_info(model, path);
+    aiReleaseImport(assimp_scene);
     return model;
 }
 
