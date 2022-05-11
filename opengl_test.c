@@ -334,7 +334,7 @@ update_car() {
     glm_translate_x(model_car, 0);
     glm_translate_y(model_car, -4);
     glm_translate_z(model_car, 0);
-    glm_scale(model_car, (vec3) {0.1f, 0.1f, 0.1f});
+//    glm_scale(model_car, (vec3) {0.1f, 0.1f, 0.1f});
     glm_rotate_x(model_car, 0, model_car);
     glm_rotate_y(model_car, 0, model_car);
     glm_rotate_z(model_car, 0, model_car);
@@ -439,7 +439,8 @@ initialize_cube() {
 
 static void
 initialize_car() {
-    car = load_model("assets/models/lego_man/lego obj.obj");
+    car = load_model("assets/models/cadnav.com_model/Models_G0901A079/T-rex.obj");
+//    car = load_model("assets/models/lego_man/lego obj.obj");
 //    car = load_model("assets/models/Lotus_Hot_Wheels_3DS/Lotus_HW_3DS.3DS");
 //    car = load_model("assets/models/Subaru Impreza/subaru_impreza.fbx");
 //    car = load_model("assets/models/male/FinalBaseMesh.obj");
