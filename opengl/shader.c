@@ -56,5 +56,8 @@ create_shader(const char *vertex_shader_name, const char *fragment_shader_name) 
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
 
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Created shader from: %s and %s", vertex_shader_name,
+                fragment_shader_name);
+
     return program;
 }
