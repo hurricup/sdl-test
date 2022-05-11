@@ -440,8 +440,8 @@ initialize_app() {
     glEnable(GL_DEPTH_TEST); // enables z-buffering
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
 
-    initialize_camera();
     initialize_cube();
+    initialize_camera();
     initialize_light();
     initialize_direct_light();
     initialize_spot_light();
