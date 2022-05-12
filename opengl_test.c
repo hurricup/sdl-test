@@ -270,11 +270,11 @@ draw_scene() {
 
 static void
 update_light() {
-    vec3_set(omni_light.ambient, 0.05f, 0.05f, 0.05f);
+    vec3_set(omni_light.ambient, 0.025f, 0.025f, 0.025f);
     vec3_set(omni_light.diffuse, 0.5f, 0.5f, 0.5f);
     vec3_set(omni_light.specular, 0.5f, 0.5f, 0.5f);
 
-    vec3_set(direct_light.ambient, 0.05f, 0.05f, 0.05f);
+    vec3_set(direct_light.ambient, 0.025f, 0.025f, 0.025f);
     vec3_set(direct_light.diffuse, 0.5f, 0.5f, 0.5f);
     vec3_set(direct_light.specular, 0.5f, 0.5f, 0.5f);
 
@@ -329,7 +329,7 @@ update_backpack() {
 
 static void
 update_camera_light() {
-    vec3_set(spot_light.light.ambient, 0.2f, 0.2f, 0.2f);
+    vec3_set(spot_light.light.ambient, 0.05f, 0.05f, 0.05f);
     vec3_set(spot_light.light.diffuse, 1.0f, 1.0f, 1.0f);
     vec3_set(spot_light.light.specular, 1.0f, 1.0f, 1.0f);
 
