@@ -492,6 +492,14 @@ initialize_app() {
 
 static void
 shutdown_app() {
+    if (cube_model != NULL) {
+        destroy_model(cube_model);
+    }
+
+    if (car != NULL) {
+        destroy_model(car);
+    }
+
     if (context) {
         SDL_GL_DeleteContext(context);
         context = NULL;
