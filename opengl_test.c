@@ -11,40 +11,16 @@
 #include "opengl/light.h"
 #include "opengl/model.h"
 
+#define LOC_PROJECT_VIEW "project_view"
+#define LOC_MODEL "model"
+
 static int window_width = 1280;
 static int window_height = 1280 / 16 * 9;
 
 static const Uint32 FPS = 30;
 static const Uint32 FPS_SIZE_MS = 1000 / FPS;
 
-static unsigned int cube_shader;
-static int cube_oscillation_location;
-static int cube_model_location;
-static int cube_normals_model_location;
-static int cube_project_location;
-
-static int direct_light_front_location;
-static int direct_light_ambient_location;
-static int direct_light_diffuse_location;
-static int direct_light_specular_location;
-
-static int spot_light_pos_location;
-static int spot_light_ambient_location;
-static int spot_light_diffuse_location;
-static int spot_light_specular_location;
-static int spot_light_front_location;
-static int spot_light_angle_location;
-static int spot_light_smooth_angle_location;
-
-static int cube_light_pos_location;
-static int cube_light_ambient_location;
-static int cube_light_diffuse_location;
-static int cube_light_specular_location;
-static int cube_material_ambient_location;
-static int cube_material_diffuse_location;
-static int cube_material_specular_location;
-static int cube_material_shininess_location;
-static int camera_pos_location;
+static shader_t *cube_shader = NULL;
 
 static model_t *car;
 static mat4 model_car = GLM_MAT4_IDENTITY;
@@ -84,10 +60,7 @@ static spot_light_t spot_light = {
         2.0f * (float) M_PI / 180.0f,
 };
 
-static int light_model_location;
-static int light_project_location;
-static int light_color_location;
-static unsigned int light_shader;
+static shader_t *light_shader = NULL;
 
 static mat4 view_m = GLM_MAT4_IDENTITY;
 static mat4 project_m = GLM_MAT4_IDENTITY;
@@ -106,7 +79,7 @@ static void update_screen();
 
 static void event_loop();
 
-static void set_cube_material(const material_t *mat);
+static void set_cube_material(material_t *mat);
 
 static void shutdown_app();
 
@@ -176,13 +149,13 @@ event_loop() {
 
 static void
 draw_light() {
-    glUseProgram(light_shader);
+    shader_use(light_shader);
 
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
     glm_mat4_mul(project_m, view_m, project_view);
-    glUniform3vf(light_color_location, omni_light.specular);
-    glUniformMatrix4fv(light_project_location, 1, GL_FALSE, (GLfloat *) project_view);
-    glUniformMatrix4fv(light_model_location, 1, GL_FALSE, (GLfloat *) light_m);
+    shader_set_vec3(light_shader, "passed_color", omni_light.specular);
+    shader_set_mat4(light_shader, LOC_PROJECT_VIEW, project_view);
+    shader_set_mat4(light_shader, LOC_MODEL, light_m);
 
     draw_model(cube_model);
 }
@@ -191,14 +164,17 @@ static void
 draw_car() {
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
     glm_mat4_mul(project_m, view_m, project_view);
-    glUseProgram(cube_shader);
-    glUniformMatrix4fv(cube_project_location, 1, GL_FALSE, (GLfloat *) project_view);
-    glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model_car);
+
+    shader_t *shader = cube_shader;
+
+    shader_use(shader);
+    shader_set_mat4(shader, LOC_PROJECT_VIEW, project_view);
+    shader_set_mat4(shader, LOC_MODEL, model_car);
     draw_model(car);
 }
 
 static void
-draw_cube(mat4 model, const material_t *material) {
+draw_cube(mat4 model, material_t *material) {
     mat4 normals_model4;
     mat3 normals_model3;
 
@@ -208,65 +184,66 @@ draw_cube(mat4 model, const material_t *material) {
     glm_mat4_transpose(normals_model4);
     glm_mat4_pick3(normals_model4, normals_model3);
 
-    glUniformMatrix3fv(cube_normals_model_location, 1, GL_FALSE, (GLfloat *) normals_model3);
-    glUniformMatrix4fv(cube_model_location, 1, GL_FALSE, (GLfloat *) model);
+    shader_set_mat3(cube_shader, "normals_model", normals_model3);
+    shader_set_mat4(cube_shader, LOC_MODEL, model);
     draw_model(cube_model);
 }
 
-static void set_cube_material(const material_t *mat) {
-    glUniform3vf(cube_material_ambient_location, mat->ambient);
-    glUniform3vf(cube_material_diffuse_location, mat->diffuse);
-    glUniform3vf(cube_material_specular_location, mat->specular);
-    glUniform1f(cube_material_shininess_location, mat->shininess);
+static void set_cube_material(material_t *mat) {
+    shader_set_vec3(cube_shader, "material.ambient", mat->ambient);
+    shader_set_vec3(cube_shader, "material.diffuse", mat->diffuse);
+    shader_set_vec3(cube_shader, "material.specular", mat->specular);
+    shader_set_float(cube_shader, "material.shininess", mat->shininess);
 }
 
 static void
 draw_cubes() {
-    glUseProgram(cube_shader);
+    shader_use(cube_shader);
 
     // spot light
     if (camera_light_on) {
-        glUniform3vf(spot_light_pos_location, spot_light.light.position);
-        glUniform3vf(spot_light_ambient_location, spot_light.light.ambient);
-        glUniform3vf(spot_light_diffuse_location, spot_light.light.diffuse);
-        glUniform3vf(spot_light_specular_location, spot_light.light.specular);
-        glUniform3vf(spot_light_front_location, spot_light.front);
-        glUniform1f(spot_light_angle_location, (float) cos((double) spot_light.angle));
-        glUniform1f(spot_light_smooth_angle_location, (float) cos((double) spot_light.angle + spot_light.smooth_angle));
+        shader_set_vec3(cube_shader, "spot_light.light.position", spot_light.light.position);
+        shader_set_vec3(cube_shader, "spot_light.light.ambient", spot_light.light.ambient);
+        shader_set_vec3(cube_shader, "spot_light.light.diffuse", spot_light.light.diffuse);
+        shader_set_vec3(cube_shader, "spot_light.light.specular", spot_light.light.specular);
+        shader_set_vec3(cube_shader, "spot_light.front", spot_light.front);
+        shader_set_float(cube_shader, "spot_light.angle_cos", (float) cos((double) spot_light.angle));
+        shader_set_float(cube_shader, "spot_light.smooth_angle_cos",
+                         (float) cos((double) spot_light.angle + spot_light.smooth_angle));
     } else {
-        glUniform1f(spot_light_angle_location, 0.0f);
+        shader_set_float(cube_shader, "spot_light.angle_cos", 0.0f);
     }
 
     // direct light
-    glUniform3vf(direct_light_front_location, direct_light.front);
-    glUniform3vf(direct_light_ambient_location, direct_light.ambient);
-    glUniform3vf(direct_light_diffuse_location, direct_light.diffuse);
-    glUniform3vf(direct_light_specular_location, direct_light.specular);
+    shader_set_vec3(cube_shader, "direct_light.front", direct_light.front);
+    shader_set_vec3(cube_shader, "direct_light.ambient", direct_light.ambient);
+    shader_set_vec3(cube_shader, "direct_light.diffuse", direct_light.diffuse);
+    shader_set_vec3(cube_shader, "direct_light.specular", direct_light.specular);
 
     // light source
-    glUniform3vf(cube_light_pos_location, omni_light.position);
-    glUniform3vf(cube_light_ambient_location, omni_light.ambient);
-    glUniform3vf(cube_light_diffuse_location, omni_light.diffuse);
-    glUniform3vf(cube_light_specular_location, omni_light.specular);
+    shader_set_vec3(cube_shader, "light.position", omni_light.position);
+    shader_set_vec3(cube_shader, "light.ambient", omni_light.ambient);
+    shader_set_vec3(cube_shader, "light.diffuse", omni_light.diffuse);
+    shader_set_vec3(cube_shader, "light.specular", omni_light.specular);
 
     // project * view matrix
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
     glm_mat4_mul(project_m, view_m, project_view);
-    glUniformMatrix4fv(cube_project_location, 1, GL_FALSE, (GLfloat *) project_view);
+    shader_set_mat4(cube_shader, LOC_PROJECT_VIEW, project_view);
 
     // camera position
-    glUniform3vf(camera_pos_location, camera.pos);
+    shader_set_vec3(cube_shader, "camera_pos", camera.pos);
 
     // oscillation for 2 textures
     double base_value = M_PI * SDL_GetTicks() / 180 / FPS_SIZE_MS / 0.5;
     double oscillation = sin(base_value) / 2 + 0.5;
-    glUniform1f(cube_oscillation_location, (float) oscillation);
+    shader_set_float(cube_shader, "oscillation", (float) oscillation);
 
     // drawing cube
-    draw_cube(model1_m, &MATERIAL_IDEAL);
-    draw_cube(model2_m, &MATERIAL_IDEAL);
-    draw_cube(model3_m, &MATERIAL_IDEAL);
-    draw_cube(model4_m, &MATERIAL_IDEAL);
+    draw_cube(model1_m, (material_t *) &MATERIAL_IDEAL);
+    draw_cube(model2_m, (material_t *) &MATERIAL_IDEAL);
+    draw_cube(model3_m, (material_t *) &MATERIAL_IDEAL);
+    draw_cube(model4_m, (material_t *) &MATERIAL_IDEAL);
 }
 
 static void
@@ -372,62 +349,10 @@ update_screen() {
 }
 
 static void
-initialize_camera() {
-    camera_init(&camera);
-    camera_pos_location = glGetUniformLocation(cube_shader, "camera_pos");
-}
-
-static void
-initialize_light() {
-    light_shader = create_shader("shaders/light_vertex.glsl", "shaders/light_fragment.glsl");
-
-    cube_light_pos_location = glGetUniformLocation(cube_shader, "light.position");
-    cube_light_ambient_location = glGetUniformLocation(cube_shader, "light.ambient");
-    cube_light_diffuse_location = glGetUniformLocation(cube_shader, "light.diffuse");
-    cube_light_specular_location = glGetUniformLocation(cube_shader, "light.specular");
-
-    light_color_location = glGetUniformLocation(light_shader, "passed_color");
-    light_model_location = glGetUniformLocation(light_shader, "model");
-    light_project_location = glGetUniformLocation(light_shader, "project_view");
-
-}
-
-static void
-initialize_direct_light() {
-    direct_light_front_location = glGetUniformLocation(cube_shader, "direct_light.front");
-    direct_light_ambient_location = glGetUniformLocation(cube_shader, "direct_light.ambient");
-    direct_light_diffuse_location = glGetUniformLocation(cube_shader, "direct_light.diffuse");
-    direct_light_specular_location = glGetUniformLocation(cube_shader, "direct_light.specular");
-}
-
-static void
-initialize_spot_light() {
-    spot_light_pos_location = glGetUniformLocation(cube_shader, "spot_light.light.position");
-    spot_light_ambient_location = glGetUniformLocation(cube_shader, "spot_light.light.ambient");
-    spot_light_diffuse_location = glGetUniformLocation(cube_shader, "spot_light.light.diffuse");
-    spot_light_specular_location = glGetUniformLocation(cube_shader, "spot_light.light.specular");
-    spot_light_front_location = glGetUniformLocation(cube_shader, "spot_light.front");
-    spot_light_angle_location = glGetUniformLocation(cube_shader, "spot_light.angle_cos");
-    spot_light_smooth_angle_location = glGetUniformLocation(cube_shader, "spot_light.smooth_angle_cos");
-}
-
-static void
 initialize_cube() {
     vec3_set(cube_object.angles, 0, 0, 0);
     cube_model = cube_model_create();
-
-    cube_shader = create_shader("shaders/vertex.glsl", "shaders/fragment.glsl");
-
-    cube_material_ambient_location = glGetUniformLocation(cube_shader, "material.ambient");
-    cube_material_diffuse_location = glGetUniformLocation(cube_shader, "material.diffuse");
-    cube_material_specular_location = glGetUniformLocation(cube_shader, "material.specular");
-    cube_material_shininess_location = glGetUniformLocation(cube_shader, "material.shininess");
-
-    cube_oscillation_location = glGetUniformLocation(cube_shader, "oscillation");
-
-    cube_model_location = glGetUniformLocation(cube_shader, "model");
-    cube_normals_model_location = glGetUniformLocation(cube_shader, "normals_model");
-    cube_project_location = glGetUniformLocation(cube_shader, "project_view");
+    cube_shader = shader_load("shaders/vertex.glsl", "shaders/fragment.glsl");
 }
 
 static void
@@ -478,10 +403,11 @@ initialize_app() {
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
 
     initialize_cube();
-    initialize_camera();
-    initialize_light();
-    initialize_direct_light();
-    initialize_spot_light();
+
+    camera_init(&camera);
+
+    light_shader = shader_load("shaders/light_vertex.glsl", "shaders/light_fragment.glsl");
+
     initialize_car();
     GL_CHECK_ERROR;
 
@@ -496,6 +422,14 @@ shutdown_app() {
 
     if (car != NULL) {
         destroy_model(car);
+    }
+
+    if (light_shader != NULL) {
+        shader_destroy(light_shader);
+    }
+
+    if (cube_shader != NULL) {
+        shader_destroy(cube_shader);
     }
 
     if (context) {

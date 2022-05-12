@@ -24,7 +24,6 @@ struct SpotLight {
 
 struct DirectLight {
     vec3 front;
-
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;

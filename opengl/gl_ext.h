@@ -7,8 +7,6 @@
 
 #define GL_CHECK_ERROR glCheckError(__FILE__, __LINE__)
 
-void glUniform3vf(GLint location, vec3 vec);
-
 void glCheckError(const char *file, int line);
 
 #endif //SDL_TEST_GL_EXT_H
