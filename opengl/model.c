@@ -191,10 +191,12 @@ create_model(unsigned int vertices_number, vertex_t *vertices, unsigned int indi
     mesh->vertices_number = vertices_number;
     size_t vertices_size = vertices_number * sizeof(vertex_t);
     mesh->vertices = malloc(vertices_size);
+    SDL_ALLOC_CHECK(mesh->vertices)
     memcpy(mesh->vertices, vertices, vertices_size);
     mesh->indices_number = indices_number;
     size_t indices_size = indices_number * sizeof(unsigned int);
     mesh->indices = malloc(indices_size);
+    SDL_ALLOC_CHECK(mesh->indices);
     memcpy(mesh->indices, indices, indices_size);
     init_mesh_gl(mesh);
     return model;
@@ -218,6 +220,7 @@ load_model(char *path) {
     if (last_index != NULL) {
         unsigned int dir_length = last_index - path;
         model->directory = malloc(dir_length + 1);
+        SDL_ALLOC_CHECK(model->directory);
         strncpy(model->directory, path, dir_length);
         model->directory[dir_length] = '\0';
     }
