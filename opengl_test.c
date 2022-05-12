@@ -439,7 +439,12 @@ initialize_cube() {
 
 static void
 initialize_car() {
-    car = load_model("assets/models/cadnav.com_model/Models_G0901A079/T-rex.obj");
+//    car = load_model("assets/models/sirenhead/source/sirenhead.obj");
+//    car = load_model("assets/models/hot_wheels1/Base Mesh.fbx");
+    car = load_model("assets/models/backpack/backpack.obj");
+//    car = load_model("assets/models/spider_obj/Only_Spider_with_Animations_Export.obj");
+//    car = load_model("assets/models/handgun/Handgun_Packed.blend");
+//    car = load_model("assets/models/cadnav.com_model/Models_G0901A079/T-rex.obj");
 //    car = load_model("assets/models/lego_man/lego obj.obj");
 //    car = load_model("assets/models/Lotus_Hot_Wheels_3DS/Lotus_HW_3DS.3DS");
 //    car = load_model("assets/models/Subaru Impreza/subaru_impreza.fbx");
