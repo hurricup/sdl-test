@@ -400,7 +400,7 @@ static void
 initialize_cube() {
     vec3_set(cube_object.angles, 0, 0, 0);
     cube_model = cube_model_create();
-    cube_shader = shader_load("shaders/vertex.glsl", "shaders/fragment.glsl");
+    cube_shader = shader_load("shaders/cube_vertex.glsl", "shaders/cube_fragment.glsl");
 }
 
 static void
