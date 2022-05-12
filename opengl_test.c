@@ -160,35 +160,14 @@ draw_light() {
     draw_model(cube_model, light_shader);
 }
 
-static void
-draw_car() {
+static void set_up_light_and_camera(shader_t *shader) {
+    // project and view
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
     glm_mat4_mul(project_m, view_m, project_view);
 
-    shader_t *shader = backpack_shader;
-
-    shader_use(shader);
-
-    // project and view
     shader_set_mat4(shader, LOC_PROJECT_VIEW, project_view);
-    shader_set_mat4(shader, LOC_MODEL, backpack_model_m);
 
-    // normals
-    mat4 normals_model4;
-    mat3 normals_model3;
-
-    glm_mat4_inv(backpack_model_m, normals_model4);
-    glm_mat4_transpose(normals_model4);
-    glm_mat4_pick3(normals_model4, normals_model3);
-    shader_set_mat3(shader, "normals_model", normals_model3);
-
-    // Bag material
-    shader_set_vec3(shader, "material.light_prop.ambient", (vec3) {1, 1, 1});
-    shader_set_vec3(shader, "material.light_prop.diffuse", (vec3) {1, 1, 1});
-    shader_set_vec3(shader, "material.light_prop.specular", (vec3) {1, 1, 1});
-    shader_set_float(shader, "material.shininess", 1);
-
-    // omni light
+    // omni-light
     shader_set_vec3(shader, "omni_light.position", omni_light.position);
     shader_set_vec3(shader, "omni_light.light_prop.ambient", omni_light.ambient);
     shader_set_vec3(shader, "omni_light.light_prop.diffuse", omni_light.diffuse);
@@ -216,31 +195,51 @@ draw_car() {
 
     // camera position
     shader_set_vec3(shader, "camera_position", camera.pos);
+}
+
+static void set_up_model_and_normals(shader_t *shader, mat4 model) {
+    // model matrix
+    shader_set_mat4(shader, LOC_MODEL, model);
+
+    // normals
+    mat4 normals_model4;
+    mat3 normals_model3;
+
+    glm_mat4_inv(model, normals_model4);
+    glm_mat4_transpose(normals_model4);
+    glm_mat4_pick3(normals_model4, normals_model3);
+    shader_set_mat3(shader, "normals_model", normals_model3);
+}
+
+static void
+draw_backpack() {
+    shader_t *shader = backpack_shader;
+    shader_use(shader);
+
+    set_up_model_and_normals(shader, backpack_model_m);
+    set_up_light_and_camera(shader);
+
+    // Bag material
+    shader_set_vec3(shader, "material.light_prop.ambient", (vec3) {1, 1, 1});
+    shader_set_vec3(shader, "material.light_prop.diffuse", (vec3) {1, 1, 1});
+    shader_set_vec3(shader, "material.light_prop.specular", (vec3) {1, 1, 1});
+    shader_set_float(shader, "material.shininess", 1);
 
     draw_model(backpack_model, shader);
 }
 
 static void
 draw_cube(shader_t *shader, mat4 model, material_t *material) {
-    mat4 normals_model4;
-    mat3 normals_model3;
-
     set_cube_material(shader, material);
-
-    glm_mat4_inv(model, normals_model4);
-    glm_mat4_transpose(normals_model4);
-    glm_mat4_pick3(normals_model4, normals_model3);
-
-    shader_set_mat3(shader, "normals_model", normals_model3);
-    shader_set_mat4(shader, LOC_MODEL, model);
+    set_up_model_and_normals(shader, model);
     draw_model(cube_model, shader);
 }
 
 static void
 set_cube_material(shader_t *shader, material_t *mat) {
-    shader_set_vec3(shader, "material.ambient", mat->ambient);
-    shader_set_vec3(shader, "material.diffuse", mat->diffuse);
-    shader_set_vec3(shader, "material.specular", mat->specular);
+    shader_set_vec3(shader, "material.light_prop.ambient", mat->ambient);
+    shader_set_vec3(shader, "material.light_prop.diffuse", mat->diffuse);
+    shader_set_vec3(shader, "material.light_prop.specular", mat->specular);
     shader_set_float(shader, "material.shininess", mat->shininess);
 }
 
@@ -249,44 +248,7 @@ draw_cubes() {
     shader_t *shader = cube_shader;
     shader_use(shader);
 
-    // spot light
-    if (camera_light_on) {
-        shader_set_vec3(shader, "spot_light.light.position", spot_light.light.position);
-        shader_set_vec3(shader, "spot_light.light.ambient", spot_light.light.ambient);
-        shader_set_vec3(shader, "spot_light.light.diffuse", spot_light.light.diffuse);
-        shader_set_vec3(shader, "spot_light.light.specular", spot_light.light.specular);
-        shader_set_vec3(shader, "spot_light.front", spot_light.front);
-        shader_set_float(shader, "spot_light.angle_cos", (float) cos((double) spot_light.angle));
-        shader_set_float(shader, "spot_light.smooth_angle_cos",
-                         (float) cos((double) spot_light.angle + spot_light.smooth_angle));
-    } else {
-        shader_set_float(shader, "spot_light.angle_cos", 0.0f);
-    }
-
-    // direct light
-    shader_set_vec3(shader, "direct_light.front", direct_light.front);
-    shader_set_vec3(shader, "direct_light.ambient", direct_light.ambient);
-    shader_set_vec3(shader, "direct_light.diffuse", direct_light.diffuse);
-    shader_set_vec3(shader, "direct_light.specular", direct_light.specular);
-
-    // light source
-    shader_set_vec3(shader, "light.position", omni_light.position);
-    shader_set_vec3(shader, "light.ambient", omni_light.ambient);
-    shader_set_vec3(shader, "light.diffuse", omni_light.diffuse);
-    shader_set_vec3(shader, "light.specular", omni_light.specular);
-
-    // project * view matrix
-    mat4 project_view = GLM_MAT4_IDENTITY_INIT;
-    glm_mat4_mul(project_m, view_m, project_view);
-    shader_set_mat4(shader, LOC_PROJECT_VIEW, project_view);
-
-    // camera position
-    shader_set_vec3(shader, "camera_pos", camera.pos);
-
-    // oscillation for 2 textures
-    double base_value = M_PI * SDL_GetTicks() / 180 / FPS_SIZE_MS / 0.5;
-    double oscillation = sin(base_value) / 2 + 0.5;
-    shader_set_float(shader, "oscillation", (float) oscillation);
+    set_up_light_and_camera(shader);
 
     // drawing cube
     draw_cube(shader, cube_model1_m, (material_t *) &MATERIAL_IDEAL);
@@ -301,7 +263,7 @@ draw_scene() {
 
     draw_cubes();
     draw_light();
-    draw_car();
+    draw_backpack();
 
     glFlush();
 }
