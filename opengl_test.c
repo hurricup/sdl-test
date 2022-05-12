@@ -355,9 +355,9 @@ update_cubes() {
 static void
 update_car() {
     glm_mat4_identity(model_car);
-    glm_translate_x(model_car, 0);
+    glm_translate_x(model_car, 4);
     glm_translate_y(model_car, -4);
-    glm_translate_z(model_car, 0);
+    glm_translate_z(model_car, 4);
 //    glm_scale(model_car, (vec3) {0.1f, 0.1f, 0.1f});
     glm_rotate_x(model_car, 0, model_car);
     glm_rotate_y(model_car, 0, model_car);
