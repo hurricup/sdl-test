@@ -79,8 +79,9 @@ model_info(model_t *model, const char *path) {
     unsigned int mesh_counter = 0;
     mesh_list_item_t *current_item = model->meshes;
     while (current_item != NULL) {
-        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "\tid: %u; vertices: %u; indices: %u", mesh_counter,
-                    current_item->mesh.vertices_number, current_item->mesh.indices_number);
+        mesh_t *currentMesh = &current_item->mesh;
+        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "\tid: %u; vertices: %u; indices: %u; textures: %u", mesh_counter,
+                     currentMesh->vertices_number, currentMesh->indices_number, currentMesh->textures_number);
         current_item = current_item->next;
         mesh_counter++;
     }
@@ -152,11 +153,134 @@ import_mesh_indices(mesh_t *mesh, struct aiMesh *assimp_mesh) {
     mesh->indices_number = indices_number;
 }
 
+static unsigned int
+load_texture_file(const char *dirname, const char *filename) {
+    int width, height, channels_number;
+
+    unsigned int dir_len = strlen(dirname);
+    unsigned int filename_len = strlen(filename);
+    unsigned int path_len = dir_len + filename_len + 1;
+    char *path_name = alloca(path_len + 1);
+    SDL_ALLOC_CHECK(path_name);
+    strcpy(path_name, dirname);
+    path_name[dir_len] = '/';
+    strcpy(&path_name[dir_len + 1], filename);
+
+    unsigned int texture_id;
+    glGenTextures(1, &texture_id);
+
+    // creating from external file
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char *data = stbi_load(path_name, &width, &height, &channels_number, 0);
+    if (data == NULL) {
+        SDL_Die("Error loading texture_id %s", path_name);
+    } else {
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                    "Loaded %s: %u x %u, channels %u", path_name, width, height, channels_number);
+
+        GLenum format;
+        if (channels_number == 1) {
+            format = GL_RED;
+        } else if (channels_number == 3) {
+            format = GL_RGB;
+        } else if (channels_number == 4) {
+            format = GL_RGBA;
+        }
+
+        glBindTexture(GL_TEXTURE_2D, texture_id);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        // configure texture_id options
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
+    stbi_image_free(data);
+    return texture_id;
+}
+
+void
+load_texture(model_t *model, mesh_t *mesh, enum aiTextureType type, const char *filename) {
+    texture_list_item_t *texture_list_item = model->textures;
+    while (texture_list_item != NULL) {
+        if (strcmp(filename, texture_list_item->texture.filename) == 0) {
+            mesh->textures[mesh->textures_number++] = &texture_list_item->texture;
+            return;
+        }
+        if (texture_list_item->next == NULL) {
+            break;
+        }
+        texture_list_item = texture_list_item->next;
+    }
+
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Importing texture: %s; type: %u", filename, type);
+
+    texture_list_item_t *new_list_item = calloc(1, sizeof(texture_list_item_t));
+    SDL_ALLOC_CHECK(new_list_item);
+    if (texture_list_item == NULL) {
+        model->textures = new_list_item;
+    } else {
+        texture_list_item->next = new_list_item;
+    }
+
+    texture_t *texture = &new_list_item->texture;
+    texture->id = load_texture_file(model->directory, filename);
+    texture->type = type;
+    texture->filename = malloc(strlen(filename) + 1);
+    SDL_ALLOC_CHECK(texture->filename)
+    strcpy(texture->filename, filename);
+    mesh->textures[mesh->textures_number++] = texture;
+}
+
 static void
-import_mesh(mesh_t *mesh, struct aiMesh *assimp_mesh, const struct aiScene *scene) {
+import_material_textures(mesh_t *mesh, struct aiMaterial *material, enum aiTextureType type, model_t *model) {
+    unsigned int textures_count = aiGetMaterialTextureCount(material, type);
+    for (int i = 0; i < textures_count; i++) {
+        struct aiString path;
+        aiGetMaterialTexture(material, type, i, &path, NULL, NULL, NULL, NULL, NULL, NULL);
+        load_texture(model, mesh, type, path.data);
+    }
+}
+
+static void
+import_mesh_textures(mesh_t *mesh, struct aiMesh *assimp_mesh, const struct aiScene *scene, model_t *model) {
+    if (assimp_mesh->mMaterialIndex < 0) {
+        return;
+    }
+    struct aiMaterial *material = scene->mMaterials[assimp_mesh->mMaterialIndex];
+
+    unsigned int textures_number = 0;
+    for (int texture_type = 0; texture_type < aiTextureType_UNKNOWN; texture_type++) {
+        unsigned int textureCount = aiGetMaterialTextureCount(material, texture_type);
+        if (textureCount > 0) {
+            if (texture_type >= aiTextureType_DIFFUSE && texture_type <= aiTextureType_NORMALS) {
+                textures_number += textureCount;
+            } else {
+                SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Found %u textures of unhandled type %u", textureCount,
+                            texture_type);
+            }
+        }
+    }
+
+    if (textures_number == 0) {
+        return;
+    }
+
+    mesh->textures = calloc(textures_number, sizeof(texture_t *));
+    SDL_ALLOC_CHECK(mesh->textures)
+    for (int texture_type = aiTextureType_DIFFUSE; texture_type <= aiTextureType_NORMALS; texture_type++) {
+        import_material_textures(mesh, material, texture_type, model);
+    }
+}
+
+static void
+import_mesh(mesh_t *mesh, struct aiMesh *assimp_mesh, const struct aiScene *scene, model_t *model) {
     import_mesh_vertices(mesh, assimp_mesh);
     import_mesh_indices(mesh, assimp_mesh);
-
+    import_mesh_textures(mesh, assimp_mesh, scene, model);
     init_mesh_gl(mesh);
 }
 
@@ -179,7 +303,7 @@ import_node(model_t *model, struct aiNode *node, const struct aiScene *scene) {
         for (unsigned int i = 0; i < node->mNumMeshes; i++) {
             struct aiMesh *assimp_mesh = scene->mMeshes[node->mMeshes[i]];
             mesh_list_item_t *mesh_list_item = alloc_mesh_list_item();
-            import_mesh(&mesh_list_item->mesh, assimp_mesh, scene);
+            import_mesh(&mesh_list_item->mesh, assimp_mesh, scene, model);
             if (last_mesh_item == NULL) {
                 model->meshes = mesh_list_item;
             } else {
@@ -209,6 +333,11 @@ create_model(unsigned int vertices_number, vertex_t *vertices, unsigned int indi
     mesh->indices = malloc(indices_size);
     SDL_ALLOC_CHECK(mesh->indices);
     memcpy(mesh->indices, indices, indices_size);
+    if (directory_name != NULL) {
+        model->directory = malloc(strlen(directory_name) + 1);
+        SDL_ALLOC_CHECK(model->directory);
+        strcpy(model->directory, directory_name);
+    }
     init_mesh_gl(mesh);
     return model;
 }
@@ -252,6 +381,15 @@ destroy_model(model_t *model) {
         current_item = next_item;
     }
     model->meshes = NULL;
+
+    texture_list_item_t *current_texture_item = model->textures;
+    while (current_texture_item != NULL) {
+        texture_list_item_t *next_item = current_texture_item->next;
+        destroy_texture(&current_texture_item->texture);
+        free(current_texture_item);
+        current_texture_item = next_item;
+    }
+    model->textures = NULL;
 
     if (model->directory != NULL) {
         free(model->directory);
