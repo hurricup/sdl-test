@@ -283,13 +283,13 @@ draw_scene() {
 
 static void
 update_light() {
-    vec3_set(omni_light.ambient, 0.01f, 0.01f, 0.05f);
-    vec3_set(omni_light.diffuse, 0.24f, 0.24f, 0.8f);
-    vec3_set(omni_light.specular, 0.3f, 0.3f, 1);
+    vec3_set(omni_light.ambient, 0.1f, 0.1f, 0.1f);
+    vec3_set(omni_light.diffuse, 1.0f, 1.0f, 1.0f);
+    vec3_set(omni_light.specular, 1.0f, 1.0f, 1.0f);
 
-    vec3_set(direct_light.ambient, 0.01f, 0.05f, 0.01f);
-    vec3_set(direct_light.diffuse, 0.3f, 1, 0.3f);
-    vec3_set(direct_light.specular, 0.3f, 1, 0.3f);
+    vec3_set(direct_light.ambient, 0.1f, 0.1f, 0.1f);
+    vec3_set(direct_light.diffuse, 1.0f, 1, 1.0f);
+    vec3_set(direct_light.specular, 1.0f, 1, 1.0f);
 
     glm_mat4_identity(light_m);
     glm_scale(light_m, light_scale);
