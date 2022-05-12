@@ -20,18 +20,24 @@ static int window_height = 1280 / 16 * 9;
 static const Uint32 FPS = 30;
 static const Uint32 FPS_SIZE_MS = 1000 / FPS;
 
-static shader_t *cube_shader = NULL;
-
-static model_t *car;
-static shader_t *car_shader = NULL;
-static mat4 model_car = GLM_MAT4_IDENTITY;
-
 static camera_t camera;
-static mat4 model1_m = GLM_MAT4_IDENTITY;
-static mat4 model2_m = GLM_MAT4_IDENTITY;
-static mat4 model3_m = GLM_MAT4_IDENTITY;
-static mat4 model4_m = GLM_MAT4_IDENTITY;
+static bool camera_light_on = true;
 
+static model_t *backpack_model;
+static shader_t *backpack_shader = NULL;
+static mat4 backpack_model_m = GLM_MAT4_IDENTITY;
+
+static struct cube_object {
+    vec3 angles;
+} cube_object;
+static model_t *cube_model;
+static shader_t *cube_shader = NULL;
+static mat4 cube_model1_m = GLM_MAT4_IDENTITY;
+static mat4 cube_model2_m = GLM_MAT4_IDENTITY;
+static mat4 cube_model3_m = GLM_MAT4_IDENTITY;
+static mat4 cube_model4_m = GLM_MAT4_IDENTITY;
+
+static shader_t *light_shader = NULL;
 static mat4 light_m = GLM_MAT4_IDENTITY;
 static vec3 light_scale = {0.2f, 0.2f, 0.2f};
 static omni_light_t omni_light = {
@@ -48,7 +54,6 @@ static direct_light_t direct_light = {
         {0.95f, 0.95f, 0.95f}
 };
 
-static bool camera_light_on = true;
 static spot_light_t spot_light = {
         {
                 {0.0f, 0.0f, 0.0f},
@@ -61,15 +66,9 @@ static spot_light_t spot_light = {
         2.0f * (float) M_PI / 180.0f,
 };
 
-static shader_t *light_shader = NULL;
 
 static mat4 view_m = GLM_MAT4_IDENTITY;
 static mat4 project_m = GLM_MAT4_IDENTITY;
-static struct cube_object {
-    vec3 angles;
-} cube_object;
-
-static model_t *cube_model;
 
 static SDL_Window *window = NULL;
 static SDL_GLContext context = NULL;
@@ -166,19 +165,19 @@ draw_car() {
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
     glm_mat4_mul(project_m, view_m, project_view);
 
-    shader_t *shader = car_shader;
+    shader_t *shader = backpack_shader;
 
     shader_use(shader);
 
     // project and view
     shader_set_mat4(shader, LOC_PROJECT_VIEW, project_view);
-    shader_set_mat4(shader, LOC_MODEL, model_car);
+    shader_set_mat4(shader, LOC_MODEL, backpack_model_m);
 
     // normals
     mat4 normals_model4;
     mat3 normals_model3;
 
-    glm_mat4_inv(model_car, normals_model4);
+    glm_mat4_inv(backpack_model_m, normals_model4);
     glm_mat4_transpose(normals_model4);
     glm_mat4_pick3(normals_model4, normals_model3);
     shader_set_mat3(shader, "normals_model", normals_model3);
@@ -218,7 +217,7 @@ draw_car() {
     // camera position
     shader_set_vec3(shader, "camera_position", camera.pos);
 
-    draw_model(car, shader);
+    draw_model(backpack_model, shader);
 }
 
 static void
@@ -288,10 +287,10 @@ draw_cubes() {
     shader_set_float(cube_shader, "oscillation", (float) oscillation);
 
     // drawing cube
-    draw_cube(model1_m, (material_t *) &MATERIAL_IDEAL);
-    draw_cube(model2_m, (material_t *) &MATERIAL_IDEAL);
-    draw_cube(model3_m, (material_t *) &MATERIAL_IDEAL);
-    draw_cube(model4_m, (material_t *) &MATERIAL_IDEAL);
+    draw_cube(cube_model1_m, (material_t *) &MATERIAL_IDEAL);
+    draw_cube(cube_model2_m, (material_t *) &MATERIAL_IDEAL);
+    draw_cube(cube_model3_m, (material_t *) &MATERIAL_IDEAL);
+    draw_cube(cube_model4_m, (material_t *) &MATERIAL_IDEAL);
 }
 
 static void
@@ -343,25 +342,25 @@ update_cubes() {
     float *angles = cube_object.angles;
 
     size = 2.0f;
-    update_cube(size, (vec3) {-size, -size, -size}, (vec3) {angles[0], angles[1], 0}, model1_m);
+    update_cube(size, (vec3) {-size, -size, -size}, (vec3) {angles[0], angles[1], 0}, cube_model1_m);
     size = 4.0f;
-    update_cube(size, (vec3) {-size, size, -size}, (vec3) {0, angles[1], angles[2]}, model2_m);
+    update_cube(size, (vec3) {-size, size, -size}, (vec3) {0, angles[1], angles[2]}, cube_model2_m);
     size = 8.0f;
-    update_cube(size, (vec3) {size, size, -size}, (vec3) {angles[0], 0, angles[2]}, model3_m);
+    update_cube(size, (vec3) {size, size, -size}, (vec3) {angles[0], 0, angles[2]}, cube_model3_m);
     size = 16.0f;
-    update_cube(size, (vec3) {size, -size, -size}, (vec3) {angles[0], 0, 0}, model4_m);
+    update_cube(size, (vec3) {size, -size, -size}, (vec3) {angles[0], 0, 0}, cube_model4_m);
 }
 
 static void
 update_car() {
-    glm_mat4_identity(model_car);
-    glm_translate_x(model_car, 4);
-    glm_translate_y(model_car, -4);
-    glm_translate_z(model_car, 4);
-//    glm_scale(model_car, (vec3) {0.1f, 0.1f, 0.1f});
-    glm_rotate_x(model_car, 0, model_car);
-    glm_rotate_y(model_car, 0, model_car);
-    glm_rotate_z(model_car, 0, model_car);
+    glm_mat4_identity(backpack_model_m);
+    glm_translate_x(backpack_model_m, 4);
+    glm_translate_y(backpack_model_m, -4);
+    glm_translate_z(backpack_model_m, 4);
+//    glm_scale(backpack_model_m, (vec3) {0.1f, 0.1f, 0.1f});
+    glm_rotate_x(backpack_model_m, 0, backpack_model_m);
+    glm_rotate_y(backpack_model_m, 0, backpack_model_m);
+    glm_rotate_z(backpack_model_m, 0, backpack_model_m);
 }
 
 static void
@@ -405,18 +404,18 @@ initialize_cube() {
 
 static void
 initialize_car() {
-    car_shader = shader_load("shaders/bag_vertex.glsl", "shaders/bag_fragment.glsl");
-//    car = load_model("assets/models/sirenhead/source/sirenhead.obj");
-//    car = load_model("assets/models/hot_wheels1/Base Mesh.fbx");
-    car = load_model("assets/models/backpack/backpack.obj");
-//    car = load_model("assets/models/spider_obj/Only_Spider_with_Animations_Export.obj");
-//    car = load_model("assets/models/handgun/Handgun_Packed.blend");
-//    car = load_model("assets/models/cadnav.com_model/Models_G0901A079/T-rex.obj");
-//    car = load_model("assets/models/lego_man/lego obj.obj");
-//    car = load_model("assets/models/Lotus_Hot_Wheels_3DS/Lotus_HW_3DS.3DS");
-//    car = load_model("assets/models/Subaru Impreza/subaru_impreza.fbx");
-//    car = load_model("assets/models/male/FinalBaseMesh.obj");
-//    car = load_model("assets/models/teapot.obj");
+    backpack_shader = shader_load("shaders/bag_vertex.glsl", "shaders/bag_fragment.glsl");
+//    backpack_model = load_model("assets/models/sirenhead/source/sirenhead.obj");
+//    backpack_model = load_model("assets/models/hot_wheels1/Base Mesh.fbx");
+    backpack_model = load_model("assets/models/backpack/backpack.obj");
+//    backpack_model = load_model("assets/models/spider_obj/Only_Spider_with_Animations_Export.obj");
+//    backpack_model = load_model("assets/models/handgun/Handgun_Packed.blend");
+//    backpack_model = load_model("assets/models/cadnav.com_model/Models_G0901A079/T-rex.obj");
+//    backpack_model = load_model("assets/models/lego_man/lego obj.obj");
+//    backpack_model = load_model("assets/models/Lotus_Hot_Wheels_3DS/Lotus_HW_3DS.3DS");
+//    backpack_model = load_model("assets/models/Subaru Impreza/subaru_impreza.fbx");
+//    backpack_model = load_model("assets/models/male/FinalBaseMesh.obj");
+//    backpack_model = load_model("assets/models/teapot.obj");
 }
 
 
@@ -469,8 +468,8 @@ shutdown_app() {
         destroy_model(cube_model);
     }
 
-    if (car != NULL) {
-        destroy_model(car);
+    if (backpack_model != NULL) {
+        destroy_model(backpack_model);
     }
 
     if (light_shader != NULL) {
@@ -481,8 +480,8 @@ shutdown_app() {
         shader_destroy(cube_shader);
     }
 
-    if (car_shader != NULL) {
-        shader_destroy(car_shader);
+    if (backpack_shader != NULL) {
+        shader_destroy(backpack_shader);
     }
 
     if (context) {
