@@ -12,7 +12,8 @@ typedef struct vertex {
 
 typedef struct texture {
     unsigned int id;
-    char *shader_name;
+    char *filename;
+    enum aiTextureType type;
 } texture_t;
 
 typedef struct mesh {
