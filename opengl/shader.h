@@ -26,4 +26,6 @@ void shader_set_vec3(shader_t *shader, const char *name, vec3 value);
 
 void shader_set_float(shader_t *shader, const char *name, float value);
 
+void shader_set_int(shader_t *shader, const char *name, int value);
+
 #endif //SDL_TEST_SHADER_H

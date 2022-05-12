@@ -8,6 +8,7 @@
 #include "assimp/postprocess.h"
 #include "sdl_ext.h"
 #include "stb_image.h"
+#include "shader.h"
 
 typedef struct vertex {
     vec3 position;
@@ -54,7 +55,7 @@ model_t *
 create_model(unsigned int vertices_number, vertex_t *vertices, unsigned int indices_number, unsigned int *indices,
              const char *directory_name);
 
-void draw_model(model_t *model);
+void draw_model(model_t *model, shader_t *shader);
 
 model_t *load_model(char *path);
 

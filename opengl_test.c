@@ -157,7 +157,7 @@ draw_light() {
     shader_set_mat4(light_shader, LOC_PROJECT_VIEW, project_view);
     shader_set_mat4(light_shader, LOC_MODEL, light_m);
 
-    draw_model(cube_model);
+    draw_model(cube_model, light_shader);
 }
 
 static void
@@ -170,7 +170,7 @@ draw_car() {
     shader_use(shader);
     shader_set_mat4(shader, LOC_PROJECT_VIEW, project_view);
     shader_set_mat4(shader, LOC_MODEL, model_car);
-    draw_model(car);
+    draw_model(car, cube_shader);
 }
 
 static void
@@ -186,7 +186,7 @@ draw_cube(mat4 model, material_t *material) {
 
     shader_set_mat3(cube_shader, "normals_model", normals_model3);
     shader_set_mat4(cube_shader, LOC_MODEL, model);
-    draw_model(cube_model);
+    draw_model(cube_model, cube_shader);
 }
 
 static void set_cube_material(material_t *mat) {

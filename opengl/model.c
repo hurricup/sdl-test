@@ -1,5 +1,23 @@
 #define STB_IMAGE_IMPLEMENTATION
+
 #include "model.h"
+
+#define MIN_TEXTURE_TYPE aiTextureType_DIFFUSE
+#define MAX_TEXTURE_TYPE aiTextureType_NORMALS
+#define MAX_TEXTURES_PER_TYPE 10
+#define TEXTURE_SLOT_NAME_SIZE 20
+
+static bool texture_uniform_names_initialized = false;
+static char texture_uniform_names_templates[MAX_TEXTURE_TYPE + 1][TEXTURE_SLOT_NAME_SIZE] = {
+        "texture_none%u",
+        "texture_diffuse%u",
+        "texture_specular%u",
+        "texture_ambient%u",
+        "texture_emissive%u",
+        "texture_height%u",
+        "texture_normals%u"
+};
+static char texture_uniform_names[MAX_TEXTURE_TYPE + 1][MAX_TEXTURES_PER_TYPE][TEXTURE_SLOT_NAME_SIZE];
 
 static void
 init_mesh_gl(mesh_t *mesh) {
@@ -29,12 +47,45 @@ init_mesh_gl(mesh_t *mesh) {
     glBindVertexArray(0);
 }
 
-void draw_mesh(mesh_t *mesh) {
-    for (int i = 0; i < mesh->textures_number; i++) {
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
+inline static void
+init_texture_uniform_names() {
+    if (texture_uniform_names_initialized) {
+        return;
     }
-    glActiveTexture(GL_TEXTURE0);
+    for (int type = MIN_TEXTURE_TYPE; type <= MAX_TEXTURE_TYPE; type++) {
+        for (int i = 0; i < MAX_TEXTURES_PER_TYPE; i++) {
+            sprintf(texture_uniform_names[type][i], texture_uniform_names_templates[type], i);
+        }
+    }
+    texture_uniform_names_initialized = true;
+}
+
+static char *
+get_texture_uniform_name(enum aiTextureType type, unsigned int index) {
+    init_texture_uniform_names();
+    if (type > MAX_TEXTURE_TYPE) {
+        SDL_Die("Texture type: %u is not supported, max supported type is %u", type, MAX_TEXTURE_TYPE);
+    }
+    if (index >= MAX_TEXTURES_PER_TYPE) {
+        SDL_Die("You can't have more than %u textures of a single type, requested %u", MAX_TEXTURES_PER_TYPE, index);
+    }
+    return texture_uniform_names[type][index];
+}
+
+static void
+draw_mesh(mesh_t *mesh, shader_t *shader) {
+    if (mesh->textures_number) {
+        unsigned int type_index[MAX_TEXTURE_TYPE + 1] = {0};
+
+        for (int i = 0; i < mesh->textures_number; i++) {
+            glActiveTexture(GL_TEXTURE0 + i);
+            texture_t *texture = mesh->textures[i];
+            char *texture_uniform_name = get_texture_uniform_name(texture->type, type_index[texture->type]++);
+            shader_set_int(shader, texture_uniform_name, i);
+            glBindTexture(GL_TEXTURE_2D, texture->id);
+        }
+        glActiveTexture(GL_TEXTURE0);
+    }
 
     glBindVertexArray(mesh->vao);
     glDrawElements(GL_TRIANGLES, mesh->indices_number, GL_UNSIGNED_INT, 0);
@@ -89,10 +140,11 @@ model_info(model_t *model, const char *path) {
 }
 
 void
-draw_model(model_t *model) {
+draw_model(model_t *model, shader_t *shader) {
+    shader_use(shader);
     mesh_list_item_t *current_item = model->meshes;
     while (current_item != NULL) {
-        draw_mesh(&current_item->mesh);
+        draw_mesh(&current_item->mesh, shader);
         current_item = current_item->next;
     }
 }
@@ -257,7 +309,7 @@ import_mesh_textures(mesh_t *mesh, struct aiMesh *assimp_mesh, const struct aiSc
     for (int texture_type = 0; texture_type < aiTextureType_UNKNOWN; texture_type++) {
         unsigned int textureCount = aiGetMaterialTextureCount(material, texture_type);
         if (textureCount > 0) {
-            if (texture_type >= aiTextureType_DIFFUSE && texture_type <= aiTextureType_NORMALS) {
+            if (texture_type >= MIN_TEXTURE_TYPE && texture_type <= MAX_TEXTURE_TYPE) {
                 textures_number += textureCount;
             } else {
                 SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "Found %u textures of unhandled type %u", textureCount,
@@ -272,7 +324,7 @@ import_mesh_textures(mesh_t *mesh, struct aiMesh *assimp_mesh, const struct aiSc
 
     mesh->textures = calloc(textures_number, sizeof(texture_t *));
     SDL_ALLOC_CHECK(mesh->textures)
-    for (int texture_type = aiTextureType_DIFFUSE; texture_type <= aiTextureType_NORMALS; texture_type++) {
+    for (int texture_type = MIN_TEXTURE_TYPE; texture_type <= MAX_TEXTURE_TYPE; texture_type++) {
         import_material_textures(mesh, material, texture_type, model);
     }
 }

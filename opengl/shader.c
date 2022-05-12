@@ -129,3 +129,9 @@ shader_set_float(shader_t *shader, const char *name, float value) {
     GL_CHECK_ERROR;
 }
 
+void
+shader_set_int(shader_t *shader, const char *name, int value) {
+    glUniform1i(uniform_name(shader, name), value);
+    GL_CHECK_ERROR;
+}
+
