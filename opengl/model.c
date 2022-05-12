@@ -42,8 +42,14 @@ void draw_mesh(mesh_t *mesh) {
     glBindVertexArray(0);
 }
 
-void
-destroy_mesh(mesh_t *mesh) {
+static void
+destroy_texture(texture_t *texture) {
+    free(texture->filename);
+    texture->filename = NULL;
+}
+
+static void
+destroy_mesh_content(mesh_t *mesh) {
     if (mesh->vertices) {
         free(mesh->vertices);
         mesh->vertices_number = 0;
@@ -54,11 +60,16 @@ destroy_mesh(mesh_t *mesh) {
         mesh->indices_number = 0;
         mesh->indices = NULL;
     }
-    if (mesh->textures) {
+    if (mesh->textures_number > 0) {
         free(mesh->textures);
         mesh->textures_number = 0;
         mesh->textures = NULL;
     }
+}
+
+static void
+destroy_mesh(mesh_t *mesh) {
+    destroy_mesh_content(mesh);
     free(mesh);
 }
 
@@ -236,7 +247,7 @@ destroy_model(model_t *model) {
     mesh_list_item_t *current_item = model->meshes;
     while (current_item != NULL) {
         mesh_list_item_t *next_item = current_item->next;
-        destroy_mesh(&current_item->mesh);
+        destroy_mesh_content(&current_item->mesh);
         free(current_item);
         current_item = next_item;
     }
