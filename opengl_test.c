@@ -5,7 +5,6 @@
 #include <time.h>
 #include "cglm/cglm.h"
 #include "opengl/camera.h"
-#include "opengl/texture.h"
 #include "opengl/shader.h"
 #include "models/cube.h"
 #include "opengl/material.h"
@@ -429,12 +428,6 @@ initialize_cube() {
     cube_model_location = glGetUniformLocation(cube_shader, "model");
     cube_normals_model_location = glGetUniformLocation(cube_shader, "normals_model");
     cube_project_location = glGetUniformLocation(cube_shader, "project_view");
-
-    // generating textures, should be moved to cube_model as well
-    load_texture(GL_TEXTURE0, "texture1.png");
-    load_texture(GL_TEXTURE1, "texture2.png");
-    load_texture(GL_TEXTURE2, "diffuse_map.png");
-    load_texture(GL_TEXTURE3, "specular_map.png");
 }
 
 static void

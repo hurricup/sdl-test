@@ -50,5 +50,15 @@ cube_model_create() {
             22, 23, 20
     };
 
-    return create_model(6 * 4, cube_vertices, 6 * 2 * 3, cube_indices);
+    model_t *cube_model = create_model(6 * 4, cube_vertices, 6 * 2 * 3, cube_indices, "assets/models/cube");
+
+    mesh_t *mesh = &cube_model->meshes->mesh;
+    mesh->textures = malloc(4 * sizeof(texture_t *));
+    SDL_ALLOC_CHECK(mesh->textures);
+    load_texture(cube_model, mesh, aiTextureType_DIFFUSE, "texture1.png");
+    load_texture(cube_model, mesh, aiTextureType_DIFFUSE, "texture2.png");
+    load_texture(cube_model, mesh, aiTextureType_DIFFUSE, "diffuse_map.png");
+    load_texture(cube_model, mesh, aiTextureType_SPECULAR, "specular_map.png");
+
+    return cube_model;
 }

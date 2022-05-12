@@ -51,10 +51,15 @@ typedef struct model {
 } model_t;
 
 model_t *
-create_model(unsigned int vertices_number, vertex_t *vertices, unsigned int indices_number, unsigned int *indices);
+create_model(unsigned int vertices_number, vertex_t *vertices, unsigned int indices_number, unsigned int *indices,
+             const char *directory_name);
 
 void draw_model(model_t *model);
 
 model_t *load_model(char *path);
+
+void load_texture(model_t *model, mesh_t *mesh, enum aiTextureType type, const char *filename);
+
+void destroy_model(model_t *model);
 
 #endif //SDL_TEST_MODEL_H

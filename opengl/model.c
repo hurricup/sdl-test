@@ -1,3 +1,4 @@
+#define STB_IMAGE_IMPLEMENTATION
 #include "model.h"
 
 static void
@@ -319,7 +320,8 @@ import_node(model_t *model, struct aiNode *node, const struct aiScene *scene) {
 }
 
 model_t *
-create_model(unsigned int vertices_number, vertex_t *vertices, unsigned int indices_number, unsigned int *indices) {
+create_model(unsigned int vertices_number, vertex_t *vertices, unsigned int indices_number, unsigned int *indices,
+             const char *directory_name) {
     model_t *model = alloc_model();
     model->meshes = alloc_mesh_list_item();
     mesh_t *mesh = &model->meshes->mesh;
@@ -345,7 +347,7 @@ create_model(unsigned int vertices_number, vertex_t *vertices, unsigned int indi
 model_t *
 load_model(char *path) {
     const struct aiScene *assimp_scene = aiImportFile(path, aiProcess_Triangulate | aiProcess_FlipUVs |
-                                                            aiProcess_GenSmoothNormals);
+            aiProcess_GenSmoothNormals);
     if (assimp_scene == NULL) {
         SDL_Die("Error loading assimp_scene from %s, %s", path, aiGetErrorString());
     } else if (assimp_scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
