@@ -27,6 +27,9 @@ static model_t *backpack_model;
 static shader_t *backpack_shader = NULL;
 static mat4 backpack_model_m = GLM_MAT4_IDENTITY;
 
+static model_t *sirenhead_model;
+static mat4 sirenhead_model_m = GLM_MAT4_IDENTITY;
+
 static struct cube_object {
     vec3 angles;
 } cube_object;
@@ -229,6 +232,23 @@ draw_backpack() {
 }
 
 static void
+draw_sirenhead() {
+    shader_t *shader = backpack_shader;
+    shader_use(shader);
+
+    set_up_model_and_normals(shader, sirenhead_model_m);
+    set_up_light_and_camera(shader);
+
+    // Bag material
+    shader_set_vec3(shader, "material.light_prop.ambient", (vec3) {1, 1, 1});
+    shader_set_vec3(shader, "material.light_prop.diffuse", (vec3) {1, 1, 1});
+    shader_set_vec3(shader, "material.light_prop.specular", (vec3) {0, 0, 0});
+    shader_set_float(shader, "material.shininess", 1.0f);
+
+    draw_model(sirenhead_model, shader);
+}
+
+static void
 draw_cube(shader_t *shader, mat4 model, material_t *material) {
     set_cube_material(shader, material);
     set_up_model_and_normals(shader, model);
@@ -264,6 +284,7 @@ draw_scene() {
     draw_cubes();
     draw_light();
     draw_backpack();
+    draw_sirenhead();
 
     glFlush();
 }
@@ -317,14 +338,28 @@ update_cubes() {
 
 static void
 update_backpack() {
-    glm_mat4_identity(backpack_model_m);
-    glm_translate_x(backpack_model_m, 4);
-    glm_translate_y(backpack_model_m, -4);
-    glm_translate_z(backpack_model_m, 4);
-//    glm_scale(backpack_model_m, (vec3) {0.1f, 0.1f, 0.1f});
-    glm_rotate_x(backpack_model_m, 0, backpack_model_m);
-    glm_rotate_y(backpack_model_m, 0, backpack_model_m);
-    glm_rotate_z(backpack_model_m, 0, backpack_model_m);
+    vec4 *model = backpack_model_m;
+    glm_mat4_identity(model);
+    glm_translate_x(model, 4);
+    glm_translate_y(model, -4);
+    glm_translate_z(model, 4);
+//    glm_scale(model, (vec3) {0.1f, 0.1f, 0.1f});
+    glm_rotate_x(model, 0, model);
+    glm_rotate_y(model, 0, model);
+    glm_rotate_z(model, 0, model);
+}
+
+static void
+update_sirenhead() {
+    vec4 *model = sirenhead_model_m;
+    glm_mat4_identity(model);
+    glm_translate_x(model, -4);
+    glm_translate_y(model, -4);
+    glm_translate_z(model, 4);
+    glm_scale(model, (vec3) {3.0f, 3.0f, 3.0f});
+    glm_rotate_x(model, 0, model);
+    glm_rotate_y(model, 0, model);
+    glm_rotate_z(model, 0, model);
 }
 
 static void
@@ -343,6 +378,7 @@ update_scene() {
     update_light();
     update_camera_light();
     update_backpack();
+    update_sirenhead();
 
     // View
     camera_view(&camera, view_m);
@@ -369,7 +405,7 @@ initialize_cube() {
 static void
 initialize_models() {
     backpack_shader = shader_load("shaders/bag_vertex.glsl", "shaders/bag_fragment.glsl");
-//    backpack_model = load_model("assets/models/sirenhead/source/sirenhead.obj");
+    sirenhead_model = load_model("assets/models/sirenhead/source/sirenhead.obj");
 //    backpack_model = load_model("assets/models/hot_wheels1/Base Mesh.fbx");
     backpack_model = load_model("assets/models/backpack/backpack.obj");
 //    backpack_model = load_model("assets/models/spider_obj/Only_Spider_with_Animations_Export.obj");
