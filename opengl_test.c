@@ -79,7 +79,7 @@ static void update_screen();
 
 static void event_loop();
 
-static void set_cube_material(material_t *mat);
+static void set_cube_material(shader_t *shader, material_t *mat);
 
 static void shutdown_app();
 
@@ -225,7 +225,7 @@ draw_cube(shader_t *shader, mat4 model, material_t *material) {
     mat4 normals_model4;
     mat3 normals_model3;
 
-    set_cube_material(material);
+    set_cube_material(shader, material);
 
     glm_mat4_inv(model, normals_model4);
     glm_mat4_transpose(normals_model4);
@@ -236,11 +236,12 @@ draw_cube(shader_t *shader, mat4 model, material_t *material) {
     draw_model(cube_model, shader);
 }
 
-static void set_cube_material(material_t *mat) {
-    shader_set_vec3(cube_shader, "material.ambient", mat->ambient);
-    shader_set_vec3(cube_shader, "material.diffuse", mat->diffuse);
-    shader_set_vec3(cube_shader, "material.specular", mat->specular);
-    shader_set_float(cube_shader, "material.shininess", mat->shininess);
+static void
+set_cube_material(shader_t *shader, material_t *mat) {
+    shader_set_vec3(shader, "material.ambient", mat->ambient);
+    shader_set_vec3(shader, "material.diffuse", mat->diffuse);
+    shader_set_vec3(shader, "material.specular", mat->specular);
+    shader_set_float(shader, "material.shininess", mat->shininess);
 }
 
 static void
