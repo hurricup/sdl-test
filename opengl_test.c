@@ -23,6 +23,7 @@ static const Uint32 FPS_SIZE_MS = 1000 / FPS;
 static shader_t *cube_shader = NULL;
 
 static model_t *car;
+static shader_t *car_shader = NULL;
 static mat4 model_car = GLM_MAT4_IDENTITY;
 
 static camera_t camera;
@@ -165,12 +166,59 @@ draw_car() {
     mat4 project_view = GLM_MAT4_IDENTITY_INIT;
     glm_mat4_mul(project_m, view_m, project_view);
 
-    shader_t *shader = cube_shader;
+    shader_t *shader = car_shader;
 
     shader_use(shader);
+
+    // project and view
     shader_set_mat4(shader, LOC_PROJECT_VIEW, project_view);
     shader_set_mat4(shader, LOC_MODEL, model_car);
-    draw_model(car, cube_shader);
+
+    // normals
+    mat4 normals_model4;
+    mat3 normals_model3;
+
+    glm_mat4_inv(model_car, normals_model4);
+    glm_mat4_transpose(normals_model4);
+    glm_mat4_pick3(normals_model4, normals_model3);
+    shader_set_mat3(shader, "normals_model", normals_model3);
+
+    // Bag material
+    shader_set_vec3(shader, "material.light_prop.ambient", (vec3) {1, 1, 1});
+    shader_set_vec3(shader, "material.light_prop.diffuse", (vec3) {1, 1, 1});
+    shader_set_vec3(shader, "material.light_prop.specular", (vec3) {1, 1, 1});
+    shader_set_float(shader, "material.shininess", 1);
+
+    // omni light
+    shader_set_vec3(shader, "omni_light.position", omni_light.position);
+    shader_set_vec3(shader, "omni_light.light_prop.ambient", omni_light.ambient);
+    shader_set_vec3(shader, "omni_light.light_prop.diffuse", omni_light.diffuse);
+    shader_set_vec3(shader, "omni_light.light_prop.specular", omni_light.specular);
+
+    // direct light
+    shader_set_vec3(shader, "direct_light.front", direct_light.front);
+    shader_set_vec3(shader, "direct_light.light_prop.ambient", direct_light.ambient);
+    shader_set_vec3(shader, "direct_light.light_prop.diffuse", direct_light.diffuse);
+    shader_set_vec3(shader, "direct_light.light_prop.specular", direct_light.specular);
+
+    // spot light
+    if (camera_light_on) {
+        shader_set_vec3(shader, "spot_light.light_prop.ambient", spot_light.light.ambient);
+        shader_set_vec3(shader, "spot_light.light_prop.diffuse", spot_light.light.diffuse);
+        shader_set_vec3(shader, "spot_light.light_prop.specular", spot_light.light.specular);
+        shader_set_vec3(shader, "spot_light.position", spot_light.light.position);
+        shader_set_vec3(shader, "spot_light.front", spot_light.front);
+        shader_set_float(shader, "spot_light.angle_cos", (float) cos((double) spot_light.angle));
+        shader_set_float(shader, "spot_light.smooth_angle_cos",
+                         (float) cos((double) spot_light.angle + spot_light.smooth_angle));
+    } else {
+        shader_set_float(shader, "spot_light.angle_cos", 0.0f);
+    }
+
+    // camera position
+    shader_set_vec3(shader, "camera_position", camera.pos);
+
+    draw_model(car, shader);
 }
 
 static void
@@ -357,6 +405,7 @@ initialize_cube() {
 
 static void
 initialize_car() {
+    car_shader = shader_load("shaders/bag_vertex.glsl", "shaders/bag_fragment.glsl");
 //    car = load_model("assets/models/sirenhead/source/sirenhead.obj");
 //    car = load_model("assets/models/hot_wheels1/Base Mesh.fbx");
     car = load_model("assets/models/backpack/backpack.obj");
@@ -430,6 +479,10 @@ shutdown_app() {
 
     if (cube_shader != NULL) {
         shader_destroy(cube_shader);
+    }
+
+    if (car_shader != NULL) {
+        shader_destroy(car_shader);
     }
 
     if (context) {

@@ -132,8 +132,8 @@ model_info(model_t *model, const char *path) {
     mesh_list_item_t *current_item = model->meshes;
     while (current_item != NULL) {
         mesh_t *currentMesh = &current_item->mesh;
-        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "\tid: %u; vertices: %u; indices: %u; textures: %u", mesh_counter,
-                     currentMesh->vertices_number, currentMesh->indices_number, currentMesh->textures_number);
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "\tid: %u; vertices: %u; indices: %u; textures: %u", mesh_counter,
+                    currentMesh->vertices_number, currentMesh->indices_number, currentMesh->textures_number);
         current_item = current_item->next;
         mesh_counter++;
     }
