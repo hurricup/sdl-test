@@ -316,7 +316,7 @@ update_cubes() {
 }
 
 static void
-update_car() {
+update_backpack() {
     glm_mat4_identity(backpack_model_m);
     glm_translate_x(backpack_model_m, 4);
     glm_translate_y(backpack_model_m, -4);
@@ -342,7 +342,7 @@ update_scene() {
     update_cubes();
     update_light();
     update_camera_light();
-    update_car();
+    update_backpack();
 
     // View
     camera_view(&camera, view_m);
@@ -367,7 +367,7 @@ initialize_cube() {
 }
 
 static void
-initialize_car() {
+initialize_models() {
     backpack_shader = shader_load("shaders/bag_vertex.glsl", "shaders/bag_fragment.glsl");
 //    backpack_model = load_model("assets/models/sirenhead/source/sirenhead.obj");
 //    backpack_model = load_model("assets/models/hot_wheels1/Base Mesh.fbx");
@@ -420,7 +420,7 @@ initialize_app() {
 
     light_shader = shader_load("shaders/light_vertex.glsl", "shaders/light_fragment.glsl");
 
-    initialize_car();
+    initialize_models();
     GL_CHECK_ERROR;
 
     return true;
