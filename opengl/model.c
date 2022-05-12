@@ -1,8 +1,4 @@
 #include "model.h"
-#include "assimp/cimport.h"
-#include "assimp/scene.h"
-#include "assimp/postprocess.h"
-#include "sdl_ext.h"
 
 static void
 init_mesh_gl(mesh_t *mesh) {

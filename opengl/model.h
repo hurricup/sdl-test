@@ -3,6 +3,11 @@
 
 #include "cglm_ext.h"
 #include "gl_ext.h"
+#include "assimp/cimport.h"
+#include "assimp/scene.h"
+#include "assimp/postprocess.h"
+#include "sdl_ext.h"
+#include "stb_image.h"
 
 typedef struct vertex {
     vec3 position;
