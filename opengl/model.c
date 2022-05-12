@@ -35,7 +35,7 @@ init_mesh_gl(mesh_t *mesh) {
 void draw_mesh(mesh_t *mesh) {
     for (int i = 0; i < mesh->textures_number; i++) {
         glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, mesh->textures[i].id);
+        glBindTexture(GL_TEXTURE_2D, mesh->textures[i]->id);
     }
     glActiveTexture(GL_TEXTURE0);
 

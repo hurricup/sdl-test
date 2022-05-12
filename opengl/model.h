@@ -22,7 +22,7 @@ typedef struct mesh {
     unsigned int indices_number;
     unsigned int *indices;
     unsigned int textures_number;
-    texture_t *textures;
+    texture_t **textures;
 
     unsigned int vao;
     unsigned int vbo;
@@ -34,8 +34,14 @@ typedef struct mesh_list_item {
     struct mesh_list_item *next;
 } mesh_list_item_t;
 
+typedef struct texture_list_item {
+    texture_t texture;
+    struct texture_list_item *next;
+} texture_list_item_t;
+
 typedef struct model {
     mesh_list_item_t *meshes;
+    texture_list_item_t *textures;
     char *directory;
 } model_t;
 
