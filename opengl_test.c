@@ -25,6 +25,7 @@ static scene_object_t *cubes[4];
 static scene_object_t *sirenhead;
 static scene_object_t *light;
 static scene_object_t *male_figure;
+static scene_object_t *spider_obj;
 
 static omni_light_t omni_light = {
         {0.0f,  -3.0f, 0.0f},
@@ -218,6 +219,20 @@ draw_male() {
     draw_scene_object(male_figure, project_view);
 }
 
+static void
+draw_spider() {
+    shader_t *shader = spider_obj->shader;
+    shader_use(shader);
+    set_up_light_and_camera(shader);
+
+    // Bag material
+    shader_set_vec3(shader, "material.light_prop.ambient", (vec3) {1, 1, 1});
+    shader_set_vec3(shader, "material.light_prop.diffuse", (vec3) {1, 1, 1});
+    shader_set_vec3(shader, "material.light_prop.specular", (vec3) {0, 0, 0});
+    shader_set_float(shader, "material.shininess", DEFAULT_SHININESS);
+
+    draw_scene_object(spider_obj, project_view);
+}
 
 static void
 draw_cube(scene_object_t *cube, material_t *material) {
@@ -255,6 +270,7 @@ draw_scene() {
     draw_backpack();
     draw_sirenhead();
     draw_male();
+    draw_spider();
 
     glFlush();
 }
@@ -365,6 +381,14 @@ initialize_scene() {
     move_scene_object_to(male_figure, 12, -4, 2);
     scale_scene_object(male_figure, 0.3f);
 
+    // spider
+    spider_obj = create_scene_object();
+    attach_shader_to_scene_object(spider_obj, bag_shader);
+    attach_model_to_scene_object(spider_obj,
+                                 load_model("assets/models/spider_obj/Only_Spider_with_Animations_Export.obj"));
+    move_scene_object_to(spider_obj, -12, -4, 2);
+    scale_scene_object(spider_obj, 0.06f);
+
 //    backpack_model = load_model("assets/models/hot_wheels1/Base Mesh.fbx");
 //    backpack_model = load_model("assets/models/spider_obj/Only_Spider_with_Animations_Export.obj");
 //    backpack_model = load_model("assets/models/handgun/Handgun_Packed.blend");
@@ -420,6 +444,7 @@ static void
 shutdown_app() {
     destroy_scene_object(light);
     destroy_scene_object(male_figure);
+    destroy_scene_object(spider_obj);
     destroy_scene_object(sirenhead);
     destroy_scene_object(backpack);
     destroy_scene_object(cubes[0]);
