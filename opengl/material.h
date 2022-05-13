@@ -1,5 +1,6 @@
 #ifndef SDL_TEST_MATERIAL_H
 #define SDL_TEST_MATERIAL_H
+#define DEFAULT_SHININESS 32
 
 #include "cglm/cglm.h"
 
@@ -15,7 +16,7 @@ const material_t MATERIAL_IDEAL = {
         1.0f, 1.0f, 1.0f,
         1.0f, 1.0f, 1.0f,
         1.0f, 1.0f, 1.0f,
-        32
+        DEFAULT_SHININESS
 };
 
 const material_t MATERIAL_BRONZE = {

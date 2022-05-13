@@ -226,7 +226,7 @@ draw_backpack() {
     shader_set_vec3(shader, "material.light_prop.ambient", (vec3) {1, 1, 1});
     shader_set_vec3(shader, "material.light_prop.diffuse", (vec3) {1, 1, 1});
     shader_set_vec3(shader, "material.light_prop.specular", (vec3) {1, 1, 1});
-    shader_set_float(shader, "material.shininess", 1);
+    shader_set_float(shader, "material.shininess", DEFAULT_SHININESS);
 
     draw_model(backpack_model, shader);
 }
@@ -243,7 +243,7 @@ draw_sirenhead() {
     shader_set_vec3(shader, "material.light_prop.ambient", (vec3) {1, 1, 1});
     shader_set_vec3(shader, "material.light_prop.diffuse", (vec3) {1, 1, 1});
     shader_set_vec3(shader, "material.light_prop.specular", (vec3) {0, 0, 0});
-    shader_set_float(shader, "material.shininess", 1.0f);
+    shader_set_float(shader, "material.shininess", DEFAULT_SHININESS);
 
     draw_model(sirenhead_model, shader);
 }
