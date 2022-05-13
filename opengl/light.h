@@ -6,17 +6,17 @@
 typedef struct direct_light {
     vec3 front;
 
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+    vec4 ambient;
+    vec4 diffuse;
+    vec4 specular;
 } direct_light_t;
 
 typedef struct omni_light {
     vec3 position;
 
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+    vec4 ambient;
+    vec4 diffuse;
+    vec4 specular;
 } omni_light_t;
 
 

@@ -74,6 +74,7 @@ get_texture_uniform_name(enum aiTextureType type, unsigned int index) {
 
 static void
 draw_mesh(mesh_t *mesh, shader_t *shader) {
+    // textures
     if (mesh->textures_number) {
         unsigned int type_index[MAX_TEXTURE_TYPE + 1] = {0};
 
@@ -87,6 +88,14 @@ draw_mesh(mesh_t *mesh, shader_t *shader) {
         glActiveTexture(GL_TEXTURE0);
     }
 
+    // material properties
+    shader_set_vec4(shader, "material.ambient", mesh->material.ambient);
+    shader_set_vec4(shader, "material.diffuse", mesh->material.diffuse);
+    shader_set_vec4(shader, "material.specular", mesh->material.specular);
+    shader_set_vec4(shader, "material.emissive", mesh->material.emissive);
+    shader_set_float(shader, "material.shininess", mesh->material.shininess);
+
+    // draw
     glBindVertexArray(mesh->vao);
     glDrawElements(GL_TRIANGLES, mesh->indices_number, GL_UNSIGNED_INT, 0);
     GL_CHECK_ERROR;
@@ -299,11 +308,54 @@ import_material_textures(mesh_t *mesh, struct aiMaterial *material, enum aiTextu
 }
 
 static void
+import_mesh_material(struct aiMaterial *assimp_material, mesh_t *mesh) {
+    material_t *material = &mesh->material;
+    struct aiColor4D color;
+    if (AI_SUCCESS == aiGetMaterialColor(assimp_material, AI_MATKEY_COLOR_AMBIENT, &color)) {
+        vec4_set(material->ambient, color.r, color.g, color.b, color.a);
+    } else {
+        glm_vec4_fill(material->ambient, 0.2f);
+    }
+
+    if (AI_SUCCESS == aiGetMaterialColor(assimp_material, AI_MATKEY_COLOR_DIFFUSE, &color)) {
+        vec4_set(material->diffuse, color.r, color.g, color.b, color.a);
+    } else {
+        glm_vec4_fill(material->diffuse, 0.8f);
+    }
+
+    if (AI_SUCCESS == aiGetMaterialColor(assimp_material, AI_MATKEY_COLOR_SPECULAR, &color)) {
+        vec4_set(material->specular, color.r, color.g, color.b, color.a);
+    } else {
+        glm_vec4_fill(material->specular, 0.0f);
+    }
+
+    if (AI_SUCCESS == aiGetMaterialColor(assimp_material, AI_MATKEY_COLOR_EMISSIVE, &color)) {
+        vec4_set(material->emissive, color.r, color.g, color.b, color.a);
+    } else {
+        glm_vec4_fill(material->emissive, 0.0f);
+    }
+
+    float shininess;
+    unsigned int max = 1;
+    if (AI_SUCCESS == aiGetMaterialFloatArray(assimp_material, AI_MATKEY_SHININESS, &shininess, &max)) {
+        material->shininess = shininess;
+        max = 1;
+        if (AI_SUCCESS == aiGetMaterialFloatArray(assimp_material, AI_MATKEY_SHININESS_STRENGTH, &shininess, &max)) {
+            material->shininess *= shininess;
+        }
+    } else {
+        material->shininess = DEFAULT_SHININESS;
+    }
+}
+
+static void
 import_mesh_textures(mesh_t *mesh, struct aiMesh *assimp_mesh, const struct aiScene *scene, model_t *model) {
     if (assimp_mesh->mMaterialIndex < 0) {
         return;
     }
     struct aiMaterial *material = scene->mMaterials[assimp_mesh->mMaterialIndex];
+
+    import_mesh_material(material, mesh);
 
     unsigned int textures_number = 0;
     for (int texture_type = 0; texture_type < aiTextureType_UNKNOWN; texture_type++) {

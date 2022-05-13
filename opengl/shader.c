@@ -124,6 +124,12 @@ shader_set_vec3(shader_t *shader, const char *name, vec3 value) {
 }
 
 void
+shader_set_vec4(shader_t *shader, const char *name, vec4 value) {
+    glUniform4f(uniform_name(shader, name), value[0], value[1], value[2], value[3]);
+    GL_CHECK_ERROR;
+}
+
+void
 shader_set_float(shader_t *shader, const char *name, float value) {
     glUniform1f(uniform_name(shader, name), value);
     GL_CHECK_ERROR;

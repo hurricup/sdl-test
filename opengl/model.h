@@ -2,6 +2,7 @@
 #define SDL_TEST_MODEL_H
 
 #include "scene_types.h"
+#include "material.h"
 #include "gl_ext.h"
 #include "assimp/cimport.h"
 #include "assimp/scene.h"

@@ -68,8 +68,6 @@ static void update_screen();
 
 static void event_loop();
 
-static void set_cube_material(scene_object_t *cube, material_t *mat);
-
 static void shutdown_app();
 
 int main() {
@@ -139,28 +137,28 @@ event_loop() {
 static void
 draw_light() {
     shader_use(light->shader);
-    shader_set_vec3(light->shader, "passed_color", omni_light.specular);
+    shader_set_vec4(light->shader, "vertex_color", omni_light.specular);
     draw_scene_object(light, project_view);
 }
 
 static void set_up_light_and_camera(shader_t *shader) {
     // omni-light
     shader_set_vec3(shader, "omni_light.position", omni_light.position);
-    shader_set_vec3(shader, "omni_light.light_prop.ambient", omni_light.ambient);
-    shader_set_vec3(shader, "omni_light.light_prop.diffuse", omni_light.diffuse);
-    shader_set_vec3(shader, "omni_light.light_prop.specular", omni_light.specular);
+    shader_set_vec4(shader, "omni_light.light_prop.ambient", omni_light.ambient);
+    shader_set_vec4(shader, "omni_light.light_prop.diffuse", omni_light.diffuse);
+    shader_set_vec4(shader, "omni_light.light_prop.specular", omni_light.specular);
 
     // direct light
     shader_set_vec3(shader, "direct_light.front", direct_light.front);
-    shader_set_vec3(shader, "direct_light.light_prop.ambient", direct_light.ambient);
-    shader_set_vec3(shader, "direct_light.light_prop.diffuse", direct_light.diffuse);
-    shader_set_vec3(shader, "direct_light.light_prop.specular", direct_light.specular);
+    shader_set_vec4(shader, "direct_light.light_prop.ambient", direct_light.ambient);
+    shader_set_vec4(shader, "direct_light.light_prop.diffuse", direct_light.diffuse);
+    shader_set_vec4(shader, "direct_light.light_prop.specular", direct_light.specular);
 
     // spot light
     if (camera_light_on) {
-        shader_set_vec3(shader, "spot_light.light_prop.ambient", spot_light.light.ambient);
-        shader_set_vec3(shader, "spot_light.light_prop.diffuse", spot_light.light.diffuse);
-        shader_set_vec3(shader, "spot_light.light_prop.specular", spot_light.light.specular);
+        shader_set_vec4(shader, "spot_light.light_prop.ambient", spot_light.light.ambient);
+        shader_set_vec4(shader, "spot_light.light_prop.diffuse", spot_light.light.diffuse);
+        shader_set_vec4(shader, "spot_light.light_prop.specular", spot_light.light.specular);
         shader_set_vec3(shader, "spot_light.position", spot_light.light.position);
         shader_set_vec3(shader, "spot_light.front", spot_light.front);
         shader_set_float(shader, "spot_light.angle_cos", (float) cos((double) spot_light.angle));
@@ -178,15 +176,7 @@ static void
 draw_backpack() {
     shader_t *shader = backpack->shader;
     shader_use(shader);
-
     set_up_light_and_camera(shader);
-
-    // Bag material
-    shader_set_vec3(shader, "material.light_prop.ambient", (vec3) {1, 1, 1});
-    shader_set_vec3(shader, "material.light_prop.diffuse", (vec3) {1, 1, 1});
-    shader_set_vec3(shader, "material.light_prop.specular", (vec3) {1, 1, 1});
-    shader_set_float(shader, "material.shininess", DEFAULT_SHININESS);
-
     draw_scene_object(backpack, project_view);
 }
 
@@ -195,13 +185,6 @@ draw_sirenhead() {
     shader_t *shader = sirenhead->shader;
     shader_use(shader);
     set_up_light_and_camera(shader);
-
-    // Bag material
-    shader_set_vec3(shader, "material.light_prop.ambient", (vec3) {1, 1, 1});
-    shader_set_vec3(shader, "material.light_prop.diffuse", (vec3) {1, 1, 1});
-    shader_set_vec3(shader, "material.light_prop.specular", (vec3) {0, 0, 0});
-    shader_set_float(shader, "material.shininess", DEFAULT_SHININESS);
-
     draw_scene_object(sirenhead, project_view);
 }
 
@@ -210,13 +193,6 @@ draw_male() {
     shader_t *shader = male_figure->shader;
     shader_use(shader);
     set_up_light_and_camera(shader);
-
-    // Bag material
-    shader_set_vec3(shader, "material.light_prop.ambient", (vec3) {1, 1, 1});
-    shader_set_vec3(shader, "material.light_prop.diffuse", (vec3) {1, 1, 1});
-    shader_set_vec3(shader, "material.light_prop.specular", (vec3) {0, 0, 0});
-    shader_set_float(shader, "material.shininess", DEFAULT_SHININESS);
-
     draw_scene_object(male_figure, project_view);
 }
 
@@ -225,13 +201,6 @@ draw_spider() {
     shader_t *shader = spider_obj->shader;
     shader_use(shader);
     set_up_light_and_camera(shader);
-
-    // Bag material
-    shader_set_vec3(shader, "material.light_prop.ambient", (vec3) {1, 1, 1});
-    shader_set_vec3(shader, "material.light_prop.diffuse", (vec3) {1, 1, 1});
-    shader_set_vec3(shader, "material.light_prop.specular", (vec3) {0, 0, 0});
-    shader_set_float(shader, "material.shininess", DEFAULT_SHININESS);
-
     draw_scene_object(spider_obj, project_view);
 }
 
@@ -240,28 +209,7 @@ draw_lego_man() {
     shader_t *shader = lego_man->shader;
     shader_use(shader);
     set_up_light_and_camera(shader);
-
-    // Bag material
-    shader_set_vec3(shader, "material.light_prop.ambient", (vec3) {1, 1, 1});
-    shader_set_vec3(shader, "material.light_prop.diffuse", (vec3) {1, 1, 1});
-    shader_set_vec3(shader, "material.light_prop.specular", (vec3) {0, 0, 0});
-    shader_set_float(shader, "material.shininess", DEFAULT_SHININESS);
-
     draw_scene_object(lego_man, project_view);
-}
-
-static void
-draw_cube(scene_object_t *cube, material_t *material) {
-    set_cube_material(cube, material);
-    draw_scene_object(cube, project_view);
-}
-
-static void
-set_cube_material(scene_object_t *cube, material_t *mat) {
-    shader_set_vec3(cube->shader, "material.light_prop.ambient", mat->ambient);
-    shader_set_vec3(cube->shader, "material.light_prop.diffuse", mat->diffuse);
-    shader_set_vec3(cube->shader, "material.light_prop.specular", mat->specular);
-    shader_set_float(cube->shader, "material.shininess", mat->shininess);
 }
 
 static void
@@ -271,10 +219,10 @@ draw_cubes() {
     set_up_light_and_camera(shader);
 
     // drawing cube
-    draw_cube(cubes[0], (material_t *) &MATERIAL_IDEAL);
-    draw_cube(cubes[1], (material_t *) &MATERIAL_IDEAL);
-    draw_cube(cubes[2], (material_t *) &MATERIAL_IDEAL);
-    draw_cube(cubes[3], (material_t *) &MATERIAL_IDEAL);
+    draw_scene_object(cubes[0], project_view);
+    draw_scene_object(cubes[1], project_view);
+    draw_scene_object(cubes[2], project_view);
+    draw_scene_object(cubes[3], project_view);
 }
 
 static void
@@ -339,19 +287,19 @@ update_screen() {
 static void
 initialize_scene() {
     // omni light
-    vec3_set(omni_light.ambient, 0.025f, 0.025f, 0.025f);
-    vec3_set(omni_light.diffuse, 0.5f, 0.5f, 0.5f);
-    vec3_set(omni_light.specular, 0.5f, 0.5f, 0.5f);
+    vec4_set(omni_light.ambient, 0.025f, 0.025f, 0.025f, 1.0f);
+    vec4_set(omni_light.diffuse, 0.5f, 0.5f, 0.5f, .0f);
+    vec4_set(omni_light.specular, 0.5f, 0.5f, 0.5f, 1.0f);
 
     // direct light
-    vec3_set(direct_light.ambient, 0.025f, 0.025f, 0.025f);
-    vec3_set(direct_light.diffuse, 0.5f, 0.5f, 0.5f);
-    vec3_set(direct_light.specular, 0.5f, 0.5f, 0.5f);
+    vec4_set(direct_light.ambient, 0.025f, 0.025f, 0.025f, 1.0f);
+    vec4_set(direct_light.diffuse, 0.5f, 0.5f, 0.5f, 1.0f);
+    vec4_set(direct_light.specular, 0.5f, 0.5f, 0.5f, 1.0f);
 
     // spot light
-    vec3_set(spot_light.light.ambient, 0.05f, 0.05f, 0.05f);
-    vec3_set(spot_light.light.diffuse, 1.0f, 1.0f, 1.0f);
-    vec3_set(spot_light.light.specular, 1.0f, 1.0f, 1.0f);
+    vec4_set(spot_light.light.ambient, 0.05f, 0.05f, 0.05f, 1.0f);
+    vec4_set(spot_light.light.diffuse, 1.0f, 1.0f, 1.0f, 1.0f);
+    vec4_set(spot_light.light.specular, 1.0f, 1.0f, 1.0f, 1.0f);
 
     model_t *cube_model = cube_model_create();
     shader_t *cube_shader = load_shader("shaders/cube_vertex.glsl", "shaders/cube_fragment.glsl");

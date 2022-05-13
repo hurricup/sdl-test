@@ -16,4 +16,12 @@ vec3_set(vec3 dst, float a, float b, float c) {
     dst[2] = c;
 }
 
+static inline void
+vec4_set(vec4 dst, float a, float b, float c, float d) {
+    dst[0] = a;
+    dst[1] = b;
+    dst[2] = c;
+    dst[3] = d;
+}
+
 #endif

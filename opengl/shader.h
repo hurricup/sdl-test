@@ -26,6 +26,8 @@ void shader_set_mat3(shader_t *shader, const char *name, mat3 value);
 
 void shader_set_vec3(shader_t *shader, const char *name, vec3 value);
 
+void shader_set_vec4(shader_t *shader, const char *name, vec4 value);
+
 void shader_set_float(shader_t *shader, const char *name, float value);
 
 void shader_set_int(shader_t *shader, const char *name, int value);

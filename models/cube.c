@@ -58,5 +58,12 @@ cube_model_create() {
     load_texture(cube_model, mesh, aiTextureType_DIFFUSE, "texture2.png");
     load_texture(cube_model, mesh, aiTextureType_SPECULAR, "specular_map.png");
 
+    material_t *material = &mesh->material;
+    glm_vec4_fill(material->ambient, 1.0f);
+    glm_vec4_fill(material->diffuse, 1.0f);
+    glm_vec4_fill(material->specular, 1.0f);
+    glm_vec4_fill(material->emissive, 0.0f);
+    material->shininess = DEFAULT_SHININESS;
+
     return cube_model;
 }

@@ -4,6 +4,14 @@
 #include "cglm_ext.h"
 #include "assimp/scene.h"
 
+typedef struct material {
+    vec4 ambient;
+    vec4 diffuse;
+    vec4 specular;
+    vec4 emissive;
+    float shininess;
+} material_t;
+
 typedef struct shader {
     unsigned int id;
     char *vertex_shader_name;
@@ -30,6 +38,7 @@ typedef struct mesh {
     unsigned int *indices;
     unsigned int textures_number;
     texture_t **textures;
+    material_t material;
 
     unsigned int vao;
     unsigned int vbo;
