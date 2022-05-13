@@ -24,7 +24,7 @@ load_shader_file(unsigned int shader_type, const char *file_name) {
 }
 
 shader_t *
-shader_load(const char *vertex_shader_name, const char *fragment_shader_name) {
+load_shader(const char *vertex_shader_name, const char *fragment_shader_name) {
     unsigned int program = glCreateProgram();
     unsigned vertex_shader = load_shader_file(GL_VERTEX_SHADER, vertex_shader_name);
     unsigned fragment_shader = load_shader_file(GL_FRAGMENT_SHADER, fragment_shader_name);
@@ -75,7 +75,7 @@ shader_load(const char *vertex_shader_name, const char *fragment_shader_name) {
 }
 
 static void
-shader_destroy(shader_t *shader) {
+destroy_shader(shader_t *shader) {
     if (shader->vertex_shader_name) {
         free(shader->vertex_shader_name);
         shader->vertex_shader_name = NULL;
@@ -136,13 +136,13 @@ shader_set_int(shader_t *shader, const char *name, int value) {
 }
 
 void
-shader_attach(shader_t **target, shader_t *shader) {
+attach_shader(shader_t **target, shader_t *shader) {
     *target = shader;
     shader->owners++;
 }
 
 void
-shader_detach(shader_t **shader_pointer) {
+detach_shader(shader_t **shader_pointer) {
     if (*shader_pointer == NULL) {
         return;
     }
@@ -152,7 +152,7 @@ shader_detach(shader_t **shader_pointer) {
     }
     shader->owners--;
     if (shader->owners == 0) {
-        shader_destroy(shader);
+        destroy_shader(shader);
     }
     *shader_pointer = NULL;
 }

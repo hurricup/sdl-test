@@ -426,7 +426,7 @@ load_model(char *path) {
 }
 
 static void
-model_destroy(model_t *model) {
+destroy_model(model_t *model) {
     if (model == NULL) {
         return;
     }
@@ -455,13 +455,13 @@ model_destroy(model_t *model) {
 }
 
 void
-model_attach(model_t **target, model_t *model) {
+attach_model(model_t **target, model_t *model) {
     *target = model;
     model->owners++;
 }
 
 void
-model_detach(model_t **model_pointer) {
+detach_model(model_t **model_pointer) {
     if (*model_pointer == NULL) {
         return;
     }
@@ -471,7 +471,7 @@ model_detach(model_t **model_pointer) {
     }
     model->owners--;
     if (model->owners == 0) {
-        model_destroy(model);
+        destroy_model(model);
     }
     *model_pointer = NULL;
 }
