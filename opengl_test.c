@@ -302,14 +302,14 @@ initialize_scene() {
     vec4_set(spot_light.light.specular, 1.0f, 1.0f, 1.0f, 1.0f);
 
     model_t *cube_model = cube_model_create();
-    shader_t *cube_shader = load_shader("shaders/cube_vertex.glsl", "shaders/cube_fragment.glsl");
+    shader_t *model_shader = load_shader("shaders/model_vertex.glsl", "shaders/model_fragment.glsl");
 
     // cubes
     float scale = 2.0f;
     for (int i = 0; i < 4; i++) {
         cubes[i] = create_scene_object();
         attach_model_to_scene_object(cubes[i], cube_model);
-        attach_shader_to_scene_object(cubes[i], cube_shader);
+        attach_shader_to_scene_object(cubes[i], model_shader);
         scale_scene_object(cubes[i], scale);
         scale *= 2;
     }
@@ -327,28 +327,27 @@ initialize_scene() {
 
     // backpack
     backpack = create_scene_object();
-    shader_t *bag_shader = load_shader("shaders/bag_vertex.glsl", "shaders/bag_fragment.glsl");
-    attach_shader_to_scene_object(backpack, bag_shader);
+    attach_shader_to_scene_object(backpack, model_shader);
     attach_model_to_scene_object(backpack, load_model("assets/models/backpack/backpack.obj"));
     move_scene_object_to(backpack, 4, -4, 4);
 
     // sirenhead
     sirenhead = create_scene_object();
-    attach_shader_to_scene_object(sirenhead, bag_shader);
+    attach_shader_to_scene_object(sirenhead, model_shader);
     attach_model_to_scene_object(sirenhead, load_model("assets/models/sirenhead/source/sirenhead.obj"));
     move_scene_object_to(sirenhead, -4, -4, 4);
     scale_scene_object(sirenhead, 3.0f);
 
     // male figure
     male_figure = create_scene_object();
-    attach_shader_to_scene_object(male_figure, bag_shader);
+    attach_shader_to_scene_object(male_figure, model_shader);
     attach_model_to_scene_object(male_figure, load_model("assets/models/male/FinalBaseMesh.obj"));
     move_scene_object_to(male_figure, 12, -4, 2);
     scale_scene_object(male_figure, 0.3f);
 
     // spider
     spider_obj = create_scene_object();
-    attach_shader_to_scene_object(spider_obj, bag_shader);
+    attach_shader_to_scene_object(spider_obj, model_shader);
     attach_model_to_scene_object(spider_obj,
                                  load_model("assets/models/spider_obj/Only_Spider_with_Animations_Export.obj"));
     move_scene_object_to(spider_obj, -12, -4, 2);
@@ -356,7 +355,7 @@ initialize_scene() {
 
     // lego man
     lego_man = create_scene_object();
-    attach_shader_to_scene_object(lego_man, bag_shader);
+    attach_shader_to_scene_object(lego_man, model_shader);
     attach_model_to_scene_object(lego_man,
                                  load_model("assets/models/lego_man/lego obj.obj"));
     move_scene_object_to(lego_man, 20, -4, 2);
