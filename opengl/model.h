@@ -49,6 +49,7 @@ typedef struct model {
     mesh_list_item_t *meshes;
     texture_list_item_t *textures;
     char *directory;
+    unsigned int owners;
 } model_t;
 
 model_t *
@@ -61,6 +62,8 @@ model_t *load_model(char *path);
 
 void load_texture(model_t *model, mesh_t *mesh, enum aiTextureType type, const char *filename);
 
-void destroy_model(model_t *model);
+void model_attach(model_t **target, model_t *model);
+
+void model_detach(model_t **model_pointer);
 
 #endif //SDL_TEST_MODEL_H

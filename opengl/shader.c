@@ -74,7 +74,7 @@ shader_load(const char *vertex_shader_name, const char *fragment_shader_name) {
     return shader;
 }
 
-void
+static void
 shader_destroy(shader_t *shader) {
     if (shader->vertex_shader_name) {
         free(shader->vertex_shader_name);
@@ -135,3 +135,24 @@ shader_set_int(shader_t *shader, const char *name, int value) {
     GL_CHECK_ERROR;
 }
 
+void
+shader_attach(shader_t **target, shader_t *shader) {
+    *target = shader;
+    shader->owners++;
+}
+
+void
+shader_detach(shader_t **shader_pointer) {
+    if (*shader_pointer == NULL) {
+        return;
+    }
+    shader_t *shader = *shader_pointer;
+    if (shader->owners == 0) {
+        SDL_Die("All owners already removed from this shader");
+    }
+    shader->owners--;
+    if (shader->owners == 0) {
+        shader_destroy(shader);
+    }
+    *shader_pointer = NULL;
+}

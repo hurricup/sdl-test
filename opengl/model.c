@@ -425,8 +425,11 @@ load_model(char *path) {
     return model;
 }
 
-void
-destroy_model(model_t *model) {
+static void
+model_destroy(model_t *model) {
+    if (model == NULL) {
+        return;
+    }
     mesh_list_item_t *current_item = model->meshes;
     while (current_item != NULL) {
         mesh_list_item_t *next_item = current_item->next;
@@ -449,4 +452,26 @@ destroy_model(model_t *model) {
         free(model->directory);
     }
     free(model);
+}
+
+void
+model_attach(model_t **target, model_t *model) {
+    *target = model;
+    model->owners++;
+}
+
+void
+model_detach(model_t **model_pointer) {
+    if (*model_pointer == NULL) {
+        return;
+    }
+    model_t *model = *model_pointer;
+    if (model->owners == 0) {
+        SDL_Die("All owners already removed from this model");
+    }
+    model->owners--;
+    if (model->owners == 0) {
+        model_destroy(model);
+    }
+    *model_pointer = NULL;
 }

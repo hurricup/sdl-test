@@ -5,16 +5,20 @@
 #include "gl_ext.h"
 #include "file_util.h"
 #include "cglm_ext.h"
+#include "scene_object.h"
 
 typedef struct shader {
     unsigned int id;
     char *vertex_shader_name;
     char *fragment_shader_name;
+    unsigned int owners;
 } shader_t;
 
 shader_t *shader_load(const char *vertex_shader_name, const char *fragment_shader_name);
 
-void shader_destroy(shader_t *shader);
+void shader_attach(shader_t **target, shader_t *shader);
+
+void shader_detach(shader_t **shader_pointer);
 
 void shader_use(shader_t *shader);
 
