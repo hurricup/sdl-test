@@ -26,6 +26,7 @@ static scene_object_t *sirenhead;
 static scene_object_t *light;
 static scene_object_t *male_figure;
 static scene_object_t *spider_obj;
+static scene_object_t *lego_man;
 
 static omni_light_t omni_light = {
         {0.0f,  -3.0f, 0.0f},
@@ -235,6 +236,21 @@ draw_spider() {
 }
 
 static void
+draw_lego_man() {
+    shader_t *shader = lego_man->shader;
+    shader_use(shader);
+    set_up_light_and_camera(shader);
+
+    // Bag material
+    shader_set_vec3(shader, "material.light_prop.ambient", (vec3) {1, 1, 1});
+    shader_set_vec3(shader, "material.light_prop.diffuse", (vec3) {1, 1, 1});
+    shader_set_vec3(shader, "material.light_prop.specular", (vec3) {0, 0, 0});
+    shader_set_float(shader, "material.shininess", DEFAULT_SHININESS);
+
+    draw_scene_object(lego_man, project_view);
+}
+
+static void
 draw_cube(scene_object_t *cube, material_t *material) {
     set_cube_material(cube, material);
     draw_scene_object(cube, project_view);
@@ -271,6 +287,7 @@ draw_scene() {
     draw_sirenhead();
     draw_male();
     draw_spider();
+    draw_lego_man();
 
     glFlush();
 }
@@ -389,6 +406,14 @@ initialize_scene() {
     move_scene_object_to(spider_obj, -12, -4, 2);
     scale_scene_object(spider_obj, 0.06f);
 
+    // lego man
+    lego_man = create_scene_object();
+    attach_shader_to_scene_object(lego_man, bag_shader);
+    attach_model_to_scene_object(lego_man,
+                                 load_model("assets/models/lego_man/lego obj.obj"));
+    move_scene_object_to(lego_man, 20, -4, 2);
+    scale_scene_object(lego_man, 0.1f);
+
 //    backpack_model = load_model("assets/models/hot_wheels1/Base Mesh.fbx");
 //    backpack_model = load_model("assets/models/spider_obj/Only_Spider_with_Animations_Export.obj");
 //    backpack_model = load_model("assets/models/handgun/Handgun_Packed.blend");
@@ -445,6 +470,7 @@ shutdown_app() {
     destroy_scene_object(light);
     destroy_scene_object(male_figure);
     destroy_scene_object(spider_obj);
+    destroy_scene_object(lego_man);
     destroy_scene_object(sirenhead);
     destroy_scene_object(backpack);
     destroy_scene_object(cubes[0]);
