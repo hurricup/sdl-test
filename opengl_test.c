@@ -281,8 +281,8 @@ static void
 draw_scene() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    draw_cubes();
     draw_light();
+    draw_cubes();
     draw_backpack();
     draw_sirenhead();
 
