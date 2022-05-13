@@ -24,6 +24,7 @@ static scene_object_t *backpack;
 static scene_object_t *cubes[4];
 static scene_object_t *sirenhead;
 static scene_object_t *light;
+static scene_object_t *male_figure;
 
 static omni_light_t omni_light = {
         {0.0f,  -3.0f, 0.0f},
@@ -203,6 +204,22 @@ draw_sirenhead() {
 }
 
 static void
+draw_male() {
+    shader_t *shader = male_figure->shader;
+    shader_use(shader);
+    set_up_light_and_camera(shader);
+
+    // Bag material
+    shader_set_vec3(shader, "material.light_prop.ambient", (vec3) {1, 1, 1});
+    shader_set_vec3(shader, "material.light_prop.diffuse", (vec3) {1, 1, 1});
+    shader_set_vec3(shader, "material.light_prop.specular", (vec3) {0, 0, 0});
+    shader_set_float(shader, "material.shininess", DEFAULT_SHININESS);
+
+    draw_scene_object(male_figure, project_view);
+}
+
+
+static void
 draw_cube(scene_object_t *cube, material_t *material) {
     set_cube_material(cube, material);
     draw_scene_object(cube, project_view);
@@ -237,6 +254,7 @@ draw_scene() {
     draw_cubes();
     draw_backpack();
     draw_sirenhead();
+    draw_male();
 
     glFlush();
 }
@@ -340,6 +358,12 @@ initialize_scene() {
     move_scene_object_to(sirenhead, -4, -4, 4);
     scale_scene_object(sirenhead, 3.0f);
 
+    // male figure
+    male_figure = create_scene_object();
+    attach_shader_to_scene_object(male_figure, bag_shader);
+    attach_model_to_scene_object(male_figure, load_model("assets/models/male/FinalBaseMesh.obj"));
+    move_scene_object_to(male_figure, 12, -4, 2);
+    scale_scene_object(male_figure, 0.3f);
 
 //    backpack_model = load_model("assets/models/hot_wheels1/Base Mesh.fbx");
 //    backpack_model = load_model("assets/models/spider_obj/Only_Spider_with_Animations_Export.obj");
@@ -395,6 +419,7 @@ initialize_app() {
 static void
 shutdown_app() {
     destroy_scene_object(light);
+    destroy_scene_object(male_figure);
     destroy_scene_object(sirenhead);
     destroy_scene_object(backpack);
     destroy_scene_object(cubes[0]);
