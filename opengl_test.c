@@ -360,20 +360,21 @@ initialize_scene() {
     // backpack
     backpack = create_scene_object();
     attach_shader_to_scene_object(backpack, model_shader);
-    attach_model_to_scene_object(backpack, load_model("assets/models/backpack/backpack.obj"));
+    attach_model_to_scene_object(backpack, load_model("assets/models/backpack/backpack.obj", 0));
     move_scene_object_to(backpack, 4, -2, 4);
 
     // sirenhead
     sirenhead = create_scene_object();
     attach_shader_to_scene_object(sirenhead, model_shader);
-    attach_model_to_scene_object(sirenhead, load_model("assets/models/sirenhead/source/sirenhead.obj"));
+    attach_model_to_scene_object(sirenhead,
+                                 load_model("assets/models/sirenhead/source/sirenhead.obj", aiProcess_FlipUVs));
     move_scene_object_to(sirenhead, -4, -4, 4);
     scale_scene_object(sirenhead, 3.0f);
 
     // male figure
     male_figure = create_scene_object();
     attach_shader_to_scene_object(male_figure, model_shader);
-    attach_model_to_scene_object(male_figure, load_model("assets/models/male/FinalBaseMesh.obj"));
+    attach_model_to_scene_object(male_figure, load_model("assets/models/male/FinalBaseMesh.obj", 0));
     move_scene_object_to(male_figure, 12, -4, 2);
     scale_scene_object(male_figure, 0.3f);
 
@@ -381,7 +382,7 @@ initialize_scene() {
     spider_obj = create_scene_object();
     attach_shader_to_scene_object(spider_obj, model_shader);
     attach_model_to_scene_object(spider_obj,
-                                 load_model("assets/models/spider_obj/Only_Spider_with_Animations_Export.obj"));
+                                 load_model("assets/models/spider_obj/Only_Spider_with_Animations_Export.obj", 0));
     move_scene_object_to(spider_obj, -12, -4, 2);
     scale_scene_object(spider_obj, 0.06f);
 
@@ -389,14 +390,16 @@ initialize_scene() {
     lego_man = create_scene_object();
     attach_shader_to_scene_object(lego_man, model_shader);
     attach_model_to_scene_object(lego_man,
-                                 load_model("assets/models/lego_man/lego obj.obj"));
+                                 load_model("assets/models/lego_man/lego obj.obj", 0));
     move_scene_object_to(lego_man, 18, -4, 2);
     scale_scene_object(lego_man, 0.1f);
 
     // t-rex1
     t_rex1 = create_scene_object();
     attach_shader_to_scene_object(t_rex1, model_shader);
-    attach_model_to_scene_object(t_rex1, load_model("assets/models/cadnav.com_model/Models_G0901A079/T-rex.obj"));
+    attach_model_to_scene_object(t_rex1,
+                                 load_model("assets/models/cadnav.com_model/Models_G0901A079/t-rex-adjusted.obj",
+                                            aiProcess_FlipUVs));
     move_scene_object_to(t_rex1, 28, -4, 2);
     scale_scene_object(t_rex1, 0.8f);
     rotate_scene_object_by_vec(t_rex1, (vec3) {M_PI_2, M_PI, M_PI_4});

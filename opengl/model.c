@@ -249,7 +249,6 @@ load_texture_file(const char *dirname, const char *filename) {
     glGenTextures(1, &texture_id);
 
     // creating from external file
-    stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load(path_name, &width, &height, &channels_number, 0);
     if (data == NULL) {
         SDL_Die("Error loading texture_id %s", path_name);
@@ -466,9 +465,9 @@ create_model(unsigned int vertices_number, vertex_t *vertices, unsigned int indi
 }
 
 model_t *
-load_model(char *path) {
-    const struct aiScene *assimp_scene = aiImportFile(path, aiProcess_Triangulate | aiProcess_FlipUVs |
-            aiProcess_GenSmoothNormals);
+load_model(char *path, unsigned int additionalOptions) {
+    const struct aiScene *assimp_scene = aiImportFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals |
+                                                            additionalOptions);
     if (assimp_scene == NULL) {
         SDL_Die("Error loading assimp_scene from %s, %s", path, aiGetErrorString());
     } else if (assimp_scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) {
