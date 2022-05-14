@@ -39,7 +39,7 @@ static omni_light_t omni_light = {
 static bool omni_light_on = true;
 
 static direct_light_t direct_light = {
-        {1.0f,  0.0f,  1.0f},
+        {1.0f,  -3.0f, 1.0f},
         {0.95f, 0.95f, 0.95f},
         {0.95f, 0.95f, 0.95f},
         {0.95f, 0.95f, 0.95f}
@@ -320,13 +320,13 @@ static void
 initialize_scene() {
     // omni light
     vec4_set(omni_light.ambient, 0.025f, 0.025f, 0.025f, 1.0f);
-    vec4_set(omni_light.diffuse, 0.5f, 0.5f, 0.5f, .0f);
-    vec4_set(omni_light.specular, 0.5f, 0.5f, 0.5f, 1.0f);
+    vec4_set(omni_light.diffuse, 0.8f, 0.8f, 0.8f, 1.0f);
+    vec4_set(omni_light.specular, 0.8f, 0.8f, 0.8f, 1.0f);
 
     // direct light
     vec4_set(direct_light.ambient, 0.025f, 0.025f, 0.025f, 1.0f);
-    vec4_set(direct_light.diffuse, 0.5f, 0.5f, 0.5f, 1.0f);
-    vec4_set(direct_light.specular, 0.5f, 0.5f, 0.5f, 1.0f);
+    vec4_set(direct_light.diffuse, 0.8f, 0.8f, 0.8f, 1.0f);
+    vec4_set(direct_light.specular, 0.3f, 0.3f, 0.3f, 1.0f);
 
     // spot light
     vec4_set(spot_light.light.ambient, 0.05f, 0.05f, 0.05f, 1.0f);
