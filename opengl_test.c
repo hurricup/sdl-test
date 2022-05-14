@@ -30,6 +30,7 @@ static scene_object_t *spider_obj;
 static scene_object_t *lego_man;
 static scene_object_t *t_rex1;
 static scene_object_t *handgun;
+static scene_object_t *subaru;
 
 static omni_light_t omni_light = {
         {0.0f,  -3.0f, 0.0f},
@@ -250,6 +251,14 @@ draw_handgun() {
 }
 
 static void
+draw_subaru() {
+    shader_t *shader = subaru->shader;
+    shader_use(shader);
+    set_up_light_and_camera(shader);
+    draw_scene_object(subaru, project_view);
+}
+
+static void
 draw_cubes() {
     shader_t *shader = cubes[0]->shader;
     shader_use(shader);
@@ -278,6 +287,7 @@ draw_scene() {
     draw_lego_man();
     draw_t_rex1();
     draw_handgun();
+    draw_subaru();
 
     glFlush();
 }
@@ -422,6 +432,13 @@ initialize_scene() {
     move_scene_object_to(handgun, -22, -2, 2);
     scale_scene_object(handgun, 3.0f);
 
+    // subaru
+    subaru = create_scene_object();
+    attach_shader_to_scene_object(subaru, model_shader);
+    attach_model_to_scene_object(subaru, load_model("assets/models/Subaru Impreza/subaru2.obj", aiProcess_FlipUVs));
+    move_scene_object_to(subaru, -30, -2, 2);
+//    scale_scene_object(subaru, 3.0f);
+
 //    backpack_model = load_model("assets/models/hot_wheels1/Base Mesh.fbx");
 //    backpack_model = load_model("assets/models/handgun/Handgun_Packed.blend");
 //    backpack_model = load_model("assets/models/Lotus_Hot_Wheels_3DS/Lotus_HW_3DS.3DS");
@@ -476,6 +493,7 @@ shutdown_app() {
     destroy_scene_object(lego_man);
     destroy_scene_object(t_rex1);
     destroy_scene_object(handgun);
+    destroy_scene_object(subaru);
     destroy_scene_object(sirenhead);
     destroy_scene_object(backpack);
     destroy_scene_object(cubes[0]);
