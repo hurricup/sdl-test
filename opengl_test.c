@@ -392,7 +392,8 @@ initialize_scene() {
     spider_obj = create_scene_object();
     attach_shader_to_scene_object(spider_obj, model_shader);
     attach_model_to_scene_object(spider_obj,
-                                 load_model("assets/models/spider_obj/Only_Spider_with_Animations_Export.obj", 0));
+                                 load_model("assets/models/spider/Only_Spider_with_Animations_Export.obj",
+                                            aiProcess_FlipUVs));
     move_scene_object_to(spider_obj, -12, -4, 2);
     scale_scene_object(spider_obj, 0.06f);
 
