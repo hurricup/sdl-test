@@ -36,6 +36,7 @@ static omni_light_t omni_light = {
         {0.95f, 0.95f, 0.95f},
         {0.95f, 0.95f, 0.95f}
 };
+static bool omni_light_on = true;
 
 static direct_light_t direct_light = {
         {1.0f,  0.0f,  1.0f},
@@ -43,6 +44,7 @@ static direct_light_t direct_light = {
         {0.95f, 0.95f, 0.95f},
         {0.95f, 0.95f, 0.95f}
 };
+static bool direct_light_on = true;
 
 static spot_light_t spot_light = {
         {
@@ -129,6 +131,12 @@ event_loop() {
                     case SDLK_p: // change polygon mode
                         polygon_mode = polygon_mode == GL_FILL ? GL_LINE : GL_FILL;
                         break;
+                    case SDLK_o: // toggle omni light
+                        omni_light_on = !omni_light_on;
+                        break;
+                    case SDLK_t: // toggle direct light
+                        direct_light_on = !direct_light_on;
+                        break;
                     default:
                         break;
                 }
@@ -149,16 +157,22 @@ draw_light() {
 
 static void set_up_light_and_camera(shader_t *shader) {
     // omni-light
-    shader_set_vec3(shader, "omni_light.position", omni_light.position);
-    shader_set_vec4(shader, "omni_light.light_prop.ambient", omni_light.ambient);
-    shader_set_vec4(shader, "omni_light.light_prop.diffuse", omni_light.diffuse);
-    shader_set_vec4(shader, "omni_light.light_prop.specular", omni_light.specular);
+    shader_set_int(shader, "omni_light_on", omni_light_on);
+    if (omni_light_on) {
+        shader_set_vec3(shader, "omni_light.position", omni_light.position);
+        shader_set_vec4(shader, "omni_light.light_prop.ambient", omni_light.ambient);
+        shader_set_vec4(shader, "omni_light.light_prop.diffuse", omni_light.diffuse);
+        shader_set_vec4(shader, "omni_light.light_prop.specular", omni_light.specular);
+    }
 
     // direct light
-    shader_set_vec3(shader, "direct_light.front", direct_light.front);
-    shader_set_vec4(shader, "direct_light.light_prop.ambient", direct_light.ambient);
-    shader_set_vec4(shader, "direct_light.light_prop.diffuse", direct_light.diffuse);
-    shader_set_vec4(shader, "direct_light.light_prop.specular", direct_light.specular);
+    shader_set_int(shader, "direct_light_on", direct_light_on);
+    if (direct_light_on) {
+        shader_set_vec3(shader, "direct_light.front", direct_light.front);
+        shader_set_vec4(shader, "direct_light.light_prop.ambient", direct_light.ambient);
+        shader_set_vec4(shader, "direct_light.light_prop.diffuse", direct_light.diffuse);
+        shader_set_vec4(shader, "direct_light.light_prop.specular", direct_light.specular);
+    }
 
     // spot light
     if (camera_light_on) {

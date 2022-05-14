@@ -47,7 +47,11 @@ layout(location = 1) in vec3 normal;
 layout(location = 2) in vec3 position;
 
 uniform OmniLight omni_light;
+uniform bool omni_light_on;
+
 uniform DirectLight direct_light;
+uniform bool direct_light_on;
+
 uniform SpotLight spot_light;
 
 uniform vec3 camera_position;
@@ -69,22 +73,13 @@ out vec4 color;
 void main(){
     float attenuation_const_quadratic = 1.0 / 15000.0;
 
-    vec3 light_frag_vector = position - omni_light.position;
-    float light_frag_distance = length(light_frag_vector);
-    float light_attenuation = 1 / (light_frag_distance * light_frag_distance * attenuation_const_quadratic + 1.0);
-
+    // camera distance attuniation
     vec3 camera_frag_vector = position - camera_position;
     vec3 camera_frag_direction = normalize(camera_frag_vector);
     float camera_frag_distance = length(camera_frag_vector);
     float camera_attenuation = 1 / (camera_frag_distance * camera_frag_distance * attenuation_const_quadratic + 1.0);
 
-    // ambient_color
-    vec4 textured_ambient_color = omni_light.light_prop.ambient * material.ambient * light_attenuation;
-    if (textures_number[TEX_TYPE_AMBIENT] > 0){
-        textured_ambient_color *= texture(texture_ambient0, tex_coord);
-    }
-
-    // diffuse color
+    // fragment normal
     vec3 frag_normal;
     if (textures_number[TEX_TYPE_NORMALS] > 0){
         frag_normal = normalize(normals_model * (vec3(texture(texture_normals0, tex_coord)) * 2.0 - 1.0));
@@ -92,51 +87,71 @@ void main(){
     else {
         frag_normal = normalize(normals_model * normal);
     }
-    vec3 light_frag_direction = normalize(light_frag_vector);
-    float light_diffuse = max(dot(frag_normal, -light_frag_direction), 0.0);
-    vec4 light_diffuse_color = omni_light.light_prop.diffuse * material.diffuse * light_diffuse * light_attenuation;
-    if (textures_number[TEX_TYPE_DIFFUSE] > 0){
-        light_diffuse_color *= texture(texture_diffuse0, tex_coord);
-    }
 
-    vec4 frag_color = textured_ambient_color + light_diffuse_color;
+    vec4 frag_color = vec4(0);
 
-    // specular color
-    if (material.shininess > 0){
-        vec3 light_reflect_direction = reflect(light_frag_direction, frag_normal);
-        float light_specular = pow(max(dot(-camera_frag_direction, light_reflect_direction), 0.0), material.shininess);
-        vec4 light_specular_color = omni_light.light_prop.specular * material.specular * light_specular * light_attenuation;
-        if (textures_number[TEX_TYPE_SPECULAR] > 0){
-            light_specular_color *= texture(texture_specular0, tex_coord);
+    if (omni_light_on){
+        // omni attuniation
+        vec3 light_frag_vector = position - omni_light.position;
+        float light_frag_distance = length(light_frag_vector);
+        float light_attenuation = 1 / (light_frag_distance * light_frag_distance * attenuation_const_quadratic + 1.0);
+
+        // ambient_color
+        vec4 textured_ambient_color = omni_light.light_prop.ambient * material.ambient * light_attenuation;
+        if (textures_number[TEX_TYPE_AMBIENT] > 0){
+            textured_ambient_color *= texture(texture_ambient0, tex_coord);
         }
-        frag_color += light_specular_color;
-    }
+        frag_color += textured_ambient_color;
 
-    // direct ambient
-    vec4 direct_ambient_color = direct_light.light_prop.ambient * material.ambient;
-    if (textures_number[TEX_TYPE_AMBIENT] > 0){
-        direct_ambient_color *= texture(texture_ambient0, tex_coord);
-    }
-    frag_color += direct_ambient_color;
-
-    // direct diffuse
-    vec3 direct_light_frag_direction = normalize(direct_light.front);
-    float direct_light_diffuse = max(dot(frag_normal, -direct_light_frag_direction), 0.0);
-    vec4 direct_light_diffuse_color = direct_light.light_prop.diffuse * material.diffuse * direct_light_diffuse;
-    if (textures_number[TEX_TYPE_DIFFUSE] > 0){
-        direct_light_diffuse_color *= texture(texture_diffuse0, tex_coord);
-    }
-    frag_color += direct_light_diffuse_color;
-
-    // direct specular
-    if (material.shininess > 0){
-        vec3 direct_light_reflect_direction = reflect(direct_light_frag_direction, frag_normal);
-        float direct_light_specular = pow(max(dot(-camera_frag_direction, direct_light_reflect_direction), 0.0), material.shininess);
-        vec4 direct_light_specular_color = direct_light.light_prop.specular  * material.specular * direct_light_specular;
-        if (textures_number[TEX_TYPE_SPECULAR] > 0){
-            direct_light_specular_color *= texture(texture_specular0, tex_coord);
+        // diffuse color
+        vec3 light_frag_direction = normalize(light_frag_vector);
+        float light_diffuse = max(dot(frag_normal, -light_frag_direction), 0.0);
+        vec4 light_diffuse_color = omni_light.light_prop.diffuse * material.diffuse * light_diffuse * light_attenuation;
+        if (textures_number[TEX_TYPE_DIFFUSE] > 0){
+            light_diffuse_color *= texture(texture_diffuse0, tex_coord);
         }
-        frag_color += direct_light_specular_color;
+
+        frag_color += light_diffuse_color;
+
+        // specular color
+        if (material.shininess > 0){
+            vec3 light_reflect_direction = reflect(light_frag_direction, frag_normal);
+            float light_specular = pow(max(dot(-camera_frag_direction, light_reflect_direction), 0.0), material.shininess);
+            vec4 light_specular_color = omni_light.light_prop.specular * material.specular * light_specular * light_attenuation;
+            if (textures_number[TEX_TYPE_SPECULAR] > 0){
+                light_specular_color *= texture(texture_specular0, tex_coord);
+            }
+            frag_color += light_specular_color;
+        }
+    }
+
+    if (direct_light_on){
+        // direct ambient
+        vec4 direct_ambient_color = direct_light.light_prop.ambient * material.ambient;
+        if (textures_number[TEX_TYPE_AMBIENT] > 0){
+            direct_ambient_color *= texture(texture_ambient0, tex_coord);
+        }
+        frag_color += direct_ambient_color;
+
+        // direct diffuse
+        vec3 direct_light_frag_direction = normalize(direct_light.front);
+        float direct_light_diffuse = max(dot(frag_normal, -direct_light_frag_direction), 0.0);
+        vec4 direct_light_diffuse_color = direct_light.light_prop.diffuse * material.diffuse * direct_light_diffuse;
+        if (textures_number[TEX_TYPE_DIFFUSE] > 0){
+            direct_light_diffuse_color *= texture(texture_diffuse0, tex_coord);
+        }
+        frag_color += direct_light_diffuse_color;
+
+        // direct specular
+        if (material.shininess > 0){
+            vec3 direct_light_reflect_direction = reflect(direct_light_frag_direction, frag_normal);
+            float direct_light_specular = pow(max(dot(-camera_frag_direction, direct_light_reflect_direction), 0.0), material.shininess);
+            vec4 direct_light_specular_color = direct_light.light_prop.specular  * material.specular * direct_light_specular;
+            if (textures_number[TEX_TYPE_SPECULAR] > 0){
+                direct_light_specular_color *= texture(texture_specular0, tex_coord);
+            }
+            frag_color += direct_light_specular_color;
+        }
     }
 
     // spotlight
@@ -183,7 +198,6 @@ void main(){
             }
         }
     }
-
 
     color = frag_color * camera_attenuation;
 }
