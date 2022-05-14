@@ -19,7 +19,20 @@ static char texture_uniform_names_templates[MAX_TEXTURE_TYPE + 1][TEXTURE_SLOT_N
         "texture_shininess%u",
         "texture_opacity%u"
 };
+
+
 static char texture_uniform_names[MAX_TEXTURE_TYPE + 1][MAX_TEXTURES_PER_TYPE][TEXTURE_SLOT_NAME_SIZE];
+static char texture_flags_names[MAX_TEXTURE_TYPE + 1][TEXTURE_SLOT_NAME_SIZE] = {
+        "textures_number[0]",
+        "textures_number[1]",
+        "textures_number[2]",
+        "textures_number[3]",
+        "textures_number[4]",
+        "textures_number[5]",
+        "textures_number[6]",
+        "textures_number[7]",
+        "textures_number[8]"
+};
 
 static void
 init_mesh_gl(mesh_t *mesh) {
@@ -77,9 +90,8 @@ get_texture_uniform_name(enum aiTextureType type, unsigned int index) {
 static void
 draw_mesh(mesh_t *mesh, shader_t *shader) {
     // textures
+    unsigned int type_index[MAX_TEXTURE_TYPE + 1] = {0};
     if (mesh->textures_number) {
-        unsigned int type_index[MAX_TEXTURE_TYPE + 1] = {0};
-
         for (int i = 0; i < mesh->textures_number; i++) {
             glActiveTexture(GL_TEXTURE0 + i);
             texture_t *texture = mesh->textures[i];
@@ -88,6 +100,9 @@ draw_mesh(mesh_t *mesh, shader_t *shader) {
             glBindTexture(GL_TEXTURE_2D, texture->id);
         }
         glActiveTexture(GL_TEXTURE0);
+    }
+    for (int i = 0; i <= MAX_TEXTURE_TYPE; i++) {
+        shader_set_int(shader, texture_flags_names[i], (int) type_index[i]);
     }
 
     // material properties
