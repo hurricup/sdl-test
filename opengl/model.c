@@ -3,8 +3,8 @@
 #include "model.h"
 
 #define MIN_TEXTURE_TYPE aiTextureType_DIFFUSE
-#define MAX_TEXTURE_TYPE aiTextureType_NORMALS
-#define MAX_TEXTURES_PER_TYPE 10
+#define MAX_TEXTURE_TYPE aiTextureType_OPACITY
+#define MAX_TEXTURES_PER_TYPE 2
 #define TEXTURE_SLOT_NAME_SIZE 20
 
 static bool texture_uniform_names_initialized = false;
@@ -15,7 +15,9 @@ static char texture_uniform_names_templates[MAX_TEXTURE_TYPE + 1][TEXTURE_SLOT_N
         "texture_ambient%u",
         "texture_emissive%u",
         "texture_height%u",
-        "texture_normals%u"
+        "texture_normals%u",
+        "texture_shininess%u",
+        "texture_opacity%u"
 };
 static char texture_uniform_names[MAX_TEXTURE_TYPE + 1][MAX_TEXTURES_PER_TYPE][TEXTURE_SLOT_NAME_SIZE];
 

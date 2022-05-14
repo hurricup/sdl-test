@@ -45,9 +45,14 @@ uniform vec3 camera_position;
 uniform mat3 normals_model;
 uniform Material material;
 
-uniform sampler2D texture_diffuse0;
-uniform sampler2D texture_specular0;
-uniform sampler2D texture_normal0;
+uniform sampler2D texture_diffuse0;// type 1
+uniform sampler2D texture_specular0;// type 2
+uniform sampler2D texture_ambient0;// type 3
+uniform sampler2D texture_emissive0;// type 4
+uniform sampler2D texture_height0;// type 5
+uniform sampler2D texture_normals0;// type 6
+uniform sampler2D texture_shininess0;// type 7
+uniform sampler2D texture_opacity0;// type 8
 
 out vec4 color;
 
