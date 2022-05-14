@@ -2,6 +2,7 @@
 #include "opengl/gl_ext.h"
 #include "opengl/cglm_ext.h"
 #include <stdbool.h>
+#include <GL/gl.h>
 #include "cglm/cglm.h"
 #include "opengl/camera.h"
 #include "opengl/shader.h"
@@ -55,6 +56,7 @@ static spot_light_t spot_light = {
         2.0f * (float) M_PI / 180.0f,
 };
 
+static int polygon_mode = GL_FILL;
 
 static mat4 view_m = GLM_MAT4_IDENTITY;
 static mat4 project_m = GLM_MAT4_IDENTITY;
@@ -123,6 +125,9 @@ event_loop() {
                         break;
                     case SDLK_z: // reset camera position
                         camera_init(&camera);
+                        break;
+                    case SDLK_p: // change polygon mode
+                        polygon_mode = polygon_mode == GL_FILL ? GL_LINE : GL_FILL;
                         break;
                     default:
                         break;
@@ -237,6 +242,9 @@ draw_cubes() {
 static void
 draw_scene() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glPolygonMode(GL_FRONT_AND_BACK, polygon_mode);
+    GL_CHECK_ERROR;
 
     draw_light();
     draw_cubes();
