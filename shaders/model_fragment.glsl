@@ -85,7 +85,13 @@ void main(){
     }
 
     // diffuse color
-    vec3 frag_normal  = normalize(normals_model * normal);
+    vec3 frag_normal;
+    if (textures_number[TEX_TYPE_NORMALS] > 0){
+        frag_normal = normalize(normals_model * (vec3(texture(texture_normals0, tex_coord)) * 2.0 - 1.0));
+    }
+    else {
+        frag_normal = normalize(normals_model * normal);
+    }
     vec3 light_frag_direction = normalize(light_frag_vector);
     float light_diffuse = max(dot(frag_normal, -light_frag_direction), 0.0);
     vec4 light_diffuse_color = omni_light.light_prop.diffuse * material.diffuse * light_diffuse * light_attenuation;
