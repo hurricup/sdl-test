@@ -27,6 +27,7 @@ static scene_object_t *light;
 static scene_object_t *male_figure;
 static scene_object_t *spider_obj;
 static scene_object_t *lego_man;
+static scene_object_t *t_rex1;
 
 static omni_light_t omni_light = {
         {0.0f,  -3.0f, 0.0f},
@@ -213,6 +214,14 @@ draw_lego_man() {
 }
 
 static void
+draw_t_rex1() {
+    shader_t *shader = t_rex1->shader;
+    shader_use(shader);
+    set_up_light_and_camera(shader);
+    draw_scene_object(t_rex1, project_view);
+}
+
+static void
 draw_cubes() {
     shader_t *shader = cubes[0]->shader;
     shader_use(shader);
@@ -236,6 +245,7 @@ draw_scene() {
     draw_male();
     draw_spider();
     draw_lego_man();
+    draw_t_rex1();
 
     glFlush();
 }
@@ -329,7 +339,7 @@ initialize_scene() {
     backpack = create_scene_object();
     attach_shader_to_scene_object(backpack, model_shader);
     attach_model_to_scene_object(backpack, load_model("assets/models/backpack/backpack.obj"));
-    move_scene_object_to(backpack, 4, -4, 4);
+    move_scene_object_to(backpack, 4, -2, 4);
 
     // sirenhead
     sirenhead = create_scene_object();
@@ -358,18 +368,21 @@ initialize_scene() {
     attach_shader_to_scene_object(lego_man, model_shader);
     attach_model_to_scene_object(lego_man,
                                  load_model("assets/models/lego_man/lego obj.obj"));
-    move_scene_object_to(lego_man, 20, -4, 2);
+    move_scene_object_to(lego_man, 18, -4, 2);
     scale_scene_object(lego_man, 0.1f);
 
+    // t-rex1
+    t_rex1 = create_scene_object();
+    attach_shader_to_scene_object(t_rex1, model_shader);
+    attach_model_to_scene_object(t_rex1, load_model("assets/models/cadnav.com_model/Models_G0901A079/T-rex.obj"));
+    move_scene_object_to(t_rex1, 28, -4, 2);
+    scale_scene_object(t_rex1, 0.8f);
+    rotate_scene_object_by_vec(t_rex1, (vec3) {M_PI_2, M_PI, M_PI_4});
+
 //    backpack_model = load_model("assets/models/hot_wheels1/Base Mesh.fbx");
-//    backpack_model = load_model("assets/models/spider_obj/Only_Spider_with_Animations_Export.obj");
 //    backpack_model = load_model("assets/models/handgun/Handgun_Packed.blend");
-//    backpack_model = load_model("assets/models/cadnav.com_model/Models_G0901A079/T-rex.obj");
-//    backpack_model = load_model("assets/models/lego_man/lego obj.obj");
 //    backpack_model = load_model("assets/models/Lotus_Hot_Wheels_3DS/Lotus_HW_3DS.3DS");
 //    backpack_model = load_model("assets/models/Subaru Impreza/subaru_impreza.fbx");
-//    backpack_model = load_model("assets/models/male/FinalBaseMesh.obj");
-//    backpack_model = load_model("assets/models/teapot.obj");
 }
 
 
@@ -418,6 +431,7 @@ shutdown_app() {
     destroy_scene_object(male_figure);
     destroy_scene_object(spider_obj);
     destroy_scene_object(lego_man);
+    destroy_scene_object(t_rex1);
     destroy_scene_object(sirenhead);
     destroy_scene_object(backpack);
     destroy_scene_object(cubes[0]);
