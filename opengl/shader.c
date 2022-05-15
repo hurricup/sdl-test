@@ -1,5 +1,13 @@
 #include "shader.h"
 
+#define NAME_BUFFER_SIZE 80
+#define array_item_name(template, index) ({ \
+        char name[NAME_BUFFER_SIZE]; \
+        sprintf(name, name_template, index); \
+        name; \
+    })
+
+
 static unsigned int
 load_shader_file(unsigned int shader_type, const char *file_name) {
     unsigned int id = glCreateShader(shader_type);
@@ -96,13 +104,15 @@ static GLint
 uniform_name(shader_t *shader, const char *name) {
     GLint uniformLocation = glGetUniformLocation(shader->id, name);
     if (uniformLocation < 0 && SDL_DEBUG_ENABLED) {
-        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "Could not find the uniform %s in shader built from %s and %s",
+        SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION,
+                     "Could not find the uniform %s in shader built from %s and %s",
                      name,
                      shader->vertex_shader_name,
                      shader->fragment_shader_name);
     }
     GL_CHECK_ERROR;
-    return uniformLocation;
+    return
+            uniformLocation;
 }
 
 void
@@ -124,9 +134,19 @@ shader_set_vec3(shader_t *shader, const char *name, vec3 value) {
 }
 
 void
+shader_set_vec3_array_item(shader_t *shader, const char *name_template, unsigned int index, vec3 value) {
+    shader_set_vec3(shader, array_item_name(name_template, index), value);
+}
+
+void
 shader_set_vec4(shader_t *shader, const char *name, vec4 value) {
     glUniform4f(uniform_name(shader, name), value[0], value[1], value[2], value[3]);
     GL_CHECK_ERROR;
+}
+
+void
+shader_set_vec4_array_item(shader_t *shader, const char *name_template, unsigned int index, vec4 value) {
+    shader_set_vec4(shader, array_item_name(name_template, index), value);
 }
 
 void
@@ -136,10 +156,21 @@ shader_set_float(shader_t *shader, const char *name, float value) {
 }
 
 void
+shader_set_float_array_item(shader_t *shader, const char *name_template, unsigned int index, float value) {
+    shader_set_float(shader, array_item_name(name_template, index), value);
+}
+
+void
 shader_set_int(shader_t *shader, const char *name, int value) {
     glUniform1i(uniform_name(shader, name), value);
     GL_CHECK_ERROR;
 }
+
+void
+shader_set_int_array_item(shader_t *shader, const char *name_template, unsigned int index, int value) {
+    shader_set_int(shader, array_item_name(name_template, index), value);
+}
+
 
 void
 attach_shader(shader_t **target, shader_t *shader) {

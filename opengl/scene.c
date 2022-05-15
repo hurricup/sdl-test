@@ -10,45 +10,79 @@ create_scene() {
 }
 
 static void
+set_up_omni_lights(scene_t *scene, shader_t *shader) {
+    unsigned int lights_number = 0;
+    omni_light_list_item_t *current_light = scene->omni_lights;
+    while (current_light != NULL) {
+        if (current_light->enabled) {
+            omni_light_t *omni_light = current_light->item;
+            shader_set_vec3_array_item(shader, "omni_lights[%d].position", lights_number, omni_light->position);
+            shader_set_vec4_array_item(shader, "omni_lights[%d].light_prop.ambient", lights_number,
+                                       omni_light->light_prop.ambient);
+            shader_set_vec4_array_item(shader, "omni_lights[%d].light_prop.diffuse", lights_number,
+                                       omni_light->light_prop.diffuse);
+            shader_set_vec4_array_item(shader, "omni_lights[%d].light_prop.specular", lights_number,
+                                       omni_light->light_prop.specular);
+            lights_number++;
+        }
+        current_light = current_light->next;
+    }
+    shader_set_int(shader, "omni_lights_number", (int) lights_number);
+}
+
+static void
+set_up_direct_lights(scene_t *scene, shader_t *shader) {
+    unsigned int lights_number = 0;
+    direct_light_list_item_t *current_light = scene->direct_lights;
+    while (current_light != NULL) {
+        if (current_light->enabled) {
+            direct_light_t *direct_light = current_light->item;
+            shader_set_vec3_array_item(shader, "direct_lights[%d].front", lights_number, direct_light->front);
+            shader_set_vec4_array_item(shader, "direct_lights[%d].light_prop.ambient", lights_number,
+                                       direct_light->light_prop.ambient);
+            shader_set_vec4_array_item(shader, "direct_lights[%d].light_prop.diffuse", lights_number,
+                                       direct_light->light_prop.diffuse);
+            shader_set_vec4_array_item(shader, "direct_lights[%d].light_prop.specular", lights_number,
+                                       direct_light->light_prop.specular);
+
+            lights_number++;
+        }
+        current_light = current_light->next;
+    }
+    shader_set_int(shader, "direct_lights_number", (int) lights_number);
+}
+
+static void
+set_up_spot_lights(scene_t *scene, shader_t *shader) {
+    unsigned int lights_number = 0;
+    spot_light_list_item_t *current_light = scene->spot_lights;
+    while (current_light != NULL) {
+        if (current_light->enabled) {
+            spot_light_t *spot_light = current_light->item;
+            shader_set_vec4_array_item(shader, "spot_lights[%d].light_prop.ambient", lights_number,
+                                       spot_light->light_prop.ambient);
+            shader_set_vec4_array_item(shader, "spot_lights[%d].light_prop.diffuse", lights_number,
+                                       spot_light->light_prop.diffuse);
+            shader_set_vec4_array_item(shader, "spot_lights[%d].light_prop.specular", lights_number,
+                                       spot_light->light_prop.specular);
+            shader_set_vec3_array_item(shader, "spot_lights[%d].position", lights_number, spot_light->position);
+            shader_set_vec3_array_item(shader, "spot_lights[%d].front", lights_number, spot_light->front);
+            shader_set_float_array_item(shader, "spot_lights[%d].angle_cos", lights_number,
+                                        (float) cos((double) spot_light->angle));
+            shader_set_float_array_item(shader, "spot_lights[%d].smooth_angle_cos", lights_number,
+                                        (float) cos((double) spot_light->angle + spot_light->smooth_angle));
+            lights_number++;
+        }
+        current_light = current_light->next;
+    }
+    shader_set_int(shader, "spot_lights_number", (int) lights_number);
+}
+
+static void
 set_up_light_and_camera(scene_t *scene, shader_t *shader) {
-    // omni-light
-    if (scene->omni_lights != NULL && scene->omni_lights->enabled) {
-        omni_light_t *omni_light = scene->omni_lights->item;
-        shader_set_int(shader, "omni_light_on", true);
-        shader_set_vec3(shader, "omni_light.position", omni_light->position);
-        shader_set_vec4(shader, "omni_light.light_prop.ambient", omni_light->light_prop.ambient);
-        shader_set_vec4(shader, "omni_light.light_prop.diffuse", omni_light->light_prop.diffuse);
-        shader_set_vec4(shader, "omni_light.light_prop.specular", omni_light->light_prop.specular);
-    } else {
-        shader_set_int(shader, "omni_light_on", false);
-    }
-
-    // direct light
-    if (scene->direct_lights != NULL && scene->direct_lights->enabled) {
-        direct_light_t *direct_light = scene->direct_lights->item;
-        shader_set_int(shader, "direct_light_on", true);
-        shader_set_vec3(shader, "direct_light.front", direct_light->front);
-        shader_set_vec4(shader, "direct_light.light_prop.ambient", direct_light->light_prop.ambient);
-        shader_set_vec4(shader, "direct_light.light_prop.diffuse", direct_light->light_prop.diffuse);
-        shader_set_vec4(shader, "direct_light.light_prop.specular", direct_light->light_prop.specular);
-    } else {
-        shader_set_int(shader, "direct_light_on", false);
-    }
-
-    // spot light
-    if (scene->spot_lights != NULL && scene->spot_lights->enabled) {
-        spot_light_t *spot_light = scene->spot_lights->item;
-        shader_set_vec4(shader, "spot_light.light_prop.ambient", spot_light->light_prop.ambient);
-        shader_set_vec4(shader, "spot_light.light_prop.diffuse", spot_light->light_prop.diffuse);
-        shader_set_vec4(shader, "spot_light.light_prop.specular", spot_light->light_prop.specular);
-        shader_set_vec3(shader, "spot_light.position", spot_light->position);
-        shader_set_vec3(shader, "spot_light.front", spot_light->front);
-        shader_set_float(shader, "spot_light.angle_cos", (float) cos((double) spot_light->angle));
-        shader_set_float(shader, "spot_light.smooth_angle_cos",
-                         (float) cos((double) spot_light->angle + spot_light->smooth_angle));
-    } else {
-        shader_set_float(shader, "spot_light.angle_cos", 0.0f);
-    }
+    set_up_omni_lights(scene, shader);
+    set_up_direct_lights(scene, shader);
+    set_up_spot_lights(scene, shader);
 
     // camera position
     shader_set_vec3(shader, "camera_position", scene->camera->position);
