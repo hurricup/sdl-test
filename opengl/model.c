@@ -351,8 +351,15 @@ import_mesh_material(struct aiMaterial *assimp_material, mesh_t *mesh) {
         glm_vec4_fill(material->emissive, 0.0f);
     }
 
-    float shininess;
     unsigned int max = 1;
+    float opacity;
+    if (AI_SUCCESS == aiGetMaterialFloatArray(assimp_material, AI_MATKEY_OPACITY, &opacity, &max)) {
+        material->ambient[3] = opacity;
+        material->diffuse[3] = opacity;
+    }
+
+    float shininess;
+    max = 1;
     if (AI_SUCCESS == aiGetMaterialFloatArray(assimp_material, AI_MATKEY_SHININESS, &shininess, &max)) {
         material->shininess = shininess;
         max = 1;
