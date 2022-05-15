@@ -22,24 +22,31 @@ destroy_camera(camera_t **camera) {
     *camera = NULL;
 }
 
-void camera_init(camera_t *camera) {
+void camera_init(camera_t *camera, unsigned int window_width, unsigned int window_height) {
     camera->speed_move = 0.2f;
     camera->speed_pitch = 0.2f;
     camera->speed_yaw = 0.2f;
     camera->speed_roll = 0.02f;
     camera->mouse_sensitivity = 0.001f;
+    camera->fov = M_PI_4;
+    set_aspect_ratio(camera, window_width, window_height);
+    camera->near_z = 0.1f;
+    camera->far_z = 100.0f;
     glm_vec3_copy(camera_pos_default, camera->position);
     glm_vec3_copy(camera_up_default, camera->up);
     glm_vec3_copy(camera_front_default, camera->front);
 }
 
 void
-set_aspect_ratio(camera_t *camera, float ratio) {
-    glm_perspective(M_PI_4, ratio, 0.1f, 100.0f, camera->projection_matrix);
+set_aspect_ratio(camera_t *camera, unsigned int window_width, unsigned int window_height) {
+    camera->aspect_ratio = (float) window_width / (float) window_height;
 }
 
 void
 update_camera_views(camera_t *camera) {
+    // projection
+    glm_perspective(camera->fov, camera->aspect_ratio, camera->near_z, camera->far_z, camera->projection_matrix);
+
     // View
     glm_look(camera->position, camera->front, camera->up, camera->view_matrix);
 

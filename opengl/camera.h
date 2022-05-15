@@ -15,6 +15,10 @@ typedef struct camera {
     mat4 view_matrix;
     mat4 projection_matrix;
     mat4 project_view_matrix;
+    float fov;
+    float aspect_ratio;
+    float near_z;
+    float far_z;
 } camera_t;
 
 camera_t *create_camera();
@@ -24,7 +28,7 @@ void destroy_camera(camera_t **camera);
 /**
  * Resets camera to initial state
  */
-void camera_init(camera_t *camera);
+void camera_init(camera_t *camera, unsigned int window_width, unsigned int window_height);
 
 /**
  * Fills view matrix for the camera
@@ -57,8 +61,8 @@ void move_camera_front(camera_t *camera, int x, int y);
 void roll_camera(camera_t *camera, float sign);
 
 /**
- * Re-compute projection matrix with new aspect ratio
+ * Re-compute projection matrix with new aspect aspect_ratio
  */
-void set_aspect_ratio(camera_t *camera, float ratio);
+void set_aspect_ratio(camera_t *camera, unsigned int window_width, unsigned int window_height);
 
 #endif //SDL_TEST_CAMERA_H

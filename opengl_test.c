@@ -60,7 +60,7 @@ event_loop() {
             } else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
                 SDL_GetWindowSize(window, &window_width, &window_height);
                 glViewport(0, 0, window_width, window_height);
-                set_aspect_ratio(scene->camera, (float) window_width / (float) window_height);
+                set_aspect_ratio(scene->camera, window_width, window_height);
             } else if (event.type == SDL_MOUSEMOTION && event.motion.state & SDL_BUTTON_RMASK) {
                 move_camera_front(scene->camera, event.motion.xrel, event.motion.yrel);
             } else if (event.type == SDL_KEYDOWN) {
@@ -96,7 +96,7 @@ event_loop() {
                         roll_camera(scene->camera, 1);
                         break;
                     case SDLK_z: // reset camera position
-                        camera_init(scene->camera);
+                        camera_init(scene->camera, window_width, window_height);
                         break;
                     case SDLK_p: // change polygon mode
                         polygon_mode = polygon_mode == GL_FILL ? GL_LINE : GL_FILL;
@@ -175,8 +175,7 @@ initialize_scene() {
 
     camera_t *camera = create_camera();
     attach_camera_to_scene(scene, camera);
-    camera_init(camera);
-    set_aspect_ratio(camera, (float) window_width / (float) window_height);
+    camera_init(camera, window_width, window_height);
 
     omni_light = create_omni_light();
     attach_omni_light_to_scene(scene, omni_light);
