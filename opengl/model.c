@@ -111,6 +111,7 @@ draw_mesh(mesh_t *mesh, shader_t *shader) {
     shader_set_vec4(shader, "material.specular", mesh->material.specular);
     shader_set_vec4(shader, "material.emissive", mesh->material.emissive);
     shader_set_float(shader, "material.shininess", mesh->material.shininess);
+    shader_set_float(shader, "material.opacity", mesh->material.opacity);
 
     // draw
     glBindVertexArray(mesh->vao);
@@ -354,8 +355,9 @@ import_mesh_material(struct aiMaterial *assimp_material, mesh_t *mesh) {
     unsigned int max = 1;
     float opacity;
     if (AI_SUCCESS == aiGetMaterialFloatArray(assimp_material, AI_MATKEY_OPACITY, &opacity, &max)) {
-        material->ambient[3] = opacity;
-        material->diffuse[3] = opacity;
+        material->opacity = opacity;
+    } else {
+        material->opacity = DEFAULT_OPACITY;
     }
 
     float shininess;

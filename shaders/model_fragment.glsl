@@ -21,6 +21,7 @@ struct Material {
     vec4 specular;
     vec4 emissive;
     float shininess;
+    float opacity;
 };
 
 struct OmniLight {
@@ -122,16 +123,18 @@ void main(){
         float light_attenuation = 1 / (light_frag_distance * light_frag_distance * attenuation_const_quadratic + 1.0);
 
         // ambient_color
-        vec4 textured_ambient_color = omni_light.light_prop.ambient * material.ambient * light_attenuation;
+        vec4 light_ambient_color = omni_light.light_prop.ambient * material.ambient * light_attenuation;
+        light_ambient_color.w = material.opacity;
         if (ambient_texture_on){
-            textured_ambient_color *= ambient_texture_color;
+            light_ambient_color *= ambient_texture_color;
         }
-        frag_color += textured_ambient_color;
+        frag_color += light_ambient_color;
 
         // diffuse color
         vec3 light_frag_direction = normalize(light_frag_vector);
         float light_diffuse = max(dot(frag_normal, -light_frag_direction), 0.0);
         vec4 light_diffuse_color = omni_light.light_prop.diffuse * material.diffuse * light_diffuse * light_attenuation;
+        light_diffuse_color.w = material.opacity;
         if (diffuse_texture_on){
             light_diffuse_color *= diffuse_texture_color;
         }
@@ -153,6 +156,7 @@ void main(){
     if (direct_light_on){
         // direct ambient
         vec4 direct_ambient_color = direct_light.light_prop.ambient * material.ambient;
+        direct_ambient_color.w = material.opacity;
         if (ambient_texture_on){
             direct_ambient_color *= ambient_texture_color;
         }
@@ -162,6 +166,7 @@ void main(){
         vec3 direct_light_frag_direction = normalize(direct_light.front);
         float direct_light_diffuse = max(dot(frag_normal, -direct_light_frag_direction), 0.0);
         vec4 direct_light_diffuse_color = direct_light.light_prop.diffuse * material.diffuse * direct_light_diffuse;
+        direct_light_diffuse_color.w = material.opacity;
         if (diffuse_texture_on){
             direct_light_diffuse_color *= diffuse_texture_color;
         }
@@ -192,6 +197,7 @@ void main(){
 
         // spot ambient
         vec4 spot_ambient_color = spot_light.light_prop.ambient * material.ambient * spot_light_attenuation;
+        spot_ambient_color.w = material.opacity;
         if (ambient_texture_on){
             spot_ambient_color *= ambient_texture_color;
         }
@@ -206,6 +212,7 @@ void main(){
             // spot diffuse
             float spot_diffuse = max(dot(frag_normal, -spot_frag_direction), 0.0);
             vec4 spot_diffuse_color = spot_light.light_prop.diffuse * material.diffuse * spot_diffuse * spot_light_attenuation;
+            spot_diffuse_color.w = material.opacity;
             if (diffuse_texture_on){
                 spot_diffuse_color *= diffuse_texture_color;
             }

@@ -10,6 +10,7 @@ typedef struct material {
     vec4 specular;
     vec4 emissive;
     float shininess;
+    float opacity;
 } material_t;
 
 typedef struct shader {

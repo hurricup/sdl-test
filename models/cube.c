@@ -64,6 +64,7 @@ cube_model_create() {
     glm_vec4_fill(material->specular, 1.0f);
     glm_vec4_fill(material->emissive, 0.0f);
     material->shininess = DEFAULT_SHININESS;
+    material->opacity = DEFAULT_OPACITY;
 
     return cube_model;
 }

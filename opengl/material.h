@@ -1,6 +1,7 @@
 #ifndef SDL_TEST_MATERIAL_H
 #define SDL_TEST_MATERIAL_H
 #define DEFAULT_SHININESS 32
+#define DEFAULT_OPACITY 1
 
 #include "scene_types.h"
 #include "cglm/cglm.h"
