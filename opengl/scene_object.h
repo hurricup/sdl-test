@@ -8,7 +8,7 @@
 
 scene_object_t *create_scene_object();
 
-void destroy_scene_object(scene_object_t *scene_object);
+void destroy_scene_object(scene_object_t **scene_object);
 
 void attach_shader_to_scene_object(scene_object_t *scene_object, shader_t *shader);
 

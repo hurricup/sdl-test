@@ -12,7 +12,14 @@ typedef struct camera {
     vec3 pos;
     vec3 up;
     vec3 front;
+    mat4 view_matrix;
+    mat4 projection_matrix;
+    mat4 project_view_matrix;
 } camera_t;
+
+camera_t *create_camera();
+
+void destroy_camera(camera_t **camera);
 
 /**
  * Resets camera to initial state
@@ -22,7 +29,7 @@ void camera_init(camera_t *camera);
 /**
  * Fills view matrix for the camera
  */
-void camera_view(camera_t *camera, mat4 view_m);
+void update_camera_views(camera_t *camera);
 
 /**
  * Moves camera up or down along the up vector. Direction depends on sign
@@ -48,5 +55,10 @@ void move_camera_front(camera_t *camera, int x, int y);
  * Rolling camera up vector around the front vector
  */
 void roll_camera(camera_t *camera, float sign);
+
+/**
+ * Re-compute projection matrix with new aspect ratio
+ */
+void set_aspect_ratio(camera_t *camera, float ratio);
 
 #endif //SDL_TEST_CAMERA_H

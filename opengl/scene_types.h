@@ -17,6 +17,10 @@ typedef struct shader {
     char *vertex_shader_name;
     char *fragment_shader_name;
     unsigned int owners;
+    /**
+     * used for shader re-use with multiple scene model, to avoid useless re-configuring of global stuff, like lightning.
+     */
+    unsigned int draw_pass;
 } shader_t;
 
 typedef struct vertex {

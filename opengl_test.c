@@ -11,6 +11,7 @@
 #include "opengl/light.h"
 #include "opengl/model.h"
 #include "opengl/scene_object.h"
+#include "opengl/scene.h"
 
 static int window_width = 1280;
 static int window_height = 1280 / 16 * 9;
@@ -18,53 +19,16 @@ static int window_height = 1280 / 16 * 9;
 static const Uint32 FPS = 30;
 static const Uint32 FPS_SIZE_MS = 1000 / FPS;
 
-static camera_t camera;
+static scene_t *scene;
+static spot_light_t *camera_light;
 static bool camera_light_on = true;
-
-static scene_object_t *backpack;
-static scene_object_t *cubes[4];
-static scene_object_t *sirenhead;
-static scene_object_t *light;
-static scene_object_t *male_figure;
-static scene_object_t *spider_obj;
-static scene_object_t *lego_man;
-static scene_object_t *t_rex1;
-static scene_object_t *handgun;
-static scene_object_t *subaru;
-
-static omni_light_t omni_light = {
-        {0.0f,  -3.0f, 0.0f},
-        {0.95f, 0.95f, 0.95f},
-        {0.95f, 0.95f, 0.95f},
-        {0.95f, 0.95f, 0.95f}
-};
-static bool omni_light_on = true;
-
-static direct_light_t direct_light = {
-        {1.0f,  -3.0f, 1.0f},
-        {0.95f, 0.95f, 0.95f},
-        {0.95f, 0.95f, 0.95f},
-        {0.95f, 0.95f, 0.95f}
-};
+static direct_light_t *direct_light;
 static bool direct_light_on = true;
-
-static spot_light_t spot_light = {
-        {
-                {0.0f, 0.0f, 0.0f},
-                {0.95f, 0.95f, 0.95f},
-                {0.95f, 0.95f, 0.95f},
-                {0.95f, 0.95f, 0.95f}
-        },
-        {0.0f, 0.0f, 0.0f},
-        10.5f * (float) M_PI / 180.0f,
-        2.0f * (float) M_PI / 180.0f,
-};
+static omni_light_t *omni_light;
+static bool omni_light_on = true;
+static scene_object_t *cubes[4];
 
 static int polygon_mode = GL_FILL;
-
-static mat4 view_m = GLM_MAT4_IDENTITY;
-static mat4 project_m = GLM_MAT4_IDENTITY;
-static mat4 project_view = GLM_MAT4_IDENTITY;
 
 static SDL_Window *window = NULL;
 static SDL_GLContext context = NULL;
@@ -96,49 +60,59 @@ event_loop() {
             } else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
                 SDL_GetWindowSize(window, &window_width, &window_height);
                 glViewport(0, 0, window_width, window_height);
+                set_aspect_ratio(scene->camera, (float) window_width / (float) window_height);
             } else if (event.type == SDL_MOUSEMOTION && event.motion.state & SDL_BUTTON_RMASK) {
-                move_camera_front(&camera, event.motion.xrel, event.motion.yrel);
+                move_camera_front(scene->camera, event.motion.xrel, event.motion.yrel);
             } else if (event.type == SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
-                    case SDLK_l: // toggle camera light
+                    case SDLK_l: {
+                        // toggle camera light
                         camera_light_on = !camera_light_on;
+                        enable_spot_light(scene, camera_light, camera_light_on);
                         break;
+                    }
                     case SDLK_a: // move camera right according to right vector
-                        yaw_camera(&camera, -1);
+                        yaw_camera(scene->camera, -1);
                         break;
                     case SDLK_d: // move camera left according to up vector
-                        yaw_camera(&camera, 1);
+                        yaw_camera(scene->camera, 1);
                         break;
                     case SDLK_r: // move camera up according to up vector
-                        pitch_camera(&camera, 1);
+                        pitch_camera(scene->camera, 1);
                         break;
                     case SDLK_f: // move camera down according to up vector
-                        pitch_camera(&camera, -1);
+                        pitch_camera(scene->camera, -1);
                         break;
                     case SDLK_w: // move camera forward
-                        move_camera(&camera, 1);
+                        move_camera(scene->camera, 1);
                         break;
                     case SDLK_s: // move camera backward
-                        move_camera(&camera, -1);
+                        move_camera(scene->camera, -1);
                         break;
                     case SDLK_q: // rotate left around sight
-                        roll_camera(&camera, -1);
+                        roll_camera(scene->camera, -1);
                         break;
                     case SDLK_e:  // rotate right around sight
-                        roll_camera(&camera, 1);
+                        roll_camera(scene->camera, 1);
                         break;
                     case SDLK_z: // reset camera position
-                        camera_init(&camera);
+                        camera_init(scene->camera);
                         break;
                     case SDLK_p: // change polygon mode
                         polygon_mode = polygon_mode == GL_FILL ? GL_LINE : GL_FILL;
                         break;
-                    case SDLK_o: // toggle omni light
+                    case SDLK_o: {
+                        // toggle omni light
                         omni_light_on = !omni_light_on;
+                        enable_omni_light(scene, omni_light, omni_light_on);
                         break;
-                    case SDLK_t: // toggle direct light
+                    }
+                    case SDLK_t: {
+                        // toggle direct light
                         direct_light_on = !direct_light_on;
+                        enable_direct_light(scene, direct_light, direct_light_on);
                         break;
+                    }
                     default:
                         break;
                 }
@@ -151,143 +125,13 @@ event_loop() {
 }
 
 static void
-draw_light() {
-    shader_use(light->shader);
-    shader_set_vec4(light->shader, "vertex_color", omni_light.specular);
-    draw_scene_object(light, project_view);
-}
-
-static void set_up_light_and_camera(shader_t *shader) {
-    // omni-light
-    shader_set_int(shader, "omni_light_on", omni_light_on);
-    if (omni_light_on) {
-        shader_set_vec3(shader, "omni_light.position", omni_light.position);
-        shader_set_vec4(shader, "omni_light.light_prop.ambient", omni_light.ambient);
-        shader_set_vec4(shader, "omni_light.light_prop.diffuse", omni_light.diffuse);
-        shader_set_vec4(shader, "omni_light.light_prop.specular", omni_light.specular);
-    }
-
-    // direct light
-    shader_set_int(shader, "direct_light_on", direct_light_on);
-    if (direct_light_on) {
-        shader_set_vec3(shader, "direct_light.front", direct_light.front);
-        shader_set_vec4(shader, "direct_light.light_prop.ambient", direct_light.ambient);
-        shader_set_vec4(shader, "direct_light.light_prop.diffuse", direct_light.diffuse);
-        shader_set_vec4(shader, "direct_light.light_prop.specular", direct_light.specular);
-    }
-
-    // spot light
-    if (camera_light_on) {
-        shader_set_vec4(shader, "spot_light.light_prop.ambient", spot_light.light.ambient);
-        shader_set_vec4(shader, "spot_light.light_prop.diffuse", spot_light.light.diffuse);
-        shader_set_vec4(shader, "spot_light.light_prop.specular", spot_light.light.specular);
-        shader_set_vec3(shader, "spot_light.position", spot_light.light.position);
-        shader_set_vec3(shader, "spot_light.front", spot_light.front);
-        shader_set_float(shader, "spot_light.angle_cos", (float) cos((double) spot_light.angle));
-        shader_set_float(shader, "spot_light.smooth_angle_cos",
-                         (float) cos((double) spot_light.angle + spot_light.smooth_angle));
-    } else {
-        shader_set_float(shader, "spot_light.angle_cos", 0.0f);
-    }
-
-    // camera position
-    shader_set_vec3(shader, "camera_position", camera.pos);
-}
-
-static void
-draw_backpack() {
-    shader_t *shader = backpack->shader;
-    shader_use(shader);
-    set_up_light_and_camera(shader);
-    draw_scene_object(backpack, project_view);
-}
-
-static void
-draw_sirenhead() {
-    shader_t *shader = sirenhead->shader;
-    shader_use(shader);
-    set_up_light_and_camera(shader);
-    draw_scene_object(sirenhead, project_view);
-}
-
-static void
-draw_male() {
-    shader_t *shader = male_figure->shader;
-    shader_use(shader);
-    set_up_light_and_camera(shader);
-    draw_scene_object(male_figure, project_view);
-}
-
-static void
-draw_spider() {
-    shader_t *shader = spider_obj->shader;
-    shader_use(shader);
-    set_up_light_and_camera(shader);
-    draw_scene_object(spider_obj, project_view);
-}
-
-static void
-draw_lego_man() {
-    shader_t *shader = lego_man->shader;
-    shader_use(shader);
-    set_up_light_and_camera(shader);
-    draw_scene_object(lego_man, project_view);
-}
-
-static void
-draw_t_rex1() {
-    shader_t *shader = t_rex1->shader;
-    shader_use(shader);
-    set_up_light_and_camera(shader);
-    draw_scene_object(t_rex1, project_view);
-}
-
-static void
-draw_handgun() {
-    shader_t *shader = handgun->shader;
-    shader_use(shader);
-    set_up_light_and_camera(shader);
-    draw_scene_object(handgun, project_view);
-}
-
-static void
-draw_subaru() {
-    shader_t *shader = subaru->shader;
-    shader_use(shader);
-    set_up_light_and_camera(shader);
-    draw_scene_object(subaru, project_view);
-}
-
-static void
-draw_cubes() {
-    shader_t *shader = cubes[0]->shader;
-    shader_use(shader);
-    set_up_light_and_camera(shader);
-
-    // drawing cube
-    draw_scene_object(cubes[0], project_view);
-    draw_scene_object(cubes[1], project_view);
-    draw_scene_object(cubes[2], project_view);
-    draw_scene_object(cubes[3], project_view);
-}
-
-static void
-draw_scene() {
+do_draw_scene() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glPolygonMode(GL_FRONT_AND_BACK, polygon_mode);
     GL_CHECK_ERROR;
 
-    draw_light();
-    draw_cubes();
-    draw_backpack();
-    draw_sirenhead();
-    draw_male();
-    draw_spider();
-    draw_lego_man();
-    draw_t_rex1();
-    draw_handgun();
-    draw_subaru();
+    draw_scene(scene);
 
     glFlush();
 }
@@ -306,31 +150,20 @@ update_cubes() {
 
 static void
 update_camera_light() {
-    glm_vec3_copy(camera.pos, spot_light.light.position);
-    glm_vec3_copy(camera.front, spot_light.front);
+    glm_vec3_copy(scene->camera->pos, camera_light->position);
+    glm_vec3_copy(scene->camera->front, camera_light->front);
 }
 
 static void
 update_scene() {
-    // View
-    camera_view(&camera, view_m);
-
-    // projection
-    glm_perspective(M_PI_4, (float) window_width / (float) window_height, 0.1f, 100.0f, project_m);
-
-    // project * view
-    glm_mat4_identity(project_view);
-    glm_mat4_mul(project_m, view_m, project_view);
-
     update_cubes();
     update_camera_light();
-
 }
 
 static void
 update_screen() {
     update_scene();
-    draw_scene();
+    do_draw_scene();
     SDL_GL_SwapWindow(window);
     SDL_CHECK_ERROR;
 }
@@ -338,20 +171,34 @@ update_screen() {
 
 static void
 initialize_scene() {
-    // omni light
-    vec4_set(omni_light.ambient, 0.025f, 0.025f, 0.025f, 1.0f);
-    vec4_set(omni_light.diffuse, 0.8f, 0.8f, 0.8f, 1.0f);
-    vec4_set(omni_light.specular, 0.8f, 0.8f, 0.8f, 1.0f);
+    scene = create_scene();
 
-    // direct light
-    vec4_set(direct_light.ambient, 0.025f, 0.025f, 0.025f, 1.0f);
-    vec4_set(direct_light.diffuse, 0.8f, 0.8f, 0.8f, 1.0f);
-    vec4_set(direct_light.specular, 0.3f, 0.3f, 0.3f, 1.0f);
+    camera_t *camera = create_camera();
+    attach_camera_to_scene(scene, camera);
+    camera_init(camera);
+    set_aspect_ratio(camera, (float) window_width / (float) window_height);
 
-    // spot light
-    vec4_set(spot_light.light.ambient, 0.05f, 0.05f, 0.05f, 1.0f);
-    vec4_set(spot_light.light.diffuse, 1.0f, 1.0f, 1.0f, 1.0f);
-    vec4_set(spot_light.light.specular, 1.0f, 1.0f, 1.0f, 1.0f);
+    omni_light = create_omni_light();
+    attach_omni_light_to_scene(scene, omni_light);
+    vec3_set(omni_light->position, 0.0f, -3.0f, 0.0f);
+    vec4_set(omni_light->light_prop.ambient, 0.025f, 0.025f, 0.025f, 1.0f);
+    vec4_set(omni_light->light_prop.diffuse, 0.8f, 0.8f, 0.8f, 1.0f);
+    vec4_set(omni_light->light_prop.specular, 0.8f, 0.8f, 0.8f, 1.0f);
+
+    direct_light = create_direct_light();
+    attach_direct_light_to_scene(scene, direct_light);
+    vec3_set(direct_light->front, 1.0f, -3.0f, 1.0f);
+    vec4_set(direct_light->light_prop.ambient, 0.025f, 0.025f, 0.025f, 1.0f);
+    vec4_set(direct_light->light_prop.diffuse, 0.8f, 0.8f, 0.8f, 1.0f);
+    vec4_set(direct_light->light_prop.specular, 0.3f, 0.3f, 0.3f, 1.0f);
+
+    camera_light = create_spot_light();
+    attach_spot_light_to_scene(scene, camera_light);
+    vec4_set(camera_light->light_prop.ambient, 0.05f, 0.05f, 0.05f, 1.0f);
+    vec4_set(camera_light->light_prop.diffuse, 1.0f, 1.0f, 1.0f, 1.0f);
+    vec4_set(camera_light->light_prop.specular, 1.0f, 1.0f, 1.0f, 1.0f);
+    camera_light->angle = 10.5f * (float) M_PI / 180.0f;
+    camera_light->smooth_angle = 2.0f * (float) M_PI / 180.0f;
 
     model_t *cube_model = cube_model_create();
     shader_t *model_shader = load_shader("shaders/model_vertex.glsl", "shaders/model_fragment.glsl");
@@ -360,6 +207,7 @@ initialize_scene() {
     float scale = 2.0f;
     for (int i = 0; i < 4; i++) {
         cubes[i] = create_scene_object();
+        attach_object_to_scene(scene, cubes[i]);
         attach_model_to_scene_object(cubes[i], cube_model);
         attach_shader_to_scene_object(cubes[i], model_shader);
         scale_scene_object(cubes[i], scale);
@@ -370,21 +218,24 @@ initialize_scene() {
     move_scene_object_to(cubes[2], 8, 8, -8);
     move_scene_object_to(cubes[3], 16, -16, -16);
 
-    // light object
-    light = create_scene_object();
-    attach_model_to_scene_object(light, cube_model);
-    attach_shader_to_scene_object(light, load_shader("shaders/light_vertex.glsl", "shaders/light_fragment.glsl"));
-    scale_scene_object(light, 0.2f);
-    move_scene_object_to_vec(light, omni_light.position);
+    // lighter object
+    scene_object_t *lighter = create_scene_object();
+    attach_object_to_scene(scene, lighter);
+    attach_model_to_scene_object(lighter, cube_model);
+    attach_shader_to_scene_object(lighter, model_shader);
+    scale_scene_object(lighter, 0.2f);
+    move_scene_object_to_vec(lighter, omni_light->position);
 
     // backpack
-    backpack = create_scene_object();
+    scene_object_t *backpack = create_scene_object();
+    attach_object_to_scene(scene, backpack);
     attach_shader_to_scene_object(backpack, model_shader);
     attach_model_to_scene_object(backpack, load_model("assets/models/backpack/backpack.obj", 0));
     move_scene_object_to(backpack, 4, -2, 4);
 
     // sirenhead
-    sirenhead = create_scene_object();
+    scene_object_t *sirenhead = create_scene_object();
+    attach_object_to_scene(scene, sirenhead);
     attach_shader_to_scene_object(sirenhead, model_shader);
     attach_model_to_scene_object(sirenhead,
                                  load_model("assets/models/sirenhead/source/sirenhead.obj", aiProcess_FlipUVs));
@@ -392,14 +243,16 @@ initialize_scene() {
     scale_scene_object(sirenhead, 3.0f);
 
     // male figure
-    male_figure = create_scene_object();
+    scene_object_t *male_figure = create_scene_object();
+    attach_object_to_scene(scene, male_figure);
     attach_shader_to_scene_object(male_figure, model_shader);
     attach_model_to_scene_object(male_figure, load_model("assets/models/male/FinalBaseMesh.obj", 0));
     move_scene_object_to(male_figure, 12, -4, 2);
     scale_scene_object(male_figure, 0.3f);
 
     // spider
-    spider_obj = create_scene_object();
+    scene_object_t *spider_obj = create_scene_object();
+    attach_object_to_scene(scene, spider_obj);
     attach_shader_to_scene_object(spider_obj, model_shader);
     attach_model_to_scene_object(spider_obj,
                                  load_model("assets/models/spider/Only_Spider_with_Animations_Export.obj",
@@ -408,7 +261,8 @@ initialize_scene() {
     scale_scene_object(spider_obj, 0.06f);
 
     // lego man
-    lego_man = create_scene_object();
+    scene_object_t *lego_man = create_scene_object();
+    attach_object_to_scene(scene, lego_man);
     attach_shader_to_scene_object(lego_man, model_shader);
     attach_model_to_scene_object(lego_man,
                                  load_model("assets/models/lego_man/lego obj.obj", 0));
@@ -416,7 +270,8 @@ initialize_scene() {
     scale_scene_object(lego_man, 0.1f);
 
     // t-rex1
-    t_rex1 = create_scene_object();
+    scene_object_t *t_rex1 = create_scene_object();
+    attach_object_to_scene(scene, t_rex1);
     attach_shader_to_scene_object(t_rex1, model_shader);
     attach_model_to_scene_object(t_rex1,
                                  load_model("assets/models/cadnav.com_model/Models_G0901A079/t-rex-adjusted.obj",
@@ -426,23 +281,19 @@ initialize_scene() {
     rotate_scene_object_by_vec(t_rex1, (vec3) {M_PI_2, M_PI, M_PI_4});
 
     // handgun
-    handgun = create_scene_object();
+    scene_object_t *handgun = create_scene_object();
+    attach_object_to_scene(scene, handgun);
     attach_shader_to_scene_object(handgun, model_shader);
     attach_model_to_scene_object(handgun, load_model("assets/models/handgun/handgun.obj", aiProcess_FlipUVs));
     move_scene_object_to(handgun, -22, -2, 2);
     scale_scene_object(handgun, 3.0f);
 
     // subaru
-    subaru = create_scene_object();
+    scene_object_t *subaru = create_scene_object();
+    attach_object_to_scene(scene, subaru);
     attach_shader_to_scene_object(subaru, model_shader);
     attach_model_to_scene_object(subaru, load_model("assets/models/Subaru Impreza/subaru2.obj", aiProcess_FlipUVs));
     move_scene_object_to(subaru, -30, -2, 2);
-//    scale_scene_object(subaru, 3.0f);
-
-//    backpack_model = load_model("assets/models/hot_wheels1/Base Mesh.fbx");
-//    backpack_model = load_model("assets/models/handgun/Handgun_Packed.blend");
-//    backpack_model = load_model("assets/models/Lotus_Hot_Wheels_3DS/Lotus_HW_3DS.3DS");
-//    backpack_model = load_model("assets/models/Subaru Impreza/subaru_impreza.fbx");
 }
 
 
@@ -477,8 +328,6 @@ initialize_app() {
     glEnable(GL_DEPTH_TEST); // enables z-buffering
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
 
-    camera_init(&camera);
-
     initialize_scene();
     GL_CHECK_ERROR;
 
@@ -487,19 +336,7 @@ initialize_app() {
 
 static void
 shutdown_app() {
-    destroy_scene_object(light);
-    destroy_scene_object(male_figure);
-    destroy_scene_object(spider_obj);
-    destroy_scene_object(lego_man);
-    destroy_scene_object(t_rex1);
-    destroy_scene_object(handgun);
-    destroy_scene_object(subaru);
-    destroy_scene_object(sirenhead);
-    destroy_scene_object(backpack);
-    destroy_scene_object(cubes[0]);
-    destroy_scene_object(cubes[1]);
-    destroy_scene_object(cubes[2]);
-    destroy_scene_object(cubes[3]);
+    destroy_scene(&scene);
 
     if (context) {
         SDL_GL_DeleteContext(context);

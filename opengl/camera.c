@@ -1,8 +1,26 @@
 #include "camera.h"
+#include "sdl_ext.h"
 
 static vec3 camera_pos_default = {0.0f, 0.0f, 20.0f};
 static vec3 camera_up_default = {0.0f, 1.0f, 0.0f};
 static vec3 camera_front_default = {0.0f, 0.0f, -1.0f};
+
+camera_t *
+create_camera() {
+    camera_t *camera = calloc(1, sizeof(camera_t));
+    SDL_ALLOC_CHECK(camera);
+
+    return camera;
+}
+
+void
+destroy_camera(camera_t **camera) {
+    if (*camera == NULL) {
+        return;
+    }
+    free(*camera);
+    *camera = NULL;
+}
 
 void camera_init(camera_t *camera) {
     camera->speed_move = 0.2f;
@@ -15,8 +33,19 @@ void camera_init(camera_t *camera) {
     glm_vec3_copy(camera_front_default, camera->front);
 }
 
-void camera_view(camera_t *camera, mat4 view_m) {
-    glm_look(camera->pos, camera->front, camera->up, view_m);
+void
+set_aspect_ratio(camera_t *camera, float ratio) {
+    glm_perspective(M_PI_4, ratio, 0.1f, 100.0f, camera->projection_matrix);
+}
+
+void
+update_camera_views(camera_t *camera) {
+    // View
+    glm_look(camera->pos, camera->front, camera->up, camera->view_matrix);
+
+    // project * view
+    glm_mat4_identity(camera->project_view_matrix);
+    glm_mat4_mul(camera->projection_matrix, camera->view_matrix, camera->project_view_matrix);
 }
 
 void pitch_camera(camera_t *camera, float sign) {
