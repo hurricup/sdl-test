@@ -255,7 +255,7 @@ initialize_scene() {
     attach_object_to_scene(scene, spider_obj);
     attach_shader_to_scene_object(spider_obj, model_shader);
     attach_model_to_scene_object(spider_obj,
-                                 load_model("assets/models/spider/Only_Spider_with_Animations_Export.obj",
+                                 load_model("assets/models/spider/spider.obj",
                                             aiProcess_FlipUVs));
     move_scene_object_to(spider_obj, -12, -4, 2);
     scale_scene_object(spider_obj, 0.06f);
@@ -274,11 +274,10 @@ initialize_scene() {
     attach_object_to_scene(scene, t_rex1);
     attach_shader_to_scene_object(t_rex1, model_shader);
     attach_model_to_scene_object(t_rex1,
-                                 load_model("assets/models/cadnav.com_model/Models_G0901A079/t-rex-adjusted.obj",
+                                 load_model("assets/models/TrexModelByJoel3d_FBX/TrexByJoel3d.fbx.obj",
                                             aiProcess_FlipUVs));
     move_scene_object_to(t_rex1, 28, -4, 2);
-    scale_scene_object(t_rex1, 0.8f);
-    rotate_scene_object_by_vec(t_rex1, (vec3) {M_PI_2, M_PI, M_PI_4});
+    scale_scene_object(t_rex1, 40.0f);
 
     // handgun
     scene_object_t *handgun = create_scene_object();
