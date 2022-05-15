@@ -71,7 +71,7 @@ uniform sampler2D texture_opacity0;// type 8
 out vec4 color;
 
 void main(){
-    float attenuation_const_quadratic = 1.0 / 15000.0;
+    float attenuation_const_quadratic = 1.0 / 8000.0;
 
     vec4 diffuse_texture_color;
     bool diffuse_texture_on = false;

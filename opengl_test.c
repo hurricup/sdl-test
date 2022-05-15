@@ -176,6 +176,7 @@ initialize_scene() {
     camera_t *camera = create_camera();
     attach_camera_to_scene(scene, camera);
     camera_init(camera, window_width, window_height);
+    camera->far_z = 250.0f;
 
     omni_light = create_omni_light();
     attach_omni_light_to_scene(scene, omni_light);
