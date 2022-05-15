@@ -28,7 +28,7 @@ void camera_init(camera_t *camera) {
     camera->speed_yaw = 0.2f;
     camera->speed_roll = 0.02f;
     camera->mouse_sensitivity = 0.001f;
-    glm_vec3_copy(camera_pos_default, camera->pos);
+    glm_vec3_copy(camera_pos_default, camera->position);
     glm_vec3_copy(camera_up_default, camera->up);
     glm_vec3_copy(camera_front_default, camera->front);
 }
@@ -41,7 +41,7 @@ set_aspect_ratio(camera_t *camera, float ratio) {
 void
 update_camera_views(camera_t *camera) {
     // View
-    glm_look(camera->pos, camera->front, camera->up, camera->view_matrix);
+    glm_look(camera->position, camera->front, camera->up, camera->view_matrix);
 
     // project * view
     glm_mat4_identity(camera->project_view_matrix);
@@ -51,7 +51,7 @@ update_camera_views(camera_t *camera) {
 void pitch_camera(camera_t *camera, float sign) {
     vec3 up = GLM_VEC3_ZERO_INIT;
     glm_vec3_scale(camera->up, sign * camera->speed_pitch, up);
-    glm_vec3_add(camera->pos, up, camera->pos);
+    glm_vec3_add(camera->position, up, camera->position);
 }
 
 void yaw_camera(camera_t *camera, float sign) {
@@ -59,13 +59,13 @@ void yaw_camera(camera_t *camera, float sign) {
     glm_vec3_cross(camera->front, camera->up, right);
     glm_normalize(right);
     glm_vec3_scale(right, sign * camera->speed_yaw, right);
-    glm_vec3_add(camera->pos, right, camera->pos);
+    glm_vec3_add(camera->position, right, camera->position);
 }
 
 void move_camera(camera_t *camera, float sign) {
     vec3 delta_front = GLM_VEC3_ZERO_INIT;
     glm_vec3_scale(camera->front, camera->speed_move * (float) sign, delta_front);
-    glm_vec3_add(camera->pos, delta_front, camera->pos);
+    glm_vec3_add(camera->position, delta_front, camera->position);
 }
 
 void roll_camera(camera_t *camera, float sign) {

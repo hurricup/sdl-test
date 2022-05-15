@@ -150,7 +150,7 @@ update_cubes() {
 
 static void
 update_camera_light() {
-    glm_vec3_copy(scene->camera->pos, camera_light->position);
+    glm_vec3_copy(scene->camera->position, camera_light->position);
     glm_vec3_copy(scene->camera->front, camera_light->front);
 }
 

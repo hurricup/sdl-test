@@ -9,7 +9,7 @@ typedef struct camera {
     float speed_pitch;
     float speed_yaw;
     float speed_roll;
-    vec3 pos;
+    vec3 position;
     vec3 up;
     vec3 front;
     mat4 view_matrix;

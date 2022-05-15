@@ -51,7 +51,7 @@ set_up_light_and_camera(scene_t *scene, shader_t *shader) {
     }
 
     // camera position
-    shader_set_vec3(shader, "camera_position", scene->camera->pos);
+    shader_set_vec3(shader, "camera_position", scene->camera->position);
 }
 
 static void
