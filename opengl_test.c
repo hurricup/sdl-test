@@ -28,11 +28,8 @@ static scene_object_t *flying_omni_lighter;
 static direct_light_t *flying_direct_light;
 
 static spot_light_t *camera_light;
-static bool camera_light_on = true;
 static direct_light_t *direct_light;
-static bool direct_light_on = true;
 static omni_light_t *omni_light;
-static bool omni_light_on = true;
 static scene_object_t *cubes[4];
 
 static int polygon_mode = GL_FILL;
@@ -74,9 +71,8 @@ event_loop() {
                 switch (event.key.keysym.sym) {
                     case SDLK_l: {
                         // toggle camera light
-                        camera_light_on = !camera_light_on;
-                        enable_spot_light(scene, camera_light, camera_light_on);
-                        enable_spot_light(scene, flying_spot_light, camera_light_on);
+                        camera_light->enabled = !camera_light->enabled;
+                        flying_spot_light->enabled = !flying_spot_light->enabled;
                         break;
                     }
                     case SDLK_a: // move camera right according to right vector
@@ -111,16 +107,14 @@ event_loop() {
                         break;
                     case SDLK_o: {
                         // toggle omni light
-                        omni_light_on = !omni_light_on;
-                        enable_omni_light(scene, omni_light, omni_light_on);
-                        enable_omni_light(scene, flying_omni_light, omni_light_on);
+                        omni_light->enabled = !omni_light->enabled;
+                        flying_omni_light->enabled = !flying_omni_light->enabled;
                         break;
                     }
                     case SDLK_t: {
                         // toggle direct light
-                        direct_light_on = !direct_light_on;
-                        enable_direct_light(scene, direct_light, direct_light_on);
-                        enable_direct_light(scene, flying_direct_light, direct_light_on);
+                        direct_light->enabled = !direct_light->enabled;
+                        flying_direct_light->enabled = !flying_direct_light->enabled;
                         break;
                     }
                     default:

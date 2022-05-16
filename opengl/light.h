@@ -12,11 +12,13 @@ typedef struct light_prop {
 typedef struct direct_light {
     light_prop_t light_prop;
     vec3 front;
+    bool enabled;
 } direct_light_t;
 
 typedef struct omni_light {
     light_prop_t light_prop;
     vec3 position;
+    bool enabled;
 } omni_light_t;
 
 typedef struct spot_light {
@@ -25,6 +27,7 @@ typedef struct spot_light {
     vec3 front;
     float angle;
     float smooth_angle; // additional angle for smooth border
+    bool enabled;
 } spot_light_t;
 
 direct_light_t *create_direct_light();
