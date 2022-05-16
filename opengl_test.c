@@ -20,6 +20,13 @@ static const Uint32 FPS = 30;
 static const Uint32 FPS_SIZE_MS = 1000 / FPS;
 
 static scene_t *scene;
+
+static spot_light_t *flying_spot_light;
+static scene_object_t *flying_spot_lighter;
+static omni_light_t *flying_omni_light;
+static scene_object_t *flying_omni_lighter;
+static direct_light_t *flying_direct_light;
+
 static spot_light_t *camera_light;
 static bool camera_light_on = true;
 static direct_light_t *direct_light;
@@ -69,6 +76,7 @@ event_loop() {
                         // toggle camera light
                         camera_light_on = !camera_light_on;
                         enable_spot_light(scene, camera_light, camera_light_on);
+                        enable_spot_light(scene, flying_spot_light, camera_light_on);
                         break;
                     }
                     case SDLK_a: // move camera right according to right vector
@@ -105,12 +113,14 @@ event_loop() {
                         // toggle omni light
                         omni_light_on = !omni_light_on;
                         enable_omni_light(scene, omni_light, omni_light_on);
+                        enable_omni_light(scene, flying_omni_light, omni_light_on);
                         break;
                     }
                     case SDLK_t: {
                         // toggle direct light
                         direct_light_on = !direct_light_on;
                         enable_direct_light(scene, direct_light, direct_light_on);
+                        enable_direct_light(scene, flying_direct_light, direct_light_on);
                         break;
                     }
                     default:
@@ -154,9 +164,42 @@ update_camera_light() {
 }
 
 static void
+update_flying_lights() {
+    int period_ms = 30000;
+    Uint32 int_value = SDL_GetTicks() % period_ms;
+    double angle = M_PI * 2 * int_value / 30000;
+    double phase = M_PI * 2 / 3;
+    float range = 20.0f;
+
+    // spot light
+    float x = range * (float) cos(angle);
+    float y = range * (float) sin(angle);
+    float z = 0.0f;
+    vec3_set(flying_spot_light->position, x, y, z);
+    vec3_set(flying_spot_light->front, -x, -y, -z);
+    move_scene_object_to_vec(flying_spot_lighter, flying_spot_light->position);
+
+    // direct light
+    angle += phase;
+    y = range * (float) cos(angle);
+    z = range * (float) sin(angle);
+    x = 0.0f;
+    vec3_set(flying_direct_light->front, -x, -y, -z);
+
+    // omni light
+    angle += phase;
+    z = range * (float) cos(angle);
+    x = range * (float) sin(angle);
+    y = 0.0f;
+    vec3_set(flying_omni_light->position, x, y, z);
+    move_scene_object_to_vec(flying_omni_lighter, flying_omni_light->position);
+}
+
+static void
 update_scene() {
     update_cubes();
     update_camera_light();
+    update_flying_lights();
 }
 
 static void
@@ -167,6 +210,15 @@ update_screen() {
     SDL_CHECK_ERROR;
 }
 
+
+static scene_object_t *create_lighter(model_t *cube_model, shader_t *model_shader) {
+    scene_object_t *lighter = create_scene_object();
+    attach_object_to_scene(scene, lighter);
+    attach_model_to_scene_object(lighter, cube_model);
+    attach_shader_to_scene_object(lighter, model_shader);
+    scale_scene_object(lighter, 0.2f);
+    return lighter;
+}
 
 static void
 initialize_scene() {
@@ -184,12 +236,20 @@ initialize_scene() {
     vec4_set(omni_light->light_prop.diffuse, 0.8f, 0.8f, 0.8f, 1.0f);
     vec4_set(omni_light->light_prop.specular, 0.8f, 0.8f, 0.8f, 1.0f);
 
+    flying_omni_light = create_omni_light();
+    attach_omni_light_to_scene(scene, flying_omni_light);
+    memcpy(flying_omni_light, omni_light, sizeof(omni_light_t));
+
     direct_light = create_direct_light();
     attach_direct_light_to_scene(scene, direct_light);
     vec3_set(direct_light->front, 1.0f, -3.0f, 1.0f);
     vec4_set(direct_light->light_prop.ambient, 0.025f, 0.025f, 0.025f, 1.0f);
     vec4_set(direct_light->light_prop.diffuse, 0.8f, 0.8f, 0.8f, 1.0f);
     vec4_set(direct_light->light_prop.specular, 0.3f, 0.3f, 0.3f, 1.0f);
+
+    flying_direct_light = create_direct_light();
+    attach_direct_light_to_scene(scene, flying_direct_light);
+    memcpy(flying_direct_light, direct_light, sizeof(direct_light_t));
 
     camera_light = create_spot_light();
     attach_spot_light_to_scene(scene, camera_light);
@@ -198,6 +258,10 @@ initialize_scene() {
     vec4_set(camera_light->light_prop.specular, 1.0f, 1.0f, 1.0f, 1.0f);
     camera_light->angle = 10.5f * (float) M_PI / 180.0f;
     camera_light->smooth_angle = 2.0f * (float) M_PI / 180.0f;
+
+    flying_spot_light = create_spot_light();
+    attach_spot_light_to_scene(scene, flying_spot_light);
+    memcpy(flying_spot_light, camera_light, sizeof(spot_light_t));
 
     model_t *cube_model = cube_model_create();
     shader_t *model_shader = load_shader("shaders/model_vertex.glsl", "shaders/model_fragment.glsl");
@@ -218,12 +282,11 @@ initialize_scene() {
     move_scene_object_to(cubes[3], 16, -16, -16);
 
     // lighter object
-    scene_object_t *lighter = create_scene_object();
-    attach_object_to_scene(scene, lighter);
-    attach_model_to_scene_object(lighter, cube_model);
-    attach_shader_to_scene_object(lighter, model_shader);
-    scale_scene_object(lighter, 0.2f);
+    scene_object_t *lighter = create_lighter(cube_model, model_shader);
     move_scene_object_to_vec(lighter, omni_light->position);
+
+    flying_omni_lighter = create_lighter(cube_model, model_shader);
+    flying_spot_lighter = create_lighter(cube_model, model_shader);
 
     // backpack
     scene_object_t *backpack = create_scene_object();
