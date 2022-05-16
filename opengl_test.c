@@ -245,7 +245,7 @@ initialize_scene() {
     vec3_set(direct_light->front, 1.0f, -3.0f, 1.0f);
     vec4_set(direct_light->light_prop.ambient, 0.025f, 0.025f, 0.025f, 1.0f);
     vec4_set(direct_light->light_prop.diffuse, 0.8f, 0.8f, 0.8f, 1.0f);
-    vec4_set(direct_light->light_prop.specular, 0.3f, 0.3f, 0.3f, 1.0f);
+    vec4_set(direct_light->light_prop.specular, 0.8f, 0.8f, 0.8f, 1.0f);
 
     flying_direct_light = create_direct_light();
     attach_direct_light_to_scene(scene, flying_direct_light);
@@ -254,8 +254,8 @@ initialize_scene() {
     camera_light = create_spot_light();
     attach_spot_light_to_scene(scene, camera_light);
     vec4_set(camera_light->light_prop.ambient, 0.05f, 0.05f, 0.05f, 1.0f);
-    vec4_set(camera_light->light_prop.diffuse, 1.0f, 1.0f, 1.0f, 1.0f);
-    vec4_set(camera_light->light_prop.specular, 1.0f, 1.0f, 1.0f, 1.0f);
+    vec4_set(camera_light->light_prop.diffuse, 0.8f, 0.8f, 0.8f, 1.0f);
+    vec4_set(camera_light->light_prop.specular, 0.8f, 0.8f, 0.8f, 1.0f);
     camera_light->angle = 10.5f * (float) M_PI / 180.0f;
     camera_light->smooth_angle = 2.0f * (float) M_PI / 180.0f;
 
