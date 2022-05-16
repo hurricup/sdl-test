@@ -395,6 +395,8 @@ initialize_app() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     GL_CHECK_ERROR;
 
+    glEnable(GL_CULL_FACE);
+
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
     GL_CHECK_ERROR;
 
