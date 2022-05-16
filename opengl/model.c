@@ -425,21 +425,23 @@ static void
 import_node(model_t *model, struct aiNode *node, const struct aiScene *scene) {
     // process all the node's meshes (if any)
     if (node->mNumMeshes > 0) {
-        mesh_list_item_t *last_mesh_item = model->meshes;
-        while (last_mesh_item != NULL && last_mesh_item->next != NULL) {
-            last_mesh_item = last_mesh_item->next;
+        mesh_list_item_t **list_head = &model->meshes;
+        mesh_list_item_t **list_tail = list_head;
+        while (*list_tail != NULL && (*list_tail)->next != NULL) {
+            list_tail = &(*list_tail)->next;
         }
 
         for (unsigned int i = 0; i < node->mNumMeshes; i++) {
             struct aiMesh *assimp_mesh = scene->mMeshes[node->mMeshes[i]];
             mesh_list_item_t *mesh_list_item = alloc_mesh_list_item();
             import_mesh(&mesh_list_item->mesh, assimp_mesh, scene, model);
-            if (last_mesh_item == NULL) {
-                model->meshes = mesh_list_item;
+            if (*list_head == NULL || mesh_list_item->mesh.material.opacity > 0.99f) {
+                mesh_list_item->next = *list_head;
+                *list_head = mesh_list_item;
             } else {
-                last_mesh_item->next = mesh_list_item;
+                (*list_tail)->next = mesh_list_item;
+                list_tail = &mesh_list_item;
             }
-            last_mesh_item = mesh_list_item;
         }
     }
     // then do the same for each of its children
