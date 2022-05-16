@@ -253,7 +253,7 @@ initialize_scene() {
 
     camera_light = create_spot_light();
     attach_spot_light_to_scene(scene, camera_light);
-    vec4_set(camera_light->light_prop.ambient, 0.05f, 0.05f, 0.05f, 1.0f);
+    vec4_set(camera_light->light_prop.ambient, 0.01f, 0.01f, 0.01f, 1.0f);
     vec4_set(camera_light->light_prop.diffuse, 0.8f, 0.8f, 0.8f, 1.0f);
     vec4_set(camera_light->light_prop.specular, 0.8f, 0.8f, 0.8f, 1.0f);
     camera_light->angle = 10.5f * (float) M_PI / 180.0f;
