@@ -254,6 +254,7 @@ draw_scene_screen(scene_t *scene) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_STENCIL_TEST);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     scene_screen_t *scene_screen = scene->scene_screen;
     shader_t *shader = scene_screen->shader;
