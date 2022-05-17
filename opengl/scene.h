@@ -25,12 +25,22 @@ typedef struct spot_light_list_item {
     struct spot_light_list_item *next;
 } spot_light_list_item_t;
 
+typedef struct scene_screen {
+    unsigned int vao;
+    unsigned int fbo;
+    unsigned int rbo;
+    unsigned int texture;
+    unsigned int width;
+    unsigned int height;
+} scene_screen_t;
+
 typedef struct scene {
     camera_t *camera;
     scene_object_list_item_t *objects;
     omni_light_list_item_t *omni_lights;
     direct_light_list_item_t *direct_lights;
     spot_light_list_item_t *spot_lights;
+    scene_screen_t *scene_screen;
 } scene_t;
 
 scene_t *create_scene();

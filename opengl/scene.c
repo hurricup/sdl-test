@@ -1,7 +1,35 @@
 #include "scene.h"
 #include "sdl_ext.h"
+#include "assert.h"
 
 static unsigned int draw_pass = 0;
+
+static void
+destroy_scene_screen_contents(scene_screen_t *scene_screen) {
+    if (scene_screen == NULL) {
+        return;
+    }
+    if (scene_screen->fbo >= 0) {
+        glDeleteFramebuffers(1, &scene_screen->fbo);
+    }
+    if (scene_screen->texture >= 0) {
+        glDeleteTextures(1, &scene_screen->texture);
+    }
+    if (scene_screen->rbo >= 0) {
+        glDeleteRenderbuffers(1, &scene_screen->rbo);
+    }
+}
+
+static void
+destroy_scene_screen(scene_screen_t **pp_scene_screen) {
+    scene_screen_t *scene_screen = *pp_scene_screen;
+    if (scene_screen == NULL) {
+        return;
+    }
+    destroy_scene_screen_contents(scene_screen);
+    free(scene_screen);
+    *pp_scene_screen = NULL;
+}
 
 scene_t *
 create_scene() {
@@ -99,7 +127,55 @@ draw_object(scene_t *scene, scene_object_t *object) {
     draw_scene_object(object, scene->camera->project_view_matrix);
 }
 
+static void
+init_scene_screen(scene_t *scene) {
+    camera_t *camera = scene->camera;
+    if (camera == NULL) {
+        SDL_Die("Attempt to draw without a camera");
+        assert(camera != NULL);
+    }
+
+    scene_screen_t *scene_screen = scene->scene_screen;
+    if (scene_screen != NULL && scene_screen->width == camera->viewport_width &&
+        scene_screen->height == camera->viewport_height) {
+        return;
+    }
+
+    destroy_scene_screen_contents(scene->scene_screen);
+    if (scene_screen == NULL) {
+        scene_screen = scene->scene_screen = calloc(1, sizeof(scene_screen_t));
+        SDL_ALLOC_CHECK(scene_screen)
+        assert(scene_screen != NULL);
+    }
+
+    scene_screen->width = camera->viewport_width;
+    scene_screen->height = camera->viewport_height;
+
+    glGenFramebuffers(1, &scene_screen->fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, scene_screen->fbo);
+    GL_CHECK_ERROR;
+
+    glGenTextures(1, &scene_screen->texture);
+    glBindTexture(GL_TEXTURE_2D, scene_screen->texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, (int) scene_screen->width, (int) scene_screen->height, 0, GL_RGB,
+                 GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, scene_screen->texture, 0);
+    GL_CHECK_ERROR;
+
+    glGenRenderbuffers(1, &scene_screen->rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, scene_screen->rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, (int) scene_screen->width, (int) scene_screen->height);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    GL_CHECK_ERROR;
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void draw_scene(scene_t *scene) {
+    init_scene_screen(scene);
     draw_pass++;
     update_camera_views(scene->camera);
 
@@ -146,14 +222,15 @@ destroy_direct_light_list_item(direct_light_list_item_t **pp_direct_light_list_i
     *pp_direct_light_list_item = next_item;
 }
 
-
-void destroy_scene(scene_t **pp_scene) {
+void
+destroy_scene(scene_t **pp_scene) {
     scene_t *scene = *pp_scene;
     if (scene == NULL) {
         return;
     }
 
     destroy_camera(&scene->camera);
+    destroy_scene_screen(&scene->scene_screen);
 
     while (scene->objects != NULL) {
         destroy_scene_object_list_item(&scene->objects);
