@@ -123,6 +123,7 @@ draw_mesh(mesh_t *mesh, shader_t *shader) {
 
 static void
 destroy_texture(texture_t *texture) {
+    glDeleteTextures(1, &texture->id);
     free(texture->filename);
     texture->filename = NULL;
 }
