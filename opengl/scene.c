@@ -9,14 +9,14 @@ destroy_scene_screen_contents(scene_screen_t *scene_screen) {
     if (scene_screen == NULL) {
         return;
     }
-    if (scene_screen->fbo >= 0) {
-        glDeleteFramebuffers(1, &scene_screen->fbo);
+    if (scene_screen->frame_buffer >= 0) {
+        glDeleteFramebuffers(1, &scene_screen->frame_buffer);
     }
     if (scene_screen->texture >= 0) {
         glDeleteTextures(1, &scene_screen->texture);
     }
-    if (scene_screen->rbo >= 0) {
-        glDeleteRenderbuffers(1, &scene_screen->rbo);
+    if (scene_screen->render_buffer >= 0) {
+        glDeleteRenderbuffers(1, &scene_screen->render_buffer);
     }
 }
 
@@ -151,8 +151,8 @@ init_scene_screen(scene_t *scene) {
     scene_screen->width = camera->viewport_width;
     scene_screen->height = camera->viewport_height;
 
-    glGenFramebuffers(1, &scene_screen->fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, scene_screen->fbo);
+    glGenFramebuffers(1, &scene_screen->frame_buffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, scene_screen->frame_buffer);
     GL_CHECK_ERROR;
 
     glGenTextures(1, &scene_screen->texture);
@@ -165,8 +165,8 @@ init_scene_screen(scene_t *scene) {
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, scene_screen->texture, 0);
     GL_CHECK_ERROR;
 
-    glGenRenderbuffers(1, &scene_screen->rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, scene_screen->rbo);
+    glGenRenderbuffers(1, &scene_screen->render_buffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, scene_screen->render_buffer);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, (int) scene_screen->width, (int) scene_screen->height);
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     GL_CHECK_ERROR;

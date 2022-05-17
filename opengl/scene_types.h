@@ -45,9 +45,9 @@ typedef struct mesh {
     texture_t **textures;
     material_t material;
 
-    unsigned int vao;
-    unsigned int vbo;
-    unsigned int ebo;
+    unsigned int vertex_array;
+    unsigned int vertex_buffer;
+    unsigned int element_buffer;
 } mesh_t;
 
 typedef struct mesh_list_item {

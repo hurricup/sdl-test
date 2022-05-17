@@ -36,16 +36,16 @@ static char texture_flags_names[MAX_TEXTURE_TYPE + 1][TEXTURE_SLOT_NAME_SIZE] = 
 
 static void
 init_mesh_gl(mesh_t *mesh) {
-    glGenVertexArrays(1, &mesh->vao);
-    glGenBuffers(1, &mesh->vbo);
-    glGenBuffers(1, &mesh->ebo);
+    glGenVertexArrays(1, &mesh->vertex_array);
+    glGenBuffers(1, &mesh->vertex_buffer);
+    glGenBuffers(1, &mesh->element_buffer);
 
-    glBindVertexArray(mesh->vao);
+    glBindVertexArray(mesh->vertex_array);
 
-    glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_buffer);
     glBufferData(GL_ARRAY_BUFFER, mesh->vertices_number * (long) sizeof(vertex_t), mesh->vertices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->element_buffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh->indices_number * (long) sizeof(unsigned int), mesh->indices,
                  GL_STATIC_DRAW);
 
@@ -114,7 +114,7 @@ draw_mesh(mesh_t *mesh, shader_t *shader) {
     shader_set_float(shader, "material.opacity", mesh->material.opacity);
 
     // draw
-    glBindVertexArray(mesh->vao);
+    glBindVertexArray(mesh->vertex_array);
     glDrawElements(GL_TRIANGLES, mesh->indices_number, GL_UNSIGNED_INT, 0);
     GL_CHECK_ERROR;
 
@@ -145,17 +145,17 @@ destroy_mesh_content(mesh_t *mesh) {
         mesh->textures_number = 0;
         mesh->textures = NULL;
     }
-    if (mesh->vao >= 0) {
-        glDeleteVertexArrays(1, &mesh->vao);
+    if (mesh->vertex_array >= 0) {
+        glDeleteVertexArrays(1, &mesh->vertex_array);
     }
-    if (mesh->ebo >= 0) {
-        glDeleteBuffers(1, &mesh->ebo);
+    if (mesh->element_buffer >= 0) {
+        glDeleteBuffers(1, &mesh->element_buffer);
     }
-    if (mesh->vbo >= 0) {
-        glDeleteBuffers(1, &mesh->vbo);
+    if (mesh->vertex_buffer >= 0) {
+        glDeleteBuffers(1, &mesh->vertex_buffer);
     }
-    if (mesh->ebo >= 0) {
-        glDeleteBuffers(1, &mesh->ebo);
+    if (mesh->element_buffer >= 0) {
+        glDeleteBuffers(1, &mesh->element_buffer);
     }
 }
 
