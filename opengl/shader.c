@@ -92,6 +92,9 @@ destroy_shader(shader_t *shader) {
         free(shader->fragment_shader_name);
         shader->fragment_shader_name = NULL;
     }
+    if (shader->id >= 0) {
+        glDeleteProgram(shader->id);
+    }
     free(shader);
 }
 

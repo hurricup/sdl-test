@@ -33,6 +33,7 @@ typedef struct scene_screen {
     unsigned int texture;
     unsigned int width;
     unsigned int height;
+    shader_t *shader;
 } scene_screen_t;
 
 typedef struct scene {

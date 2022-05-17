@@ -29,6 +29,9 @@ destroy_scene_screen_contents(scene_screen_t *scene_screen) {
         glDeleteBuffers(1, &scene_screen->vertex_buffer);
         scene_screen->vertex_buffer = -1;
     }
+    if (scene_screen->shader != NULL) {
+        detach_shader(&scene_screen->shader);
+    }
 }
 
 static void
@@ -219,6 +222,9 @@ init_scene_screen(scene_t *scene) {
     GL_CHECK_ERROR;
 
     glBindVertexArray(0);
+
+    shader_t *shader = load_shader("shaders/scene_screen_vertex.glsl", "shaders/scene_screen_fragment.glsl");
+    attach_shader(&scene_screen->shader, shader);
 }
 
 void draw_scene(scene_t *scene) {
