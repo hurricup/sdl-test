@@ -146,12 +146,6 @@ destroy_mesh_content(mesh_t *mesh) {
     }
 }
 
-static void
-destroy_mesh(mesh_t *mesh) {
-    destroy_mesh_content(mesh);
-    free(mesh);
-}
-
 void
 model_info(model_t *model, const char *path) {
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Model %s (%s):", path, model->directory);
