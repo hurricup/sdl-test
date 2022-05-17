@@ -154,9 +154,6 @@ destroy_mesh_content(mesh_t *mesh) {
     if (mesh->vertex_buffer >= 0) {
         glDeleteBuffers(1, &mesh->vertex_buffer);
     }
-    if (mesh->element_buffer >= 0) {
-        glDeleteBuffers(1, &mesh->element_buffer);
-    }
 }
 
 void
