@@ -5,6 +5,16 @@
 #include "scene_object.h"
 #include "light.h"
 
+typedef enum {
+    EFFECT_NONE = 0,
+    EFFECT_INVERT,
+    EFFECT_GRAYSCALE,
+    EFFECT_SHARP,
+    EFFECT_BLUR,
+    EFFECT_EDGE,
+    EFFECT_LAST_TYPE
+} effect_type_t;
+
 typedef struct scene_object_list_item {
     scene_object_t *item;
     struct scene_object_list_item *next;
@@ -43,6 +53,7 @@ typedef struct scene {
     direct_light_list_item_t *direct_lights;
     spot_light_list_item_t *spot_lights;
     scene_screen_t *scene_screen;
+    effect_type_t effect_type;
 } scene_t;
 
 scene_t *create_scene();

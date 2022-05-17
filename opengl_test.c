@@ -114,6 +114,13 @@ event_loop() {
                         flying_direct_light->enabled = !flying_direct_light->enabled;
                         break;
                     }
+                    case SDLK_y: {
+                        scene->effect_type++;
+                        if (scene->effect_type >= EFFECT_LAST_TYPE) {
+                            scene->effect_type = EFFECT_NONE;
+                        }
+                        break;
+                    }
                     default:
                         break;
                 }

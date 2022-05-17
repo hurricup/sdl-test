@@ -255,9 +255,14 @@ draw_scene_screen(scene_t *scene) {
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_STENCIL_TEST);
 
-    shader_use(scene->scene_screen->shader);
-    glBindVertexArray(scene->scene_screen->vertex_array);
-    glBindTexture(GL_TEXTURE_2D, scene->scene_screen->texture);
+    scene_screen_t *scene_screen = scene->scene_screen;
+    shader_t *shader = scene_screen->shader;
+    shader_use(shader);
+    glBindVertexArray(scene_screen->vertex_array);
+    glBindTexture(GL_TEXTURE_2D, scene_screen->texture);
+    shader_set_int(shader, "effect_type", scene->effect_type);
+    shader_set_float(shader, "step_x", 1.0f / (float) scene_screen->width);
+    shader_set_float(shader, "step_y", 1.0f / (float) scene_screen->height);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     GL_CHECK_ERROR;
 
