@@ -39,13 +39,15 @@ void camera_init(camera_t *camera, unsigned int window_width, unsigned int windo
 
 void
 set_aspect_ratio(camera_t *camera, unsigned int window_width, unsigned int window_height) {
-    camera->aspect_ratio = (float) window_width / (float) window_height;
+    camera->viewport_width = window_width;
+    camera->viewport_height = window_height;
 }
 
 void
 update_camera_views(camera_t *camera) {
     // projection
-    glm_perspective(camera->fov, camera->aspect_ratio, camera->near_z, camera->far_z, camera->projection_matrix);
+    glm_perspective(camera->fov, (float) camera->viewport_width / (float) camera->viewport_height,
+                    camera->near_z, camera->far_z, camera->projection_matrix);
 
     // View
     glm_look(camera->position, camera->front, camera->up, camera->view_matrix);

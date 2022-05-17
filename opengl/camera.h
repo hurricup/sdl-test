@@ -16,9 +16,10 @@ typedef struct camera {
     mat4 projection_matrix;
     mat4 project_view_matrix;
     float fov;
-    float aspect_ratio;
     float near_z;
     float far_z;
+    unsigned int viewport_width;
+    unsigned int viewport_height;
 } camera_t;
 
 camera_t *create_camera();
