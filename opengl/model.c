@@ -144,6 +144,18 @@ destroy_mesh_content(mesh_t *mesh) {
         mesh->textures_number = 0;
         mesh->textures = NULL;
     }
+    if (mesh->vao >= 0) {
+        glDeleteVertexArrays(1, &mesh->vao);
+    }
+    if (mesh->ebo >= 0) {
+        glDeleteBuffers(1, &mesh->ebo);
+    }
+    if (mesh->vbo >= 0) {
+        glDeleteBuffers(1, &mesh->vbo);
+    }
+    if (mesh->ebo >= 0) {
+        glDeleteBuffers(1, &mesh->ebo);
+    }
 }
 
 void
