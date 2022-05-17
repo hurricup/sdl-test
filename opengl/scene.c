@@ -188,6 +188,37 @@ init_scene_screen(scene_t *scene) {
     GL_CHECK_ERROR;
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // feels like this data is pretty static and may be created only once
+    glGenVertexArrays(1, &scene_screen->vertex_array);
+    glBindVertexArray(scene_screen->vertex_array);
+
+    glGenBuffers(1, &scene_screen->vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, scene_screen->vertex_buffer);
+
+    const float screen_data[] = {
+            // positions   // texture coords
+            -1.0f, 1.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f,
+            1.0f, -1.0f, 1.0f, 0.0f,
+
+            -1.0f, 1.0f, 0.0f, 1.0f,
+            1.0f, -1.0f, 1.0f, 0.0f,
+            1.0f, 1.0f, 1.0f, 1.0f
+    };
+    glBufferData(GL_ARRAY_BUFFER, sizeof(screen_data), screen_data, GL_STATIC_DRAW);
+
+    // vertex positions
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) 0);
+
+    // texture coords
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) (2 * sizeof(float)));
+
+    GL_CHECK_ERROR;
+
+    glBindVertexArray(0);
 }
 
 void draw_scene(scene_t *scene) {
