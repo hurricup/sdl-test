@@ -11,12 +11,15 @@ destroy_scene_screen_contents(scene_screen_t *scene_screen) {
     }
     if (scene_screen->frame_buffer >= 0) {
         glDeleteFramebuffers(1, &scene_screen->frame_buffer);
+        scene_screen->frame_buffer = -1;
     }
     if (scene_screen->texture >= 0) {
         glDeleteTextures(1, &scene_screen->texture);
+        scene_screen->texture = -1;
     }
     if (scene_screen->render_buffer >= 0) {
         glDeleteRenderbuffers(1, &scene_screen->render_buffer);
+        scene_screen->render_buffer = -1;
     }
 }
 

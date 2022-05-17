@@ -147,12 +147,15 @@ destroy_mesh_content(mesh_t *mesh) {
     }
     if (mesh->vertex_array >= 0) {
         glDeleteVertexArrays(1, &mesh->vertex_array);
+        mesh->vertex_array = -1;
     }
     if (mesh->element_buffer >= 0) {
         glDeleteBuffers(1, &mesh->element_buffer);
+        mesh->element_buffer = -1;
     }
     if (mesh->vertex_buffer >= 0) {
         glDeleteBuffers(1, &mesh->vertex_buffer);
+        mesh->vertex_buffer = -1;
     }
 }
 
