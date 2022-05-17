@@ -1,5 +1,4 @@
 #include "opengl/sdl_ext.h"
-#include "opengl/gl_ext.h"
 #include "opengl/cglm_ext.h"
 #include <stdbool.h>
 #include <GL/gl.h>
@@ -31,8 +30,6 @@ static spot_light_t *camera_light;
 static direct_light_t *direct_light;
 static omni_light_t *omni_light;
 static scene_object_t *cubes[4];
-
-static int polygon_mode = GL_FILL;
 
 static SDL_Window *window = NULL;
 static SDL_GLContext context = NULL;
@@ -103,7 +100,7 @@ event_loop() {
                         camera_init(scene->camera, window_width, window_height);
                         break;
                     case SDLK_p: // change polygon mode
-                        polygon_mode = polygon_mode == GL_FILL ? GL_LINE : GL_FILL;
+                        scene->camera->polygon_mode = scene->camera->polygon_mode == GL_FILL ? GL_LINE : GL_FILL;
                         break;
                     case SDLK_o: {
                         // toggle omni light
@@ -126,17 +123,6 @@ event_loop() {
         SDL_Delay(FPS_SIZE_MS);
         SDL_CHECK_ERROR;
     }
-}
-
-static void
-do_draw_scene() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glPolygonMode(GL_FRONT_AND_BACK, polygon_mode);
-    GL_CHECK_ERROR;
-
-    draw_scene(scene);
-
-    glFlush();
 }
 
 static void
@@ -199,7 +185,7 @@ update_scene() {
 static void
 update_screen() {
     update_scene();
-    do_draw_scene();
+    draw_scene(scene);
     SDL_GL_SwapWindow(window);
     SDL_CHECK_ERROR;
 }
@@ -380,22 +366,8 @@ initialize_app() {
                 glGetString(GL_VERSION),
                 glGetString(GL_SHADING_LANGUAGE_VERSION)
     );
-    glEnable(GL_DEPTH_TEST); // enables z-buffering
-    GL_CHECK_ERROR;
-
-    glEnable(GL_BLEND);
-    GL_CHECK_ERROR;
-
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    GL_CHECK_ERROR;
-
-    glEnable(GL_CULL_FACE);
-
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
-    GL_CHECK_ERROR;
 
     initialize_scene();
-    GL_CHECK_ERROR;
 
     return true;
 }

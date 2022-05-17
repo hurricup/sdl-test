@@ -20,6 +20,7 @@ typedef struct camera {
     float far_z;
     unsigned int viewport_width;
     unsigned int viewport_height;
+    int polygon_mode;
 } camera_t;
 
 camera_t *create_camera();

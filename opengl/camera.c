@@ -1,3 +1,4 @@
+#include <GL/gl.h>
 #include "camera.h"
 #include "sdl_ext.h"
 
@@ -9,6 +10,7 @@ camera_t *
 create_camera() {
     camera_t *camera = calloc(1, sizeof(camera_t));
     SDL_ALLOC_CHECK(camera);
+    camera->polygon_mode = GL_FILL;
 
     return camera;
 }

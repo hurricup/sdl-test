@@ -1,3 +1,4 @@
+#include <GL/gl.h>
 #include "scene.h"
 #include "sdl_ext.h"
 #include "assert.h"
@@ -151,7 +152,7 @@ init_scene_screen(scene_t *scene) {
 
     scene_screen_t *scene_screen = scene->scene_screen;
     if (scene_screen != NULL && scene_screen->width == camera->viewport_width &&
-        scene_screen->height == camera->viewport_height) {
+            scene_screen->height == camera->viewport_height) {
         return;
     }
 
@@ -227,8 +228,45 @@ init_scene_screen(scene_t *scene) {
     attach_shader(&scene_screen->shader, shader);
 }
 
-void draw_scene(scene_t *scene) {
-    init_scene_screen(scene);
+static void
+set_up_scene_options(scene_t *scene) {
+    glEnable(GL_DEPTH_TEST); // enables z-buffering
+    GL_CHECK_ERROR;
+
+    glEnable(GL_BLEND);
+    GL_CHECK_ERROR;
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    GL_CHECK_ERROR;
+
+    glEnable(GL_CULL_FACE);
+
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
+    GL_CHECK_ERROR;
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glPolygonMode(GL_FRONT_AND_BACK, scene->camera->polygon_mode);
+    GL_CHECK_ERROR;
+}
+
+static void
+draw_scene_screen(scene_t *scene) {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_STENCIL_TEST);
+
+    shader_use(scene->scene_screen->shader);
+    glBindVertexArray(scene->scene_screen->vertex_array);
+    glBindTexture(GL_TEXTURE_2D, scene->scene_screen->texture);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    GL_CHECK_ERROR;
+
+    glFlush();
+}
+
+static void
+draw_scene_fair(scene_t *scene) {
+    set_up_scene_options(scene);
     draw_pass++;
     update_camera_views(scene->camera);
 
@@ -237,6 +275,14 @@ void draw_scene(scene_t *scene) {
         draw_object(scene, current_object_item->item);
         current_object_item = current_object_item->next;
     }
+    glFlush();
+}
+
+void draw_scene(scene_t *scene) {
+    init_scene_screen(scene);
+    glBindFramebuffer(GL_FRAMEBUFFER, scene->scene_screen->render_buffer);
+    draw_scene_fair(scene);
+    draw_scene_screen(scene);
 }
 
 static void
