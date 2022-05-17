@@ -27,6 +27,7 @@ typedef struct spot_light_list_item {
 
 typedef struct scene_screen {
     unsigned int vertex_array;
+    unsigned int vertex_buffer;
     unsigned int frame_buffer;
     unsigned int render_buffer;
     unsigned int texture;

@@ -21,6 +21,14 @@ destroy_scene_screen_contents(scene_screen_t *scene_screen) {
         glDeleteRenderbuffers(1, &scene_screen->render_buffer);
         scene_screen->render_buffer = -1;
     }
+    if (scene_screen->vertex_array >= 0) {
+        glDeleteVertexArrays(1, &scene_screen->vertex_array);
+        scene_screen->vertex_array = -1;
+    }
+    if (scene_screen->vertex_buffer >= 0) {
+        glDeleteBuffers(1, &scene_screen->vertex_buffer);
+        scene_screen->vertex_buffer = -1;
+    }
 }
 
 static void
@@ -171,6 +179,11 @@ init_scene_screen(scene_t *scene) {
     glGenRenderbuffers(1, &scene_screen->render_buffer);
     glBindRenderbuffer(GL_RENDERBUFFER, scene_screen->render_buffer);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, (int) scene_screen->width, (int) scene_screen->height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
+                              scene_screen->render_buffer);
+    if (GL_FRAMEBUFFER_COMPLETE != glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
+        SDL_Die("Frame buffer incomplete");
+    }
     glBindRenderbuffer(GL_RENDERBUFFER, 0);
     GL_CHECK_ERROR;
 
