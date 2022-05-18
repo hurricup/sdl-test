@@ -271,36 +271,21 @@ initialize_scene() {
     move_scene_object_to(cubes[2], 8, 8, -8);
     move_scene_object_to(cubes[3], 16, -16, -16);
 
-    // lighter object
-    scene_object_t *lighter = create_lighter(cube_model, model_shader);
-    move_scene_object_to_vec(lighter, omni_light->position);
+    // subaru
+    scene_object_t *subaru = create_scene_object();
+    attach_object_to_scene(scene, subaru);
+    attach_shader_to_scene_object(subaru, model_shader);
+    attach_model_to_scene_object(subaru, load_model("assets/models/Subaru Impreza/subaru2.obj", aiProcess_FlipUVs));
+    move_scene_object_to(subaru, -30, -2, 2);
 
-    flying_omni_lighter = create_lighter(cube_model, model_shader);
-    flying_spot_lighter = create_lighter(cube_model, model_shader);
+    // handgun
+    scene_object_t *handgun = create_scene_object();
+    attach_object_to_scene(scene, handgun);
+    attach_shader_to_scene_object(handgun, model_shader);
+    attach_model_to_scene_object(handgun, load_model("assets/models/handgun/handgun.obj", aiProcess_FlipUVs));
+    move_scene_object_to(handgun, -22, -2, 2);
+    scale_scene_object(handgun, 3.0f);
 
-    // backpack
-    scene_object_t *backpack = create_scene_object();
-    attach_object_to_scene(scene, backpack);
-    attach_shader_to_scene_object(backpack, model_shader);
-    attach_model_to_scene_object(backpack, load_model("assets/models/backpack/backpack.obj", 0));
-    move_scene_object_to(backpack, 4, -2, 4);
-
-    // sirenhead
-    scene_object_t *sirenhead = create_scene_object();
-    attach_object_to_scene(scene, sirenhead);
-    attach_shader_to_scene_object(sirenhead, model_shader);
-    attach_model_to_scene_object(sirenhead,
-                                 load_model("assets/models/sirenhead/source/sirenhead.obj", aiProcess_FlipUVs));
-    move_scene_object_to(sirenhead, -4, -4, 4);
-    scale_scene_object(sirenhead, 3.0f);
-
-    // male figure
-    scene_object_t *male_figure = create_scene_object();
-    attach_object_to_scene(scene, male_figure);
-    attach_shader_to_scene_object(male_figure, model_shader);
-    attach_model_to_scene_object(male_figure, load_model("assets/models/male/FinalBaseMesh.obj", 0));
-    move_scene_object_to(male_figure, 12, -4, 2);
-    scale_scene_object(male_figure, 0.3f);
 
     // spider
     scene_object_t *spider_obj = create_scene_object();
@@ -311,6 +296,30 @@ initialize_scene() {
                                             aiProcess_FlipUVs));
     move_scene_object_to(spider_obj, -12, -4, 2);
     scale_scene_object(spider_obj, 0.06f);
+
+    // sirenhead
+    scene_object_t *sirenhead = create_scene_object();
+    attach_object_to_scene(scene, sirenhead);
+    attach_shader_to_scene_object(sirenhead, model_shader);
+    attach_model_to_scene_object(sirenhead,
+                                 load_model("assets/models/sirenhead/source/sirenhead.obj", aiProcess_FlipUVs));
+    move_scene_object_to(sirenhead, -4, -4, 4);
+    scale_scene_object(sirenhead, 3.0f);
+
+    // backpack
+    scene_object_t *backpack = create_scene_object();
+    attach_object_to_scene(scene, backpack);
+    attach_shader_to_scene_object(backpack, model_shader);
+    attach_model_to_scene_object(backpack, load_model("assets/models/backpack/backpack.obj", 0));
+    move_scene_object_to(backpack, 4, -2, 4);
+
+    // male figure
+    scene_object_t *male_figure = create_scene_object();
+    attach_object_to_scene(scene, male_figure);
+    attach_shader_to_scene_object(male_figure, model_shader);
+    attach_model_to_scene_object(male_figure, load_model("assets/models/male/FinalBaseMesh.obj", 0));
+    move_scene_object_to(male_figure, 12, -4, 2);
+    scale_scene_object(male_figure, 0.3f);
 
     // lego man
     scene_object_t *lego_man = create_scene_object();
@@ -331,20 +340,12 @@ initialize_scene() {
     move_scene_object_to(t_rex1, 28, -4, 2);
     scale_scene_object(t_rex1, 40.0f);
 
-    // handgun
-    scene_object_t *handgun = create_scene_object();
-    attach_object_to_scene(scene, handgun);
-    attach_shader_to_scene_object(handgun, model_shader);
-    attach_model_to_scene_object(handgun, load_model("assets/models/handgun/handgun.obj", aiProcess_FlipUVs));
-    move_scene_object_to(handgun, -22, -2, 2);
-    scale_scene_object(handgun, 3.0f);
+    // lighter object
+    scene_object_t *lighter = create_lighter(cube_model, model_shader);
+    move_scene_object_to_vec(lighter, omni_light->position);
 
-    // subaru
-    scene_object_t *subaru = create_scene_object();
-    attach_object_to_scene(scene, subaru);
-    attach_shader_to_scene_object(subaru, model_shader);
-    attach_model_to_scene_object(subaru, load_model("assets/models/Subaru Impreza/subaru2.obj", aiProcess_FlipUVs));
-    move_scene_object_to(subaru, -30, -2, 2);
+    flying_omni_lighter = create_lighter(cube_model, model_shader);
+    flying_spot_lighter = create_lighter(cube_model, model_shader);
 }
 
 
