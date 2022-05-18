@@ -4,6 +4,7 @@
 #include "camera.h"
 #include "scene_object.h"
 #include "light.h"
+#include "scene_screen.h"
 
 typedef enum {
     EFFECT_NONE = 0,
@@ -34,14 +35,6 @@ typedef struct spot_light_list_item {
     spot_light_t *item;
     struct spot_light_list_item *next;
 } spot_light_list_item_t;
-
-typedef struct scene_screen {
-    unsigned int frame_buffer;
-    unsigned int render_buffer;
-    unsigned int texture;
-    unsigned int width;
-    unsigned int height;
-} scene_screen_t;
 
 typedef struct scene_screen_object {
     unsigned int vertex_array;
