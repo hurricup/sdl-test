@@ -65,6 +65,8 @@ create_scene() {
     scene_t *scene = calloc(1, sizeof(scene_t));
     SDL_ALLOC_CHECK(scene);
     init_scene_screen_object(&scene->scene_screen_object);
+    attach_shader(&scene->selection_shader,
+                  load_shader("shaders/selection_vertex.glsl", "shaders/selection_fragment.glsl"));
     return scene;
 }
 
@@ -171,10 +173,9 @@ set_up_scene_options(scene_t *scene) {
 
     glEnable(GL_CULL_FACE);
 
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // background color
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     GL_CHECK_ERROR;
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glPolygonMode(GL_FRONT_AND_BACK, scene->camera->polygon_mode);
     GL_CHECK_ERROR;
 }
@@ -201,12 +202,28 @@ draw_scene_screen(scene_t *scene) {
     glFlush();
 }
 
+/**
+ * Drawing selected object with specific shader
+ * This method MUST be invoked AFTER draw_scene_fair, because it does not do some common stuff
+ */
+static void
+draw_selected_objects(scene_t *scene) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    shader_use(scene->selection_shader);
+    scene_object_list_item_t *current_object_item = scene->objects;
+    while (current_object_item != NULL) {
+        scene_object_t *current_object = current_object_item->item;
+        if (current_object != NULL && current_object->selected) {
+            draw_scene_object_with_shader(current_object, scene->selection_shader, scene->camera->project_view_matrix);
+        }
+        current_object_item = current_object_item->next;
+    }
+    glFlush();
+}
+
 static void
 draw_scene_fair(scene_t *scene) {
-    set_up_scene_options(scene);
-    draw_pass++;
-    update_camera_views(scene->camera);
-
     scene_object_list_item_t *current_object_item = scene->objects;
     while (current_object_item != NULL) {
         draw_object(scene, current_object_item->item);
@@ -216,9 +233,23 @@ draw_scene_fair(scene_t *scene) {
 }
 
 void draw_scene(scene_t *scene) {
+    draw_pass++;
+
+    // drawing to the scene screen
     update_scene_screen(&scene->scene_screen, scene->camera);
     glBindFramebuffer(GL_FRAMEBUFFER, scene->scene_screen.render_buffer);
+    set_up_scene_options(scene);
+    update_camera_views(scene->camera);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     draw_scene_fair(scene);
+
+    // drawing selected objects
+    update_scene_screen(&scene->selection_screen, scene->camera);
+    glBindFramebuffer(GL_FRAMEBUFFER, scene->selection_screen.render_buffer);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    draw_selected_objects(scene);
+
+    // drawing results
     draw_scene_screen(scene);
 }
 
@@ -267,6 +298,7 @@ destroy_scene(scene_t **pp_scene) {
 
     destroy_camera(&scene->camera);
     destroy_scene_screen_contents(&scene->scene_screen);
+    destroy_scene_screen_contents(&scene->selection_screen);
     destroy_scene_screen_object_content(&scene->scene_screen_object);
 
     while (scene->objects != NULL) {
@@ -284,6 +316,8 @@ destroy_scene(scene_t **pp_scene) {
     while (scene->spot_lights != NULL) {
         destroy_spot_light_list_item(&scene->spot_lights);
     }
+
+    detach_shader(&scene->selection_shader);
 
     free(scene);
     *pp_scene = NULL;

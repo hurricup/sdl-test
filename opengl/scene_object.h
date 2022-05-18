@@ -28,4 +28,6 @@ void move_scene_object_to_vec(scene_object_t *scene_object, vec3 position);
 
 void draw_scene_object(scene_object_t *scene_object, mat4 project_view);
 
+void draw_scene_object_with_shader(scene_object_t *scene_object, shader_t *shader, mat4 project_view);
+
 #endif //SDL_TEST_SCENE_OBJECT_H
