@@ -192,7 +192,10 @@ draw_scene_screen(scene_t *scene) {
     shader_t *shader = scene_screen_object->shader;
     shader_use(shader);
     glBindVertexArray(scene_screen_object->vertex_array);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, scene_screen->texture);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, scene->selection_screen.texture);
     shader_set_int(shader, "effect_type", scene->effect_type);
     shader_set_float(shader, "step_x", 1.0f / (float) scene_screen->width);
     shader_set_float(shader, "step_y", 1.0f / (float) scene_screen->height);

@@ -10,7 +10,9 @@ out vec4 color;
 
 in vec2 texture_position;
 
-uniform sampler2D screen_texture;
+layout(binding = 0) uniform sampler2D screen_texture;
+layout(binding = 1) uniform sampler2D selection_texture;
+
 uniform int effect_type;
 uniform float step_x;
 uniform float step_y;
@@ -47,6 +49,24 @@ void kernel(inout float kernel[9]){
     1.0f);
 }
 
+void draw_selection(){
+    if (texture(selection_texture, texture_position).x > 0){
+        return;
+    }
+    float color_around =
+    vec3(texture(selection_texture, texture_position + vec2(-step_x, step_y))).x +
+    vec3(texture(selection_texture, texture_position + vec2(0.0f, step_y))).x  +
+    vec3(texture(selection_texture, texture_position + vec2(step_x, step_y))).x +
+    vec3(texture(selection_texture, texture_position + vec2(-step_x, 0.0f))).x  +
+    vec3(texture(selection_texture, texture_position + vec2(step_x, 0.0f))).x +
+    vec3(texture(selection_texture, texture_position + vec2(-step_x, -step_y))).x +
+    vec3(texture(selection_texture, texture_position + vec2(0.0f, -step_y))).x  +
+    vec3(texture(selection_texture, texture_position + vec2(step_x, -step_y))).x;
+    if (color_around > 0){
+        color += vec4(0.0f, (color.y + 1.5f) / 2, 0.0f, 0.0f);
+    }
+}
+
 void main()
 {
     if (EFFECT_INVERT == effect_type){
@@ -69,4 +89,6 @@ void main()
     else {
         color = texture(screen_texture, texture_position);
     }
+
+    draw_selection();
 }
