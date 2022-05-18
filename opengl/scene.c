@@ -6,10 +6,7 @@
 static unsigned int draw_pass = 0;
 
 static void
-destroy_scene_screen_contents(scene_screen_t *scene_screen) {
-    if (scene_screen == NULL) {
-        return;
-    }
+destroy_scene_screen_dynamic_contents(scene_screen_t *scene_screen) {
     if (scene_screen->frame_buffer >= 0) {
         glDeleteFramebuffers(1, &scene_screen->frame_buffer);
         scene_screen->frame_buffer = -1;
@@ -22,6 +19,10 @@ destroy_scene_screen_contents(scene_screen_t *scene_screen) {
         glDeleteRenderbuffers(1, &scene_screen->render_buffer);
         scene_screen->render_buffer = -1;
     }
+}
+
+static void
+destroy_scene_screen_static_content(scene_screen_t *scene_screen) {
     if (scene_screen->vertex_array >= 0) {
         glDeleteVertexArrays(1, &scene_screen->vertex_array);
         scene_screen->vertex_array = -1;
@@ -36,19 +37,53 @@ destroy_scene_screen_contents(scene_screen_t *scene_screen) {
 }
 
 static void
-destroy_scene_screen(scene_screen_t **pp_scene_screen) {
-    scene_screen_t *scene_screen = *pp_scene_screen;
-    if (scene_screen == NULL) {
-        return;
-    }
-    destroy_scene_screen_contents(scene_screen);
-    free(scene_screen);
-    *pp_scene_screen = NULL;
+destroy_scene_screen(scene_screen_t *scene_screen) {
+    destroy_scene_screen_dynamic_contents(scene_screen);
+    destroy_scene_screen_static_content(scene_screen);
+}
+
+/**
+ * Initialize persistent data like vertex arrays and shaders. This data persists through the scene lifetime
+ */
+static void
+init_scene_screen_static_data(scene_screen_t *scene_screen) {
+    glGenVertexArrays(1, &scene_screen->vertex_array);
+    glBindVertexArray(scene_screen->vertex_array);
+
+    glGenBuffers(1, &scene_screen->vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, scene_screen->vertex_buffer);
+
+    const float screen_data[] = {
+            // positions   // texture coords
+            -1.0f, 1.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f,
+            1.0f, -1.0f, 1.0f, 0.0f,
+
+            -1.0f, 1.0f, 0.0f, 1.0f,
+            1.0f, -1.0f, 1.0f, 0.0f,
+            1.0f, 1.0f, 1.0f, 1.0f
+    };
+    glBufferData(GL_ARRAY_BUFFER, sizeof(screen_data), screen_data, GL_STATIC_DRAW);
+
+    // vertex positions
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) 0);
+
+    // texture coords
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) (2 * sizeof(float)));
+
+    glBindVertexArray(0);
+
+    shader_t *shader = load_shader("shaders/scene_screen_vertex.glsl", "shaders/scene_screen_fragment.glsl");
+    attach_shader(&scene_screen->shader, shader);
 }
 
 scene_t *
 create_scene() {
     scene_t *scene = calloc(1, sizeof(scene_t));
+    SDL_ALLOC_CHECK(scene);
+    init_scene_screen_static_data(&scene->scene_screen);
     return scene;
 }
 
@@ -143,25 +178,19 @@ draw_object(scene_t *scene, scene_object_t *object) {
 }
 
 static void
-init_scene_screen(scene_t *scene) {
+update_scene_screen(scene_t *scene) {
     camera_t *camera = scene->camera;
     if (camera == NULL) {
         SDL_Die("Attempt to draw without a camera");
         assert(camera != NULL);
     }
 
-    scene_screen_t *scene_screen = scene->scene_screen;
-    if (scene_screen != NULL && scene_screen->width == camera->viewport_width &&
-            scene_screen->height == camera->viewport_height) {
+    scene_screen_t *scene_screen = &scene->scene_screen;
+    if (scene_screen->width == camera->viewport_width && scene_screen->height == camera->viewport_height) {
         return;
     }
 
-    destroy_scene_screen_contents(scene->scene_screen);
-    if (scene_screen == NULL) {
-        scene_screen = scene->scene_screen = calloc(1, sizeof(scene_screen_t));
-        SDL_ALLOC_CHECK(scene_screen)
-        assert(scene_screen != NULL);
-    }
+    destroy_scene_screen_dynamic_contents(&scene->scene_screen);
 
     scene_screen->width = camera->viewport_width;
     scene_screen->height = camera->viewport_height;
@@ -192,40 +221,6 @@ init_scene_screen(scene_t *scene) {
     GL_CHECK_ERROR;
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-    // feels like this data is pretty static and may be created only once
-    glGenVertexArrays(1, &scene_screen->vertex_array);
-    glBindVertexArray(scene_screen->vertex_array);
-
-    glGenBuffers(1, &scene_screen->vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, scene_screen->vertex_buffer);
-
-    const float screen_data[] = {
-            // positions   // texture coords
-            -1.0f, 1.0f, 0.0f, 1.0f,
-            -1.0f, -1.0f, 0.0f, 0.0f,
-            1.0f, -1.0f, 1.0f, 0.0f,
-
-            -1.0f, 1.0f, 0.0f, 1.0f,
-            1.0f, -1.0f, 1.0f, 0.0f,
-            1.0f, 1.0f, 1.0f, 1.0f
-    };
-    glBufferData(GL_ARRAY_BUFFER, sizeof(screen_data), screen_data, GL_STATIC_DRAW);
-
-    // vertex positions
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) 0);
-
-    // texture coords
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) (2 * sizeof(float)));
-
-    GL_CHECK_ERROR;
-
-    glBindVertexArray(0);
-
-    shader_t *shader = load_shader("shaders/scene_screen_vertex.glsl", "shaders/scene_screen_fragment.glsl");
-    attach_shader(&scene_screen->shader, shader);
 }
 
 static void
@@ -256,7 +251,7 @@ draw_scene_screen(scene_t *scene) {
     glDisable(GL_STENCIL_TEST);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    scene_screen_t *scene_screen = scene->scene_screen;
+    scene_screen_t *scene_screen = &scene->scene_screen;
     shader_t *shader = scene_screen->shader;
     shader_use(shader);
     glBindVertexArray(scene_screen->vertex_array);
@@ -285,8 +280,8 @@ draw_scene_fair(scene_t *scene) {
 }
 
 void draw_scene(scene_t *scene) {
-    init_scene_screen(scene);
-    glBindFramebuffer(GL_FRAMEBUFFER, scene->scene_screen->render_buffer);
+    update_scene_screen(scene);
+    glBindFramebuffer(GL_FRAMEBUFFER, scene->scene_screen.render_buffer);
     draw_scene_fair(scene);
     draw_scene_screen(scene);
 }

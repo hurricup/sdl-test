@@ -52,7 +52,7 @@ typedef struct scene {
     omni_light_list_item_t *omni_lights;
     direct_light_list_item_t *direct_lights;
     spot_light_list_item_t *spot_lights;
-    scene_screen_t *scene_screen;
+    scene_screen_t scene_screen;
     effect_type_t effect_type;
 } scene_t;
 
