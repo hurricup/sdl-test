@@ -36,15 +36,18 @@ typedef struct spot_light_list_item {
 } spot_light_list_item_t;
 
 typedef struct scene_screen {
-    unsigned int vertex_array;
-    unsigned int vertex_buffer;
     unsigned int frame_buffer;
     unsigned int render_buffer;
     unsigned int texture;
     unsigned int width;
     unsigned int height;
-    shader_t *shader;
 } scene_screen_t;
+
+typedef struct scene_screen_object {
+    unsigned int vertex_array;
+    unsigned int vertex_buffer;
+    shader_t *shader;
+} scene_screen_object_t;
 
 typedef struct scene {
     camera_t *camera;
@@ -53,6 +56,7 @@ typedef struct scene {
     direct_light_list_item_t *direct_lights;
     spot_light_list_item_t *spot_lights;
     scene_screen_t scene_screen;
+    scene_screen_object_t scene_screen_object;
     effect_type_t effect_type;
 } scene_t;
 

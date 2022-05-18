@@ -6,7 +6,7 @@
 static unsigned int draw_pass = 0;
 
 static void
-destroy_scene_screen_dynamic_contents(scene_screen_t *scene_screen) {
+destroy_scene_screen_contents(scene_screen_t *scene_screen) {
     if (scene_screen->frame_buffer >= 0) {
         glDeleteFramebuffers(1, &scene_screen->frame_buffer);
         scene_screen->frame_buffer = -1;
@@ -21,37 +21,34 @@ destroy_scene_screen_dynamic_contents(scene_screen_t *scene_screen) {
     }
 }
 
+/**
+ * Destroys the object we are drawing on the scene screen (two triangles) and shader
+ */
 static void
-destroy_scene_screen_static_content(scene_screen_t *scene_screen) {
-    if (scene_screen->vertex_array >= 0) {
-        glDeleteVertexArrays(1, &scene_screen->vertex_array);
-        scene_screen->vertex_array = -1;
+destroy_scene_screen_object_content(scene_screen_object_t *scene_screen_object) {
+    if (scene_screen_object->vertex_array >= 0) {
+        glDeleteVertexArrays(1, &scene_screen_object->vertex_array);
+        scene_screen_object->vertex_array = -1;
     }
-    if (scene_screen->vertex_buffer >= 0) {
-        glDeleteBuffers(1, &scene_screen->vertex_buffer);
-        scene_screen->vertex_buffer = -1;
+    if (scene_screen_object->vertex_buffer >= 0) {
+        glDeleteBuffers(1, &scene_screen_object->vertex_buffer);
+        scene_screen_object->vertex_buffer = -1;
     }
-    if (scene_screen->shader != NULL) {
-        detach_shader(&scene_screen->shader);
+    if (scene_screen_object->shader != NULL) {
+        detach_shader(&scene_screen_object->shader);
     }
-}
-
-static void
-destroy_scene_screen(scene_screen_t *scene_screen) {
-    destroy_scene_screen_dynamic_contents(scene_screen);
-    destroy_scene_screen_static_content(scene_screen);
 }
 
 /**
  * Initialize persistent data like vertex arrays and shaders. This data persists through the scene lifetime
  */
 static void
-init_scene_screen_static_data(scene_screen_t *scene_screen) {
-    glGenVertexArrays(1, &scene_screen->vertex_array);
-    glBindVertexArray(scene_screen->vertex_array);
+init_scene_screen_object(scene_screen_object_t *scene_screen_object) {
+    glGenVertexArrays(1, &scene_screen_object->vertex_array);
+    glBindVertexArray(scene_screen_object->vertex_array);
 
-    glGenBuffers(1, &scene_screen->vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, scene_screen->vertex_buffer);
+    glGenBuffers(1, &scene_screen_object->vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, scene_screen_object->vertex_buffer);
 
     const float screen_data[] = {
             // positions   // texture coords
@@ -76,14 +73,14 @@ init_scene_screen_static_data(scene_screen_t *scene_screen) {
     glBindVertexArray(0);
 
     shader_t *shader = load_shader("shaders/scene_screen_vertex.glsl", "shaders/scene_screen_fragment.glsl");
-    attach_shader(&scene_screen->shader, shader);
+    attach_shader(&scene_screen_object->shader, shader);
 }
 
 scene_t *
 create_scene() {
     scene_t *scene = calloc(1, sizeof(scene_t));
     SDL_ALLOC_CHECK(scene);
-    init_scene_screen_static_data(&scene->scene_screen);
+    init_scene_screen_object(&scene->scene_screen_object);
     return scene;
 }
 
@@ -190,7 +187,7 @@ update_scene_screen(scene_t *scene) {
         return;
     }
 
-    destroy_scene_screen_dynamic_contents(&scene->scene_screen);
+    destroy_scene_screen_contents(&scene->scene_screen);
 
     scene_screen->width = camera->viewport_width;
     scene_screen->height = camera->viewport_height;
@@ -252,9 +249,10 @@ draw_scene_screen(scene_t *scene) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     scene_screen_t *scene_screen = &scene->scene_screen;
-    shader_t *shader = scene_screen->shader;
+    scene_screen_object_t *scene_screen_object = &scene->scene_screen_object;
+    shader_t *shader = scene_screen_object->shader;
     shader_use(shader);
-    glBindVertexArray(scene_screen->vertex_array);
+    glBindVertexArray(scene_screen_object->vertex_array);
     glBindTexture(GL_TEXTURE_2D, scene_screen->texture);
     shader_set_int(shader, "effect_type", scene->effect_type);
     shader_set_float(shader, "step_x", 1.0f / (float) scene_screen->width);
@@ -330,7 +328,8 @@ destroy_scene(scene_t **pp_scene) {
     }
 
     destroy_camera(&scene->camera);
-    destroy_scene_screen(&scene->scene_screen);
+    destroy_scene_screen_contents(&scene->scene_screen);
+    destroy_scene_screen_object_content(&scene->scene_screen_object);
 
     while (scene->objects != NULL) {
         destroy_scene_object_list_item(&scene->objects);
