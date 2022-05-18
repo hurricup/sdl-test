@@ -3,7 +3,7 @@
 #include "sdl_ext.h"
 #include "assert.h"
 
-static unsigned int draw_pass = 0;
+static unsigned int render_pass = 0;
 
 /**
  * Destroys the object we are drawing on the scene screen (two triangles) and shader
@@ -140,7 +140,7 @@ set_up_spot_lights(scene_t *scene, shader_t *shader) {
 }
 
 static void
-set_up_light_and_camera(scene_t *scene, drawing_context_t *context) {
+set_up_light_and_camera(scene_t *scene, rendering_context_t *context) {
     shader_t *shader = context->shader;
     if (context->add_lights) {
         set_up_omni_lights(scene, shader);
@@ -154,14 +154,14 @@ set_up_light_and_camera(scene_t *scene, drawing_context_t *context) {
 }
 
 static void
-draw_object(scene_t *scene, scene_object_t *object, drawing_context_t *context) {
+render_object(scene_t *scene, scene_object_t *object, rendering_context_t *context) {
     shader_t *shader = context->shader;
     shader_use(shader);
-    if (shader->draw_pass != draw_pass) {
+    if (shader->render_pass != render_pass) {
         set_up_light_and_camera(scene, context);
-        shader->draw_pass = draw_pass;
+        shader->render_pass = render_pass;
     }
-    draw_scene_object(object, scene->camera->project_view_matrix, context);
+    render_scene_object(object, scene->camera->project_view_matrix, context);
 }
 
 static void
@@ -185,7 +185,7 @@ set_up_scene_options(scene_t *scene) {
 }
 
 static void
-draw_scene_screen(scene_t *scene) {
+render_scene_screen(scene_t *scene) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_STENCIL_TEST);
@@ -211,19 +211,19 @@ draw_scene_screen(scene_t *scene) {
 
 /**
  * Drawing selected object with specific shader
- * This method MUST be invoked AFTER draw_scene_fair, because it does not do some common stuff
+ * This method MUST be invoked AFTER render_scene_fair, because it does not do some common stuff
  */
 static void
-draw_selected_objects(scene_t *scene) {
+render_selected_objects(scene_t *scene) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    drawing_context_t drawing_context = {0, scene->selection_shader, false, false, false, false, false};
+    rendering_context_t drawing_context = {0, scene->selection_shader, false, false, false, false, false};
     shader_use(drawing_context.shader);
     scene_object_list_item_t *current_object_item = scene->objects;
     while (current_object_item != NULL) {
         scene_object_t *current_object = current_object_item->item;
         if (current_object != NULL && current_object->selected) {
-            draw_scene_object(current_object, scene->camera->project_view_matrix, &drawing_context);
+            render_scene_object(current_object, scene->camera->project_view_matrix, &drawing_context);
         }
         current_object_item = current_object_item->next;
     }
@@ -231,21 +231,21 @@ draw_selected_objects(scene_t *scene) {
 }
 
 static void
-draw_scene_fair(scene_t *scene) {
+render_scene_fair(scene_t *scene) {
     scene_object_list_item_t *current_object_item = scene->objects;
-    drawing_context_t context = {0, NULL, true, true, true, true, false};
+    rendering_context_t context = {0, NULL, true, true, true, true, false};
     while (current_object_item != NULL) {
         scene_object_t *current_object = current_object_item->item;
         context.shader = current_object->shader;
-        draw_object(scene, current_object, &context);
+        render_object(scene, current_object, &context);
         context.object_counter++;
         current_object_item = current_object_item->next;
     }
     glFlush();
 }
 
-void draw_scene(scene_t *scene) {
-    draw_pass++;
+void render_scene(scene_t *scene) {
+    render_pass++;
 
     // drawing to the scene screen
     update_scene_screen(&scene->scene_screen, scene->camera);
@@ -253,16 +253,16 @@ void draw_scene(scene_t *scene) {
     set_up_scene_options(scene);
     update_camera_views(scene->camera);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    draw_scene_fair(scene);
+    render_scene_fair(scene);
 
     // drawing selected objects
     update_scene_screen(&scene->selection_screen, scene->camera);
     glBindFramebuffer(GL_FRAMEBUFFER, scene->selection_screen.render_buffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    draw_selected_objects(scene);
+    render_selected_objects(scene);
 
     // drawing results
-    draw_scene_screen(scene);
+    render_scene_screen(scene);
 }
 
 static void

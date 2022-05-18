@@ -57,7 +57,7 @@ typedef struct scene {
 
 scene_t *create_scene();
 
-void draw_scene(scene_t *scene);
+void render_scene(scene_t *scene);
 
 /**
  * Destroying scene and all attached objects, lights and so on

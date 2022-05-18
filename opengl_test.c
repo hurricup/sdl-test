@@ -195,7 +195,7 @@ update_scene() {
 static void
 update_screen() {
     update_scene();
-    draw_scene(scene);
+    render_scene(scene);
     SDL_GL_SwapWindow(window);
     SDL_CHECK_ERROR;
 }

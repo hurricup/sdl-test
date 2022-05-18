@@ -88,7 +88,7 @@ get_texture_uniform_name(enum aiTextureType type, unsigned int index) {
 }
 
 static void
-draw_mesh(mesh_t *mesh, drawing_context_t *context) {
+render_mesh(mesh_t *mesh, rendering_context_t *context) {
     shader_t *shader = context->shader;
     if (context->add_textures) {
         // textures
@@ -183,11 +183,11 @@ model_info(model_t *model, const char *path) {
 }
 
 void
-draw_model(model_t *model, drawing_context_t *context) {
+render_model(model_t *model, rendering_context_t *context) {
     shader_use(context->shader);
     mesh_list_item_t *current_item = model->meshes;
     while (current_item != NULL) {
-        draw_mesh(&current_item->mesh, context);
+        render_mesh(&current_item->mesh, context);
         current_item = current_item->next;
     }
 }

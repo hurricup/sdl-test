@@ -26,13 +26,13 @@ typedef struct shader {
     /**
      * used for shader re-use with multiple scene model, to avoid useless re-configuring of global stuff, like lightning.
      */
-    unsigned int draw_pass;
+    unsigned int render_pass;
     unsigned int uniform_cache_items;
     unsigned int uniform_cache_items_allocated;
     uniform_cache_item_t *uniforms_cache;
 } shader_t;
 
-typedef struct drawing_context {
+typedef struct rendering_context {
     unsigned int object_counter;
     shader_t *shader;
     bool add_lights;
@@ -40,7 +40,7 @@ typedef struct drawing_context {
     bool add_textures;
     bool add_material_properties;
     bool add_object_counter;
-} drawing_context_t;
+} rendering_context_t;
 
 typedef struct vertex {
     vec3 position;
