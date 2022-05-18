@@ -72,6 +72,9 @@ event_loop() {
                         flying_spot_light->enabled = !flying_spot_light->enabled;
                         break;
                     }
+                    case SDLK_TAB:
+                        select_next_object(scene);
+                        break;
                     case SDLK_a: // move camera right according to right vector
                         yaw_camera(scene->camera, -1);
                         break;

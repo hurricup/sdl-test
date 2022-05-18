@@ -390,3 +390,27 @@ void attach_spot_light_to_scene(scene_t *scene, spot_light_t *spot_light) {
     new_item->next = scene->spot_lights;
     scene->spot_lights = new_item;
 }
+
+void
+select_next_object(scene_t *scene) {
+    scene_object_list_item_t *current_item = scene->objects;
+    if (current_item == NULL) {
+        return;
+    }
+    while (current_item != NULL) {
+        if (current_item->item != NULL && current_item->item->selected) {
+            current_item->item->selected = false;
+            if (current_item->next == NULL) {
+                break;
+            }
+            if (current_item->next->item != NULL) {
+                current_item->next->item->selected = true;
+                return;
+            }
+        }
+        current_item = current_item->next;
+    }
+    if (scene->objects != NULL && scene->objects->item != NULL) {
+        scene->objects->item->selected = true;
+    }
+}

@@ -75,4 +75,10 @@ void attach_direct_light_to_scene(scene_t *scene, direct_light_t *direct_light);
 
 void attach_spot_light_to_scene(scene_t *scene, spot_light_t *spot_light);
 
+/**
+ * If no object is currently selected, selects first
+ * If any object selected - removes the selection from it and selects the next one in the list (or first)
+ */
+void select_next_object(scene_t *scene);
+
 #endif //SDL_TEST_SCENE_H

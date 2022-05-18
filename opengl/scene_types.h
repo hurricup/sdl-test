@@ -81,6 +81,7 @@ typedef struct scene_object {
     vec3 position;
     vec3 angles;
     vec3 scale;
+    bool selected;
 } scene_object_t;
 
 
