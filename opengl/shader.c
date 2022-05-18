@@ -1,5 +1,5 @@
 #include "shader.h"
-
+#define UNIFORM_CACHE_CAPACITY_STEP 10
 #define NAME_BUFFER_SIZE 80
 #define array_item_name(template, index) ({ \
         char name[NAME_BUFFER_SIZE]; \
@@ -95,6 +95,16 @@ destroy_shader(shader_t *shader) {
     if (shader->id >= 0) {
         glDeleteProgram(shader->id);
     }
+
+    for (int i = 0; i < shader->uniform_cache_items; i++) {
+        free(shader->uniforms_cache[i].uniform_name);
+        shader->uniforms_cache[i].uniform_name = NULL;
+    }
+    if (shader->uniform_cache_items_allocated > 0) {
+        free(shader->uniforms_cache);
+        shader->uniforms_cache = NULL;
+    }
+
     free(shader);
 }
 
@@ -104,9 +114,44 @@ shader_use(shader_t *shader) {
 }
 
 static GLint
+get_cached_uniform_name(shader_t *shader, const char *name) {
+    for (int i = 0; i < shader->uniform_cache_items; i++) {
+        if (strcmp(shader->uniforms_cache[i].uniform_name, name) == 0) {
+            return shader->uniforms_cache[i].uniform_id;
+        }
+    }
+    return -1;
+}
+
+static GLint
+cache_uniform_name(shader_t *shader, const char *name, GLint uniform_id) {
+    if (0 == shader->uniform_cache_items_allocated) {
+        shader->uniform_cache_items_allocated = UNIFORM_CACHE_CAPACITY_STEP;
+        shader->uniforms_cache = calloc(shader->uniform_cache_items_allocated, sizeof(uniform_cache_item_t));
+    } else if (shader->uniform_cache_items == shader->uniform_cache_items_allocated) {
+        shader->uniform_cache_items_allocated += UNIFORM_CACHE_CAPACITY_STEP;
+        shader->uniforms_cache = reallocarray(shader->uniforms_cache, shader->uniform_cache_items_allocated,
+                                              sizeof(uniform_cache_item_t));
+        SDL_ALLOC_CHECK(shader->uniforms_cache)
+    }
+
+    shader->uniforms_cache[shader->uniform_cache_items].uniform_name = malloc(strlen(name) + 1);
+    strcpy(shader->uniforms_cache[shader->uniform_cache_items].uniform_name, name);
+    shader->uniforms_cache[shader->uniform_cache_items].uniform_id = uniform_id;
+
+    shader->uniform_cache_items++;
+
+    return uniform_id;
+}
+
+static GLint
 uniform_name(shader_t *shader, const char *name) {
-    GLint uniformLocation = glGetUniformLocation(shader->id, name);
-    if (uniformLocation < 0 && SDL_DEBUG_ENABLED) {
+    GLint cached_result = get_cached_uniform_name(shader, name);
+    if (cached_result >= 0) {
+        return cached_result;
+    }
+    GLint unform_id = glGetUniformLocation(shader->id, name);
+    if (unform_id < 0 && SDL_DEBUG_ENABLED) {
         SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION,
                      "Could not find the uniform %s in shader built from %s and %s",
                      name,
@@ -114,8 +159,8 @@ uniform_name(shader_t *shader, const char *name) {
                      shader->fragment_shader_name);
     }
     GL_CHECK_ERROR;
-    return
-            uniformLocation;
+
+    return cache_uniform_name(shader, name, unform_id);
 }
 
 void

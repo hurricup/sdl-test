@@ -13,6 +13,11 @@ typedef struct material {
     float opacity;
 } material_t;
 
+typedef struct uniform_cache_item {
+    char *uniform_name;
+    int uniform_id;
+} uniform_cache_item_t;
+
 typedef struct shader {
     unsigned int id;
     char *vertex_shader_name;
@@ -22,6 +27,9 @@ typedef struct shader {
      * used for shader re-use with multiple scene model, to avoid useless re-configuring of global stuff, like lightning.
      */
     unsigned int draw_pass;
+    unsigned int uniform_cache_items;
+    unsigned int uniform_cache_items_allocated;
+    uniform_cache_item_t *uniforms_cache;
 } shader_t;
 
 typedef struct vertex {
