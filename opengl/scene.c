@@ -140,24 +140,28 @@ set_up_spot_lights(scene_t *scene, shader_t *shader) {
 }
 
 static void
-set_up_light_and_camera(scene_t *scene, shader_t *shader) {
-    set_up_omni_lights(scene, shader);
-    set_up_direct_lights(scene, shader);
-    set_up_spot_lights(scene, shader);
+set_up_light_and_camera(scene_t *scene, drawing_context_t *context) {
+    shader_t *shader = context->shader;
+    if (context->add_lights) {
+        set_up_omni_lights(scene, shader);
+        set_up_direct_lights(scene, shader);
+        set_up_spot_lights(scene, shader);
+    }
 
-    // camera position
-    shader_set_vec3(shader, "camera_position", scene->camera->position);
+    if (context->add_camera_position) {
+        shader_set_vec3(shader, "camera_position", scene->camera->position);
+    }
 }
 
 static void
-draw_object(scene_t *scene, scene_object_t *object) {
-    shader_t *shader = object->shader;
+draw_object(scene_t *scene, scene_object_t *object, drawing_context_t *context) {
+    shader_t *shader = context->shader;
     shader_use(shader);
     if (shader->draw_pass != draw_pass) {
-        set_up_light_and_camera(scene, shader);
+        set_up_light_and_camera(scene, context);
         shader->draw_pass = draw_pass;
     }
-    draw_scene_object(object, scene->camera->project_view_matrix);
+    draw_scene_object(object, scene->camera->project_view_matrix, context);
 }
 
 static void
@@ -213,12 +217,13 @@ static void
 draw_selected_objects(scene_t *scene) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    shader_use(scene->selection_shader);
+    drawing_context_t drawing_context = {0, scene->selection_shader, false, false, false, false, false};
+    shader_use(drawing_context.shader);
     scene_object_list_item_t *current_object_item = scene->objects;
     while (current_object_item != NULL) {
         scene_object_t *current_object = current_object_item->item;
         if (current_object != NULL && current_object->selected) {
-            draw_scene_object_with_shader(current_object, scene->selection_shader, scene->camera->project_view_matrix);
+            draw_scene_object(current_object, scene->camera->project_view_matrix, &drawing_context);
         }
         current_object_item = current_object_item->next;
     }
@@ -228,8 +233,12 @@ draw_selected_objects(scene_t *scene) {
 static void
 draw_scene_fair(scene_t *scene) {
     scene_object_list_item_t *current_object_item = scene->objects;
+    drawing_context_t context = {0, NULL, true, true, true, true, false};
     while (current_object_item != NULL) {
-        draw_object(scene, current_object_item->item);
+        scene_object_t *current_object = current_object_item->item;
+        context.shader = current_object->shader;
+        draw_object(scene, current_object, &context);
+        context.object_counter++;
         current_object_item = current_object_item->next;
     }
     glFlush();

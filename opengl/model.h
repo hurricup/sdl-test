@@ -15,7 +15,7 @@ model_t *
 create_model(unsigned int vertices_number, vertex_t *vertices, unsigned int indices_number, unsigned int *indices,
              const char *directory_name);
 
-void draw_model(model_t *model, shader_t *shader);
+void draw_model(model_t *model, drawing_context_t *context);
 
 model_t *load_model(char *path, unsigned int additionalOptions);
 

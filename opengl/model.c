@@ -88,34 +88,43 @@ get_texture_uniform_name(enum aiTextureType type, unsigned int index) {
 }
 
 static void
-draw_mesh(mesh_t *mesh, shader_t *shader) {
-    // textures
-    unsigned int type_index[MAX_TEXTURE_TYPE + 1] = {0};
-    if (mesh->textures_number) {
-        for (int i = 0; i < mesh->textures_number; i++) {
-            glActiveTexture(GL_TEXTURE0 + i);
-            texture_t *texture = mesh->textures[i];
-            char *texture_uniform_name = get_texture_uniform_name(texture->type, type_index[texture->type]++);
-            shader_set_int(shader, texture_uniform_name, i);
-            glBindTexture(GL_TEXTURE_2D, texture->id);
+draw_mesh(mesh_t *mesh, drawing_context_t *context) {
+    shader_t *shader = context->shader;
+    if (context->add_textures) {
+        // textures
+        unsigned int type_index[MAX_TEXTURE_TYPE + 1] = {0};
+        if (mesh->textures_number) {
+            for (int i = 0; i < mesh->textures_number; i++) {
+                glActiveTexture(GL_TEXTURE0 + i);
+                texture_t *texture = mesh->textures[i];
+                char *texture_uniform_name = get_texture_uniform_name(texture->type, type_index[texture->type]++);
+                shader_set_int(shader, texture_uniform_name, i);
+                glBindTexture(GL_TEXTURE_2D, texture->id);
+            }
+            glActiveTexture(GL_TEXTURE0);
         }
-        glActiveTexture(GL_TEXTURE0);
-    }
-    for (int i = 0; i <= MAX_TEXTURE_TYPE; i++) {
-        shader_set_int(shader, texture_flags_names[i], (int) type_index[i]);
+        for (int i = 0; i <= MAX_TEXTURE_TYPE; i++) {
+            shader_set_int(shader, texture_flags_names[i], (int) type_index[i]);
+        }
     }
 
-    // material properties
-    shader_set_vec4(shader, "material.ambient", mesh->material.ambient);
-    shader_set_vec4(shader, "material.diffuse", mesh->material.diffuse);
-    shader_set_vec4(shader, "material.specular", mesh->material.specular);
-    shader_set_vec4(shader, "material.emissive", mesh->material.emissive);
-    shader_set_float(shader, "material.shininess", mesh->material.shininess);
-    shader_set_float(shader, "material.opacity", mesh->material.opacity);
+    if (context->add_material_properties) {
+        // material properties
+        shader_set_vec4(shader, "material.ambient", mesh->material.ambient);
+        shader_set_vec4(shader, "material.diffuse", mesh->material.diffuse);
+        shader_set_vec4(shader, "material.specular", mesh->material.specular);
+        shader_set_vec4(shader, "material.emissive", mesh->material.emissive);
+        shader_set_float(shader, "material.shininess", mesh->material.shininess);
+        shader_set_float(shader, "material.opacity", mesh->material.opacity);
+    }
+
+    if (context->add_object_counter) {
+        shader_set_int(shader, "object_counter", (int) context->object_counter);
+    }
 
     // draw
     glBindVertexArray(mesh->vertex_array);
-    glDrawElements(GL_TRIANGLES, mesh->indices_number, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, (int) mesh->indices_number, GL_UNSIGNED_INT, 0);
     GL_CHECK_ERROR;
 
     glBindVertexArray(0);
@@ -174,11 +183,11 @@ model_info(model_t *model, const char *path) {
 }
 
 void
-draw_model(model_t *model, shader_t *shader) {
-    shader_use(shader);
+draw_model(model_t *model, drawing_context_t *context) {
+    shader_use(context->shader);
     mesh_list_item_t *current_item = model->meshes;
     while (current_item != NULL) {
-        draw_mesh(&current_item->mesh, shader);
+        draw_mesh(&current_item->mesh, context);
         current_item = current_item->next;
     }
 }

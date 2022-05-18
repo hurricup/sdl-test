@@ -32,6 +32,16 @@ typedef struct shader {
     uniform_cache_item_t *uniforms_cache;
 } shader_t;
 
+typedef struct drawing_context {
+    unsigned int object_counter;
+    shader_t *shader;
+    bool add_lights;
+    bool add_camera_position;
+    bool add_textures;
+    bool add_material_properties;
+    bool add_object_counter;
+} drawing_context_t;
+
 typedef struct vertex {
     vec3 position;
     vec3 normal;

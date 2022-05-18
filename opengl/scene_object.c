@@ -63,12 +63,7 @@ move_scene_object_to_vec(scene_object_t *scene_object, vec3 position) {
 }
 
 void
-draw_scene_object(scene_object_t *scene_object, mat4 project_view) {
-    draw_scene_object_with_shader(scene_object, scene_object->shader, project_view);
-}
-
-void
-draw_scene_object_with_shader(scene_object_t *scene_object, shader_t *shader, mat4 project_view) {
+draw_scene_object(scene_object_t *scene_object, mat4 project_view, drawing_context_t *context) {
     // model matrix
     mat4 model = GLM_MAT4_IDENTITY_INIT;
     glm_translate(model, scene_object->position);
@@ -85,10 +80,11 @@ draw_scene_object_with_shader(scene_object_t *scene_object, shader_t *shader, ma
     glm_mat4_transpose(normals_model4);
     glm_mat4_pick3(normals_model4, normals_model3);
 
+    shader_t *shader = context->shader;
     shader_set_mat4(shader, LOC_MODEL, model);
     shader_set_mat4(shader, LOC_PROJECT_VIEW, project_view);
     shader_set_mat3(shader, LOC_NORMALS_MODEL, normals_model3);
 
-    draw_model(scene_object->model, shader);
+    draw_model(scene_object->model, context);
 }
 
