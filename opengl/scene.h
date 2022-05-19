@@ -43,6 +43,13 @@ typedef struct scene_screen_object {
     shader_t *shader;
 } scene_screen_object_t;
 
+typedef struct skybox {
+    unsigned int vertex_array;
+    unsigned int vertex_buffer;
+    cubemap_t *cubemap;
+    shader_t *shader;
+} skybox_t;
+
 typedef struct scene {
     camera_t *camera;
     scene_object_list_item_t *objects;
@@ -55,7 +62,7 @@ typedef struct scene {
     shader_t *indexed_color_shader;
     scene_screen_object_t scene_screen_object;
     effect_type_t effect_type;
-    cubemap_t *skybox;
+    skybox_t skybox;
 } scene_t;
 
 scene_t *create_scene();
@@ -90,8 +97,8 @@ void select_next_object(scene_t *scene);
 void select_object(scene_t *scene, unsigned int screen_x, unsigned int screen_y);
 
 /**
- * Attaches skybox cubemap to the scene, detaching previous one if we did have one
+ * Attaches cubemap cubemap to the scene, detaching previous one if we did have one
  */
-void set_scene_skybox(scene_t *scene, cubemap_t *skybox);
+void set_scene_skybox(scene_t *scene, cubemap_t *cubemap);
 
 #endif //SDL_TEST_SCENE_H

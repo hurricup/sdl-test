@@ -59,6 +59,14 @@ update_camera_views(camera_t *camera) {
     glm_mat4_mul(camera->projection_matrix, camera->view_matrix, camera->project_view_matrix);
 }
 
+void
+compute_skybox_project_view_matrix(camera_t *camera, mat4 project_view) {
+    vec3 default_position = {0};
+    mat4 default_view_matrix;
+    glm_look(default_position, camera->front, camera->up, default_view_matrix);
+    glm_mat4_mul(camera->projection_matrix, default_view_matrix, project_view);
+}
+
 void pitch_camera(camera_t *camera, float sign) {
     vec3 up = GLM_VEC3_ZERO_INIT;
     glm_vec3_scale(camera->up, sign * camera->speed_pitch, up);

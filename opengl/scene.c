@@ -181,9 +181,6 @@ set_up_scene_options(scene_t *scene) {
 
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     GL_CHECK_ERROR;
-
-    glPolygonMode(GL_FRONT_AND_BACK, scene->camera->polygon_mode);
-    GL_CHECK_ERROR;
 }
 
 static void
@@ -234,6 +231,9 @@ render_selected_objects(scene_t *scene) {
 
 static void
 render_scene_fair(scene_t *scene) {
+    glPolygonMode(GL_FRONT_AND_BACK, scene->camera->polygon_mode);
+    GL_CHECK_ERROR;
+
     scene_object_list_item_t *current_object_item = scene->objects;
     rendering_context_t context = {NULL, true, true, true, true, false, {0, 0, 0}};
     while (current_object_item != NULL) {
@@ -261,12 +261,35 @@ prepare_scene_screen(scene_t *scene) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void render_scene(scene_t *scene) {
+static void
+render_skybox(scene_t *scene) {
+    skybox_t *skybox = &scene->skybox;
+    if (skybox->cubemap == NULL) {
+        return;
+    }
+
+    glDepthFunc(GL_LEQUAL);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    shader_use(skybox->shader);
+    glBindVertexArray(skybox->vertex_array);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->cubemap->texture);
+    mat4 skybox_project_view = {0};
+    compute_skybox_project_view_matrix(scene->camera, skybox_project_view);
+    shader_set_mat4(skybox->shader, "project_view", skybox_project_view);
+    GL_CHECK_ERROR;
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    GL_CHECK_ERROR;
+    glDepthFunc(GL_LESS);
+}
+
+void
+render_scene(scene_t *scene) {
     render_pass++;
 
     // drawing to the scene screen
     prepare_scene_screen(scene);
     render_scene_fair(scene);
+    render_skybox(scene);
 
     // drawing selected objects
     prepare_selection_screen(scene);
@@ -312,6 +335,23 @@ destroy_direct_light_list_item(direct_light_list_item_t **pp_direct_light_list_i
     *pp_direct_light_list_item = next_item;
 }
 
+static void
+destroy_skybox_data(scene_t *scene) {
+    set_scene_skybox(scene, NULL);
+    skybox_t *skybox = &scene->skybox;
+    detach_shader(&skybox->shader);
+
+    if (skybox->vertex_array >= 0) {
+        glDeleteVertexArrays(1, &skybox->vertex_array);
+        skybox->vertex_array = -1;
+    }
+
+    if (skybox->vertex_buffer >= 0) {
+        glDeleteBuffers(1, &skybox->vertex_buffer);
+        skybox->vertex_buffer = -1;
+    }
+}
+
 void
 destroy_scene(scene_t **pp_scene) {
     scene_t *scene = *pp_scene;
@@ -343,7 +383,7 @@ destroy_scene(scene_t **pp_scene) {
     detach_shader(&scene->selection_shader);
     detach_shader(&scene->indexed_color_shader);
 
-    set_scene_skybox(scene, NULL);
+    destroy_skybox_data(scene);
 
     free(scene);
     *pp_scene = NULL;
@@ -474,12 +514,78 @@ select_next_object(scene_t *scene) {
     }
 }
 
-void
-set_scene_skybox(scene_t *scene, cubemap_t *skybox) {
-    if (scene->skybox != NULL) {
-        detach_cubemap(&scene->skybox);
+static void
+init_scene_skybox(skybox_t *skybox) {
+    if (skybox->shader != NULL) {
+        return;
     }
-    if (skybox != NULL) {
-        attach_cubemap(&scene->skybox, skybox);
+    attach_shader(&skybox->shader, load_shader("shaders/skybox_vertex.glsl", "shaders/skybox_fragment.glsl"));
+    glGenVertexArrays(1, &skybox->vertex_array);
+    glBindVertexArray(skybox->vertex_array);
+
+    glGenBuffers(1, &skybox->vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, skybox->vertex_buffer);
+
+    const float screen_data[] = {
+            // positions
+            -1.0f, 1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, 1.0f, -1.0f,
+            -1.0f, 1.0f, -1.0f,
+
+            -1.0f, -1.0f, 1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, 1.0f, -1.0f,
+            -1.0f, 1.0f, -1.0f,
+            -1.0f, 1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
+
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+
+            -1.0f, -1.0f, 1.0f,
+            -1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f,
+
+            -1.0f, 1.0f, -1.0f,
+            1.0f, 1.0f, -1.0f,
+            1.0f, 1.0f, 1.0f,
+            1.0f, 1.0f, 1.0f,
+            -1.0f, 1.0f, 1.0f,
+            -1.0f, 1.0f, -1.0f,
+
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f, 1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f, 1.0f,
+            1.0f, -1.0f, 1.0f
+    };
+    glBufferData(GL_ARRAY_BUFFER, sizeof(screen_data), screen_data, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
+
+    glBindVertexArray(0);
+}
+
+
+void
+set_scene_skybox(scene_t *scene, cubemap_t *cubemap) {
+    if (scene->skybox.cubemap != NULL) {
+        detach_cubemap(&scene->skybox.cubemap);
+    }
+    if (cubemap != NULL) {
+        attach_cubemap(&scene->skybox.cubemap, cubemap);
+        init_scene_skybox(&scene->skybox);
     }
 }

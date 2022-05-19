@@ -38,6 +38,12 @@ void camera_init(camera_t *camera, unsigned int window_width, unsigned int windo
 void update_camera_views(camera_t *camera);
 
 /**
+ * Fills the project_view with projection_matrix * default_view_matrix
+ * default_view matrix is the look matrix from 0,0,0 position
+ */
+void compute_skybox_project_view_matrix(camera_t *camera, mat4 project_view);
+
+/**
  * Moves camera up or down along the up vector. Direction depends on sign
  */
 void pitch_camera(camera_t *camera, float sign);
