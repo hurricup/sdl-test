@@ -53,17 +53,23 @@ void draw_selection(){
     if (texture(selection_texture, texture_position).x > 0){
         return;
     }
-    float color_around =
-    vec3(texture(selection_texture, texture_position + vec2(-step_x, step_y))).x +
-    vec3(texture(selection_texture, texture_position + vec2(0.0f, step_y))).x  +
-    vec3(texture(selection_texture, texture_position + vec2(step_x, step_y))).x +
-    vec3(texture(selection_texture, texture_position + vec2(-step_x, 0.0f))).x  +
-    vec3(texture(selection_texture, texture_position + vec2(step_x, 0.0f))).x +
-    vec3(texture(selection_texture, texture_position + vec2(-step_x, -step_y))).x +
-    vec3(texture(selection_texture, texture_position + vec2(0.0f, -step_y))).x  +
-    vec3(texture(selection_texture, texture_position + vec2(step_x, -step_y))).x;
-    if (color_around > 0){
-        color += vec4(0.0f, (color.y + 1.5f) / 2, 0.0f, 0.0f);
+    int border_width = 2;
+    int area_to_check = border_width * 2 + 1;
+
+    float start_x = texture_position.x - border_width * step_x;
+    float start_y = texture_position.y - border_width * step_y;
+
+    vec2 position = vec2(start_x, start_y);
+    for (int i = 0; i < area_to_check; i++){
+        position.y = start_y;
+        for (int j = 0; j < area_to_check; j++){
+            if (texture(selection_texture, position).x > 0){
+                color += vec4(0.0f, (color.y + 1.5f) / 2, 0.0f, 0.0f);
+                return;
+            }
+            position.y += step_y;
+        }
+        position.x += step_x;
     }
 }
 
