@@ -51,6 +51,7 @@ typedef struct scene {
     scene_screen_t scene_screen;
     scene_screen_t selection_screen;
     shader_t *selection_shader;
+    shader_t *indexed_color_shader;
     scene_screen_object_t scene_screen_object;
     effect_type_t effect_type;
 } scene_t;
@@ -79,5 +80,11 @@ void attach_spot_light_to_scene(scene_t *scene, spot_light_t *spot_light);
  * If any object selected - removes the selection from it and selects the next one in the list (or first)
  */
 void select_next_object(scene_t *scene);
+
+/**
+ * Attempts to find an object at screen_x and screen_y and mark it as selected. If other object was selected at the
+ * moment it is deselected.
+ */
+void select_object(scene_t *scene, unsigned int screen_x, unsigned int screen_y);
 
 #endif //SDL_TEST_SCENE_H

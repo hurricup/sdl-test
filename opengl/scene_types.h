@@ -33,13 +33,13 @@ typedef struct shader {
 } shader_t;
 
 typedef struct rendering_context {
-    unsigned int object_counter;
     shader_t *shader;
     bool add_lights;
     bool add_camera_position;
     bool add_textures;
     bool add_material_properties;
-    bool add_object_counter;
+    bool add_index_color;
+    vec3 index_color;
 } rendering_context_t;
 
 typedef struct vertex {

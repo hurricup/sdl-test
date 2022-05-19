@@ -67,6 +67,8 @@ create_scene() {
     init_scene_screen_object(&scene->scene_screen_object);
     attach_shader(&scene->selection_shader,
                   load_shader("shaders/selection_vertex.glsl", "shaders/selection_fragment.glsl"));
+    attach_shader(&scene->indexed_color_shader,
+                  load_shader("shaders/selection_vertex.glsl", "shaders/indexed_color_fragment.glsl"));
     return scene;
 }
 
@@ -217,7 +219,7 @@ static void
 render_selected_objects(scene_t *scene) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    rendering_context_t drawing_context = {0, scene->selection_shader, false, false, false, false, false};
+    rendering_context_t drawing_context = {scene->selection_shader, false, false, false, false, false, {0, 0, 0}};
     shader_use(drawing_context.shader);
     scene_object_list_item_t *current_object_item = scene->objects;
     while (current_object_item != NULL) {
@@ -233,32 +235,41 @@ render_selected_objects(scene_t *scene) {
 static void
 render_scene_fair(scene_t *scene) {
     scene_object_list_item_t *current_object_item = scene->objects;
-    rendering_context_t context = {0, NULL, true, true, true, true, false};
+    rendering_context_t context = {NULL, true, true, true, true, false, {0, 0, 0}};
     while (current_object_item != NULL) {
         scene_object_t *current_object = current_object_item->item;
         context.shader = current_object->shader;
         render_object(scene, current_object, &context);
-        context.object_counter++;
         current_object_item = current_object_item->next;
     }
     glFlush();
+}
+
+static void
+prepare_selection_screen(scene_t *scene) {
+    update_scene_screen(&scene->selection_screen, scene->camera);
+    glBindFramebuffer(GL_FRAMEBUFFER, scene->selection_screen.render_buffer);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+static void
+prepare_scene_screen(scene_t *scene) {
+    update_scene_screen(&scene->scene_screen, scene->camera);
+    glBindFramebuffer(GL_FRAMEBUFFER, scene->scene_screen.render_buffer);
+    set_up_scene_options(scene);
+    update_camera_views(scene->camera);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void render_scene(scene_t *scene) {
     render_pass++;
 
     // drawing to the scene screen
-    update_scene_screen(&scene->scene_screen, scene->camera);
-    glBindFramebuffer(GL_FRAMEBUFFER, scene->scene_screen.render_buffer);
-    set_up_scene_options(scene);
-    update_camera_views(scene->camera);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    prepare_scene_screen(scene);
     render_scene_fair(scene);
 
     // drawing selected objects
-    update_scene_screen(&scene->selection_screen, scene->camera);
-    glBindFramebuffer(GL_FRAMEBUFFER, scene->selection_screen.render_buffer);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    prepare_selection_screen(scene);
     render_selected_objects(scene);
 
     // drawing results
@@ -330,6 +341,7 @@ destroy_scene(scene_t **pp_scene) {
     }
 
     detach_shader(&scene->selection_shader);
+    detach_shader(&scene->indexed_color_shader);
 
     free(scene);
     *pp_scene = NULL;
@@ -374,12 +386,74 @@ void attach_spot_light_to_scene(scene_t *scene, spot_light_t *spot_light) {
     scene->spot_lights = new_item;
 }
 
+static void
+encode_unsigned_to_color(unsigned int number, vec3 color) {
+    float step = 1.0f / 255;
+    color[0] = step * (float) (number & 0xff);
+    color[1] = step * (float) (number >> 8 & 0xff);
+    color[2] = step * (float) (number >> 16 & 0xff);
+}
+
+static void
+render_with_indexed_colors(scene_t *scene) {
+    render_pass++;
+    prepare_scene_screen(scene);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    rendering_context_t context = {scene->indexed_color_shader, false, false, false, false, true, {0, 0, 0}};
+
+    scene_object_list_item_t *current_object_item = scene->objects;
+    unsigned int object_counter = 1;
+    while (current_object_item != NULL) {
+        scene_object_t *current_object = current_object_item->item;
+        encode_unsigned_to_color(object_counter, context.index_color);
+        object_counter++;
+        render_object(scene, current_object, &context);
+        current_object_item = current_object_item->next;
+    }
+    glFlush();
+}
+
+static scene_object_t *
+find_object_by_index_color(scene_t *scene, unsigned int screen_x, unsigned int screen_y) {
+    float color[3] = {0};
+    glReadPixels((GLint) screen_x, (GLint) (scene->selection_screen.height - screen_y), 1, 1, GL_RGB, GL_FLOAT, color);
+    unsigned int object_index = (unsigned int) (color[0] * 255) +
+                                ((unsigned int) (color[1] * 255) << 8) +
+                                ((unsigned int) (color[2] * 255) << 16);
+    if (object_index == 0) {
+        return NULL;
+    }
+    scene_object_list_item_t *current_item = scene->objects;
+    while (current_item != NULL) {
+        if (--object_index == 0) {
+            return current_item->item;
+        }
+        current_item = current_item->next;
+    }
+}
+
+static scene_object_t *
+find_object_at(scene_t *scene, unsigned int screen_x, unsigned int screen_y) {
+    render_with_indexed_colors(scene);
+    return find_object_by_index_color(scene, screen_x, screen_y);
+}
+
+void
+select_object(scene_t *scene, unsigned int screen_x, unsigned int screen_y) {
+    scene_object_t *object_at_coords = find_object_at(scene, screen_x, screen_y);
+    if (object_at_coords == NULL) {
+        return;
+    }
+    scene_object_list_item_t *current_item = scene->objects;
+    while (current_item != NULL) {
+        current_item->item->selected = (current_item->item == object_at_coords);
+        current_item = current_item->next;
+    }
+}
+
 void
 select_next_object(scene_t *scene) {
     scene_object_list_item_t *current_item = scene->objects;
-    if (current_item == NULL) {
-        return;
-    }
     while (current_item != NULL) {
         if (current_item->item != NULL && current_item->item->selected) {
             current_item->item->selected = false;

@@ -118,8 +118,8 @@ render_mesh(mesh_t *mesh, rendering_context_t *context) {
         shader_set_float(shader, "material.opacity", mesh->material.opacity);
     }
 
-    if (context->add_object_counter) {
-        shader_set_int(shader, "object_counter", (int) context->object_counter);
+    if (context->add_index_color) {
+        shader_set_vec3(shader, "index_color", context->index_color);
     }
 
     // draw

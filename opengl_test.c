@@ -58,6 +58,8 @@ event_loop() {
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 return;
+            } else if (event.type == SDL_MOUSEBUTTONDOWN && event.button.button == 1) {
+                select_object(scene, event.button.x, event.button.y);
             } else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
                 SDL_GetWindowSize(window, &window_width, &window_height);
                 glViewport(0, 0, window_width, window_height);
