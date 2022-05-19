@@ -42,6 +42,8 @@ update_scene_screen(scene_screen_t *scene_screen, camera_t *camera) {
     glBindTexture(GL_TEXTURE_2D, scene_screen->texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, (int) scene_screen->width, (int) scene_screen->height, 0, GL_RGB,
                  GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0);
