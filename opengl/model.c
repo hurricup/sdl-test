@@ -249,10 +249,32 @@ import_mesh_indices(mesh_t *mesh, struct aiMesh *assimp_mesh) {
     mesh->indices_number = indices_number;
 }
 
+void
+load_current_texture_file(const char *path_name, int target) {
+    // creating from external file
+    int width, height, channels_number;
+    unsigned char *data = stbi_load(path_name, &width, &height, &channels_number, 0);
+    if (data == NULL) {
+        SDL_Die("Error loading texture_id %s", path_name);
+    }
+    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                "Loaded %s: %u x %u, channels %u", path_name, width, height, channels_number);
+
+    GLenum format;
+    if (channels_number == 1) {
+        format = GL_RED;
+    } else if (channels_number == 3) {
+        format = GL_RGB;
+    } else if (channels_number == 4) {
+        format = GL_RGBA;
+    }
+
+    glTexImage2D(target, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+    stbi_image_free(data);
+}
+
 static unsigned int
 load_texture_file(const char *dirname, const char *filename) {
-    int width, height, channels_number;
-
     unsigned int dir_len = strlen(dirname);
     unsigned int filename_len = strlen(filename);
     unsigned int path_len = dir_len + filename_len + 1;
@@ -264,36 +286,17 @@ load_texture_file(const char *dirname, const char *filename) {
 
     unsigned int texture_id;
     glGenTextures(1, &texture_id);
+    glBindTexture(GL_TEXTURE_2D, texture_id);
 
-    // creating from external file
-    unsigned char *data = stbi_load(path_name, &width, &height, &channels_number, 0);
-    if (data == NULL) {
-        SDL_Die("Error loading texture_id %s", path_name);
-    } else {
-        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
-                    "Loaded %s: %u x %u, channels %u", path_name, width, height, channels_number);
+    load_current_texture_file(path_name, GL_TEXTURE_2D);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
-        GLenum format;
-        if (channels_number == 1) {
-            format = GL_RED;
-        } else if (channels_number == 3) {
-            format = GL_RGB;
-        } else if (channels_number == 4) {
-            format = GL_RGBA;
-        }
+    // configure texture_id options
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        glBindTexture(GL_TEXTURE_2D, texture_id);
-
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        // configure texture_id options
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    }
-    stbi_image_free(data);
     return texture_id;
 }
 

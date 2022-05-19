@@ -5,6 +5,7 @@
 #include "scene_object.h"
 #include "light.h"
 #include "scene_screen.h"
+#include "cubemap.h"
 
 typedef enum {
     EFFECT_NONE = 0,
@@ -54,6 +55,7 @@ typedef struct scene {
     shader_t *indexed_color_shader;
     scene_screen_object_t scene_screen_object;
     effect_type_t effect_type;
+    cubemap_t *skybox;
 } scene_t;
 
 scene_t *create_scene();
@@ -86,5 +88,10 @@ void select_next_object(scene_t *scene);
  * moment it is deselected.
  */
 void select_object(scene_t *scene, unsigned int screen_x, unsigned int screen_y);
+
+/**
+ * Attaches skybox cubemap to the scene, detaching previous one if we did have one
+ */
+void set_scene_skybox(scene_t *scene, cubemap_t *skybox);
 
 #endif //SDL_TEST_SCENE_H

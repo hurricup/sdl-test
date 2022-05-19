@@ -11,6 +11,7 @@
 #include "opengl/model.h"
 #include "opengl/scene_object.h"
 #include "opengl/scene.h"
+#include "opengl/cubemap.h"
 
 static int window_width = 1280;
 static int window_height = 1280 / 16 * 9;
@@ -215,6 +216,8 @@ static scene_object_t *create_lighter(model_t *cube_model, shader_t *model_shade
 static void
 initialize_scene() {
     scene = create_scene();
+
+    set_scene_skybox(scene, create_cubemap("assets/textures/skybox/%s.jpg"));
 
     camera_t *camera = create_camera();
     attach_camera_to_scene(scene, camera);

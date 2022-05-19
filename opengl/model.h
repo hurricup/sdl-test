@@ -25,4 +25,6 @@ void attach_model(model_t **target, model_t *model);
 
 void detach_model(model_t **model_pointer);
 
+void load_current_texture_file(const char *path_name, int target);
+
 #endif //SDL_TEST_MODEL_H

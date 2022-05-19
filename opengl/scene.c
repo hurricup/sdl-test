@@ -343,6 +343,8 @@ destroy_scene(scene_t **pp_scene) {
     detach_shader(&scene->selection_shader);
     detach_shader(&scene->indexed_color_shader);
 
+    set_scene_skybox(scene, NULL);
+
     free(scene);
     *pp_scene = NULL;
 }
@@ -469,5 +471,15 @@ select_next_object(scene_t *scene) {
     }
     if (scene->objects != NULL && scene->objects->item != NULL) {
         scene->objects->item->selected = true;
+    }
+}
+
+void
+set_scene_skybox(scene_t *scene, cubemap_t *skybox) {
+    if (scene->skybox != NULL) {
+        detach_cubemap(&scene->skybox);
+    }
+    if (skybox != NULL) {
+        attach_cubemap(&scene->skybox, skybox);
     }
 }
