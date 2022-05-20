@@ -40,6 +40,7 @@ typedef struct rendering_context {
     bool add_material_properties;
     bool add_index_color;
     vec3 index_color;
+    unsigned int skybox_texture;
 } rendering_context_t;
 
 typedef struct vertex {

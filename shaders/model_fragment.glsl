@@ -7,7 +7,10 @@
 #define TEX_TYPE_NORMALS 6
 #define TEX_TYPE_SHININESS 7
 #define TEX_TYPE_OPACITY 8
-#define MAX_TEX_TYPE TEX_TYPE_OPACITY
+#define TEX_TYPE_DISPLACEMENT 9
+#define TEX_TYPE_LIGHTMAP 10
+#define TEX_TYPE_REFLECTION 11
+#define MAX_TEX_TYPE TEX_TYPE_REFLECTION
 
 struct LightProp{
     vec4 ambient;
@@ -52,6 +55,9 @@ struct DynamicData{
     vec4 specular;
     bool specular_on;
 
+    vec4 reflection;
+    bool reflection_on;
+
     vec3 camera_frag_direction;
     float camera_attenuation;
 
@@ -82,6 +88,11 @@ uniform sampler2D texture_height0;// type 5
 uniform sampler2D texture_normals0;// type 6
 uniform sampler2D texture_shininess0;// type 7
 uniform sampler2D texture_opacity0;// type 8
+uniform sampler2D texture_displacement0;// type 9
+uniform sampler2D texture_ligthmap0;// type 10
+uniform sampler2D texture_reflection0;// type 11
+
+uniform samplerCube skybox;
 
 out vec4 color;
 
@@ -106,6 +117,11 @@ DynamicData computeDynamicData(){
     dd.specular_on = textures_number[TEX_TYPE_SPECULAR] > 0;
     if (dd.specular_on){
         dd.specular = texture(texture_specular0, tex_coord);
+    }
+
+    dd.reflection_on = textures_number[TEX_TYPE_REFLECTION] > 0;
+    if (dd.reflection_on){
+        dd.reflection = texture(texture_reflection0, tex_coord);
     }
 
     // camera distance attuniation
@@ -247,6 +263,12 @@ vec4 computeSpotLight(SpotLight spot_light, DynamicData dd){
     return frag_color;
 }
 
+vec4 computeReflection(vec4 current_color, DynamicData dd){
+    vec3 camera_reflection = normalize(reflect(dd.camera_frag_direction, dd.normal));
+    vec4 reflected_color = dd.reflection * texture(skybox, camera_reflection);
+    return reflected_color + current_color * vec4(vec3(1) - vec3(dd.reflection), 1.0);
+}
+
 void main(){
 
     DynamicData dd = computeDynamicData();
@@ -263,6 +285,10 @@ void main(){
 
     for (int i = 0; i < spot_lights_number; i++){
         frag_color += computeSpotLight(spot_lights[i], dd);
+    }
+
+    if (dd.reflection_on){
+        frag_color = computeReflection(frag_color, dd);
     }
 
     color = frag_color * dd.camera_attenuation;

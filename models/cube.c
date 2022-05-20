@@ -57,6 +57,7 @@ cube_model_create() {
     SDL_ALLOC_CHECK(mesh->textures);
     load_texture(cube_model, mesh, aiTextureType_DIFFUSE, "texture2.png");
     load_texture(cube_model, mesh, aiTextureType_SPECULAR, "specular_map.png");
+    load_texture(cube_model, mesh, aiTextureType_REFLECTION, "texture_reflection.png");
 
     material_t *material = &mesh->material;
     glm_vec4_fill(material->ambient, 1.0f);

@@ -3,9 +3,9 @@
 #include "model.h"
 
 #define MIN_TEXTURE_TYPE aiTextureType_DIFFUSE
-#define MAX_TEXTURE_TYPE aiTextureType_OPACITY
+#define MAX_TEXTURE_TYPE aiTextureType_REFLECTION
 #define MAX_TEXTURES_PER_TYPE 2
-#define TEXTURE_SLOT_NAME_SIZE 20
+#define TEXTURE_SLOT_NAME_SIZE 24
 
 static bool texture_uniform_names_initialized = false;
 static char texture_uniform_names_templates[MAX_TEXTURE_TYPE + 1][TEXTURE_SLOT_NAME_SIZE] = {
@@ -17,7 +17,10 @@ static char texture_uniform_names_templates[MAX_TEXTURE_TYPE + 1][TEXTURE_SLOT_N
         "texture_height%u",
         "texture_normals%u",
         "texture_shininess%u",
-        "texture_opacity%u"
+        "texture_opacity%u",
+        "texture_displacement%u",
+        "texture_lightmap%u",
+        "texture_reflection%u"
 };
 
 
@@ -31,7 +34,10 @@ static char texture_flags_names[MAX_TEXTURE_TYPE + 1][TEXTURE_SLOT_NAME_SIZE] = 
         "textures_number[5]",
         "textures_number[6]",
         "textures_number[7]",
-        "textures_number[8]"
+        "textures_number[8]",
+        "textures_number[9]",
+        "textures_number[10]",
+        "textures_number[11]"
 };
 
 static void
@@ -93,18 +99,25 @@ render_mesh(mesh_t *mesh, rendering_context_t *context) {
     if (context->add_textures) {
         // textures
         unsigned int type_index[MAX_TEXTURE_TYPE + 1] = {0};
+        int textures_count = 0;
         if (mesh->textures_number) {
-            for (int i = 0; i < mesh->textures_number; i++) {
-                glActiveTexture(GL_TEXTURE0 + i);
-                texture_t *texture = mesh->textures[i];
+            for (; textures_count < mesh->textures_number; textures_count++) {
+                glActiveTexture(GL_TEXTURE0 + textures_count);
+                texture_t *texture = mesh->textures[textures_count];
                 char *texture_uniform_name = get_texture_uniform_name(texture->type, type_index[texture->type]++);
-                shader_set_int(shader, texture_uniform_name, i);
+                shader_set_int(shader, texture_uniform_name, textures_count);
                 glBindTexture(GL_TEXTURE_2D, texture->id);
             }
             glActiveTexture(GL_TEXTURE0);
         }
         for (int i = 0; i <= MAX_TEXTURE_TYPE; i++) {
             shader_set_int(shader, texture_flags_names[i], (int) type_index[i]);
+        }
+        if (context->skybox_texture > 0 && type_index[aiTextureType_REFLECTION] > 0) {
+            glActiveTexture(GL_TEXTURE0 + textures_count);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, context->skybox_texture);
+            shader_set_int(shader, "skybox", textures_count);
+            glActiveTexture(GL_TEXTURE0);
         }
     }
 

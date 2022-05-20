@@ -218,13 +218,13 @@ static void
 render_selected_objects(scene_t *scene) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    rendering_context_t drawing_context = {scene->selection_shader, false, false, false, false, false, {0, 0, 0}};
-    shader_use(drawing_context.shader);
+    rendering_context_t render_context = {scene->selection_shader, false, false, false, false, false, {0, 0, 0}, 0};
+    shader_use(render_context.shader);
     scene_object_list_item_t *current_object_item = scene->objects;
     while (current_object_item != NULL) {
         scene_object_t *current_object = current_object_item->item;
         if (current_object != NULL && current_object->selected) {
-            render_scene_object(current_object, scene->camera->project_view_matrix, &drawing_context);
+            render_scene_object(current_object, scene->camera->project_view_matrix, &render_context);
         }
         current_object_item = current_object_item->next;
     }
@@ -237,7 +237,10 @@ render_scene_fair(scene_t *scene) {
     GL_CHECK_ERROR;
 
     scene_object_list_item_t *current_object_item = scene->objects;
-    rendering_context_t context = {NULL, true, true, true, true, false, {0, 0, 0}};
+    rendering_context_t context = {NULL, true, true, true, true, false, {0, 0, 0}, 0};
+    if (scene->skybox.cubemap != NULL) {
+        context.skybox_texture = scene->skybox.cubemap->texture;
+    }
     while (current_object_item != NULL) {
         scene_object_t *current_object = current_object_item->item;
         context.shader = current_object->shader;
@@ -443,7 +446,7 @@ render_with_indexed_colors(scene_t *scene) {
     render_pass++;
     prepare_scene_screen(scene);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    rendering_context_t context = {scene->indexed_color_shader, false, false, false, false, true, {0, 0, 0}};
+    rendering_context_t context = {scene->indexed_color_shader, false, false, false, false, true, {0, 0, 0}, 0};
 
     scene_object_list_item_t *current_object_item = scene->objects;
     unsigned int object_counter = 1;
