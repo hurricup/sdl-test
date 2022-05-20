@@ -2,6 +2,8 @@ This is my code from learning OpenGL with [https://learnopengl.com/](https://lea
 
 Tried on linux with nVidia video card.
 
+[Progress video-log (kinda)](https://www.youtube.com/watch?v=Lsm4J8Bvuvg&list=PLxn4kVeN--pDOIoCr_zDvMnBsz8ZZAsvh)
+
 Requirements:
 
 - libopengl-dev - OpenGL
