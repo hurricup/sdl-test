@@ -1,4 +1,5 @@
 #version 430 core
+#define PI 3.1415926538
 #define EFFECT_NONE 0
 #define EFFECT_INVERT 1
 #define EFFECT_GRAYSCALE 2
@@ -16,6 +17,7 @@ layout(binding = 1) uniform sampler2D selection_texture;
 uniform int effect_type;
 uniform float step_x;
 uniform float step_y;
+uniform float time;
 
 float kernel_sharp[9] = float[](
 -1, -1, -1,
@@ -64,13 +66,11 @@ void draw_selection(){
         position.y = start_y;
         for (int j = 0; j < area_to_check; j++){
             if (texture(selection_texture, position).x > 0){
-                vec4 selection_color = vec4(0, 1, 0, 1);
-                if (distance(selection_color, color) < 0.4){
-                    selection_color = vec4(0, 0, 1, 1);
-                    if (distance(selection_color, color) < 0.4){
-                        selection_color = vec4(1, 0, 0, 1);
-                    }
-                }
+                float oscillation_base = 2 * PI * (10 * (texture_position.x + texture_position.y)/2 + time / 2000);
+                float green_color = sin(oscillation_base) / 2 + 0.5;
+                float blue_color = sin(oscillation_base + 2 * PI / 3) / 2 + 0.5;
+                float red_color = sin(oscillation_base + 4 * PI / 3) / 2 + 0.5;
+                vec4 selection_color = vec4(red_color, green_color, blue_color, 1);
                 color = selection_color;
                 return;
             }

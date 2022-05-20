@@ -202,6 +202,8 @@ render_scene_screen(scene_t *scene) {
     shader_set_int(shader, "effect_type", scene->effect_type);
     shader_set_float(shader, "step_x", 1.0f / (float) scene_screen->width);
     shader_set_float(shader, "step_y", 1.0f / (float) scene_screen->height);
+    shader_set_float(shader, "time", (float) SDL_GetTicks());
+
     glDrawArrays(GL_TRIANGLES, 0, 6);
     GL_CHECK_ERROR;
 
