@@ -64,7 +64,14 @@ void draw_selection(){
         position.y = start_y;
         for (int j = 0; j < area_to_check; j++){
             if (texture(selection_texture, position).x > 0){
-                color = vec4(1.0f) - vec4(vec3(color), 0.0f);
+                vec4 selection_color = vec4(0, 1, 0, 1);
+                if (distance(selection_color, color) < 0.4){
+                    selection_color = vec4(0, 0, 1, 1);
+                    if (distance(selection_color, color) < 0.4){
+                        selection_color = vec4(1, 0, 0, 1);
+                    }
+                }
+                color = selection_color;
                 return;
             }
             position.y += step_y;
